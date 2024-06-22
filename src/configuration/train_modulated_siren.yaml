@@ -1,0 +1,38 @@
+data:
+  train:
+    dataset: 'C:/Users/jan/Documents/python_files/adlm/data/brain/singlecoil_train'
+    num_samples: 15
+    mri_type: "FLAIR"
+    num_workers: 4
+  val:
+    dataset: 'C:/Users/jan/Documents/python_files/adlm/data/brain/singlecoil_train'
+    num_samples: 1
+    mri_type: "FLAIR"
+    num_workers: 4
+
+
+model:
+  dim_in: 2
+  dim_hidden: 256
+  dim_out: 1
+  latent_dim: 256
+  num_layers: 5
+  w0: 1.0
+  w0_initial: 30.0
+  use_bias: True
+  dropout: 0.1
+  encoder_type: "custom"
+  outer_patch_size: 32
+  inner_patch_size: 16
+  
+training:
+  lr: 0.0001
+  batch_size: 2
+  epochs: 100
+  limit_io: True
+  output_dir: "C:/Users/jan/Documents/python_files/adlm/refactoring/output"
+  output_name: "modulated_siren"
+  model:
+    continue_training: False
+    model_path: "C:/Users/jan/Documents/python_files/adlm/output/modulated_siren"
+    optimizer_path: "C:/Users/jan/Documents/python_files/adlm/output/modulated_siren"

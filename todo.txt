@@ -1,0 +1,4 @@
+Jan:
+-maybe test float16 or float8 for (partial) training
+-use diffetent "levels" of undersampling ? 
+-remove scheduler

@@ -1,0 +1,22 @@
+# train_custom_mri_autoencoder.yaml
+
+# Dataset configuration
+data:
+  train:
+    path: r"C:\Users\jan\Documents\python_files\adlm\data\brain\singlecoil_train"
+    num_workers: 4
+  val:
+    path: r"C:\Users\jan\Documents\python_files\adlm\data\brain\singlecoil_val"
+    batch_size: 10
+    num_workers: 4
+
+# Training configuration
+training:
+  num_epochs: 10
+  learning_rate: 0.001
+  optimizer: adam
+  loss_function: mse
+
+# Logging configuration
+logging:
+  batch_size: 10
