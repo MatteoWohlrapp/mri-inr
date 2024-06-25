@@ -73,4 +73,6 @@ def process_files(data_root: pathlib.Path):
             np.save(data_root / f"{file.stem}_{i}.npy", scan[i].numpy())
             np.save(data_root / f"{file.stem}_{i}_undersampled.npy", undersampled_scan[i].numpy())
     metadata = pl.DataFrame(metadata)
+    print(metadata)
+    print(data_root)
     metadata.write_csv(data_root / "metadata.csv")

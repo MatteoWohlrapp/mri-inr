@@ -64,8 +64,8 @@ def train_mod_siren(args):
         inner_patch_size=args.model.inner_patch_size,
     )
     trainer.load_model(
-        model_path=pathlib.Path(r"C:\Users\jan\Documents\python_files\adlm\refactoring\output\mod_siren\mod_siren_2024-06-22_08-29-55\model_checkpoints\model_epoch_100.pth"),
-        optimizer_path=pathlib.Path(r"C:\Users\jan\Documents\python_files\adlm\refactoring\output\mod_siren\mod_siren_2024-06-22_08-29-55\model_checkpoints\optimizer_epoch_100.pth")
+        model_path=pathlib.Path(r"./output/mod_siren/mod_siren_2024-06-24_01-34-35/model_checkpoints/modulated_siren_model.pth"),
+        #optimizer_path=pathlib.Path(r"C:\Users\jan\Documents\python_files\adlm\refactoring\output\mod_siren\mod_siren_2024-06-22_08-29-55\model_checkpoints\optimizer_epoch_100.pth")
     )
     # Train the model
     trainer.train(args.training.epochs)

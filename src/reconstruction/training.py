@@ -33,11 +33,11 @@ class Trainer:
         self.outer_patch_size = outer_patch_size
         self.inner_patch_size = inner_patch_size
         self.train_loader = DataLoader(
-            train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn
+            train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn, num_workers=4
         )
         if val_dataset:
             self.val_loader = DataLoader(
-                val_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn
+                val_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn, num_workers=4
             )
         else:
             self.val_loader = None
@@ -120,7 +120,7 @@ class Trainer:
         
 
 class TrainingManager:
-    def __init__(self, model, optimizer, output_dir, save_interval=20):
+    def __init__(self, model, optimizer, output_dir, save_interval=1000):
         self.model = model
         self.optimizer = optimizer
         self.output_dir = output_dir
@@ -175,7 +175,7 @@ class TrainingManager:
         """Create .txt file with human readable short progress log.
         Short meaning only every n-th epoch is included.
         """
-        short_log = self.progress_log.take_every(2)
+        short_log = self.progress_log.take_every(100)
         last_log = self.progress_log[-1,:]
         short_log = short_log.extend(last_log)
         short_log = short_log.unique(maintain_order=True, subset=["epoch"])

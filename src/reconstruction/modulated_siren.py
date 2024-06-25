@@ -114,7 +114,8 @@ class Encoder(nn.Module):
         self.latent_dim = latent_dim
         self.encoder_type = encoder_type
         if encoder_type == 'custom':
-            self.encoder = CustomEncoder(pathlib.Path(r'C:\Users\jan\Documents\python_files\adlm\refactoring\models\model1.pth'))
+            self.encoder = CustomEncoder(pathlib.Path(r'./output/custom_encoder/model1.pth'))
+            self.encoder.train()
         else:
             pass #for now
 

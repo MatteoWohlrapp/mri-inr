@@ -33,7 +33,7 @@ def test_mod_siren(model_path: pathlib.Path):
     mod_siren.eval()
 
     
-    dataset = MRIDataset(pathlib.Path(r"C:\Users\jan\Documents\python_files\adlm\data\brain\singlecoil_train"), number_of_samples=1)
+    dataset = MRIDataset(pathlib.Path(r"../../dataset/fastmri/brain/singlecoil_train/"), number_of_samples=1)
     undersampled_image = dataset[0][1][50].float()
 
     # Test the model
@@ -46,4 +46,4 @@ def test_mod_siren(model_path: pathlib.Path):
     show_image_comparison((undersampled_image, output))
 
 if __name__ == "__main__":
-    test_mod_siren(pathlib.Path(r"C:\Users\jan\Documents\python_files\adlm\refactoring\models\model_checkpoints\model1_model.pth"))
+    test_mod_siren(pathlib.Path(r"./output/mod_siren/mod_siren_2024-06-24_10-02-41/model_checkpoints/model_epoch_0.pth"))

@@ -29,6 +29,8 @@ class MRIDataset(Dataset):
             self.metadata = self.metadata.filter(pl.col("mri_type") == self.mri_type)
         if self.number_of_samples:
             self.metadata = self.metadata.collect().sample(n=self.number_of_samples, seed=self.seed)
+        else:
+            self.metadata = self.metadata.collect()
 
     def __len__(self):
         return len(self.metadata)
