@@ -9,6 +9,8 @@ import os
 from src.util.tiling import collate_fn, extract_center_batch
 import os
 import polars as pl
+from src.data.mri_dataset import MRIDataset2
+from src.util.visualization import save_image_comparison
 
 pl.Config.set_tbl_rows(1000)
 amp_enabled = True
@@ -197,3 +199,20 @@ class TrainingManager:
         with open(f"{self.output_dir}/progress_log.txt", "w",encoding="utf-8") as f:
             print(short_log, file=f)
 
+def save_example_images(model, output_dir):
+    test_slice_ids = ["file_100", "file_200", "file_300"]
+    val_slice_ids = ["file_400", "file_500", "file_600"]
+    test_path = pathlib.Path(r"C:\Users\jan\Documents\python_files\adlm\data\brain\singlecoil_val") #TODO remove hardcoded paths
+    val_path = pathlib.Path(r"C:\Users\jan\Documents\python_files\adlm\data\brain\singlecoil_val") #TODO remove hardcoded paths
+    test_dataset = MRIDataset2(test_path, specific_slice_ids=test_slice_ids)
+    val_dataset = MRIDataset2(val_path, specific_slice_ids=val_slice_ids)
+    for slice_id in test_slice_ids:
+        fully_sampled, undersampled = test_dataset.get_image(slice_id)
+        with torch.no_grad():
+            output = model(undersampled.unsqueeze(0))
+        save_image_comparison(fully_sampled, undersampled, output, f"{output_dir}/{slice_id}_comparison.png")
+    for slice_id in val_slice_ids:
+        fully_sampled, undersampled = val_dataset.get_image(slice_id)
+        with torch.no_grad():
+            output = model(undersampled.unsqueeze(0))
+        save_image_comparison(fully_sampled, undersampled, output, f"{output_dir}/{slice_id}_comparison.png")

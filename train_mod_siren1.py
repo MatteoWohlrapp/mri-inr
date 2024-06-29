@@ -17,6 +17,7 @@ def find_latest_model(directory: pathlib.Path):
     models = list(directory.glob("**/model*.pth"))
     return pathlib.Path(max(models, key=lambda x: x.stat().st_mtime))
 
+torch.cuda.memory_usage
 
 @time_function
 def train_mod_siren(args):
