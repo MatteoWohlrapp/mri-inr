@@ -148,3 +148,58 @@ def extract_center_batch(batch, outer_patch_size, inner_patch_size) -> torch.Ten
     padding = (outer_patch_size - inner_patch_size) // 2
     center = batch[:, padding:padding+inner_patch_size, padding:padding+inner_patch_size]
     return center
+
+def alternative_image_to_tiles(image: torch.Tensor, outer_patch_size, inner_patch_size):
+    kernel_size = outer_patch_size
+    stride = inner_patch_size
+    padding = (outer_patch_size - inner_patch_size) // 2
+    patches = F.unfold(image, kernel_size=(kernel_size, kernel_size), stride=stride, padding=padding)
+    patches = patches.transpose(0, 1).contiguous().view(-1, 1, outer_patch_size, outer_patch_size)
+    info = (image.shape[1] // inner_patch_size, image.shape[2] // inner_patch_size)
+    return patches, info
+
+def alternative_tiles_to_image(tiles, image_information, outer_patch_size, inner_patch_size):
+    # Assuming a single-channel image. Adjust for multi-channel images.
+    output_size = (image_information[0] * inner_patch_size, image_information[1] * inner_patch_size)
+    kernel_size = outer_patch_size
+    stride = inner_patch_size
+    padding = (outer_patch_size - inner_patch_size) // 2
+    flat_tiles = tiles.reshape(-1, kernel_size * kernel_size).permute(1, 0)
+    image = F.fold(flat_tiles, output_size, kernel_size=(kernel_size, kernel_size), stride=stride, padding=padding)
+    normalization = F.fold(torch.ones_like(flat_tiles), output_size, kernel_size=(kernel_size, kernel_size), stride=stride, padding=padding)
+    image /= normalization
+
+    return image
+
+def alternative_tiles_to_image2(tiles, image_information, outer_patch_size, inner_patch_size):
+    # Assuming a single-channel image. Adjust for multi-channel images.
+    output_size = (image_information[0] * inner_patch_size, image_information[1] * inner_patch_size)
+    kernel_size = outer_patch_size
+    stride = inner_patch_size
+    padding = (outer_patch_size - inner_patch_size) // 2
+    weights = generate_weight_matrix(kernel_size)
+
+    tiles = tiles * weights
+    normalization = torch.ones_like(tiles) * weights
+
+    flat_tiles = tiles.reshape(-1, kernel_size * kernel_size).permute(1, 0)
+    flat_normalization = normalization.reshape(-1, kernel_size * kernel_size).permute(1, 0)
+    image = F.fold(flat_tiles, output_size, kernel_size=(kernel_size, kernel_size), stride=stride, padding=padding)
+    normalization = F.fold(flat_normalization, output_size, kernel_size=(kernel_size, kernel_size), stride=stride, padding=padding)
+    image /= normalization
+
+    return image
+
+def generate_weight_matrix(tile_size):
+    center = (tile_size - 1) / 2
+    weight_matrix = torch.zeros((tile_size, tile_size))
+    
+    for i in range(tile_size):
+        for j in range(tile_size):
+            distance = np.sqrt((i - center) ** 2 + (j - center) ** 2)
+            weight = np.exp(-0.1*distance)
+            weight_matrix[i, j] = weight
+    
+    weight_matrix /= weight_matrix.max()
+    
+    return weight_matrix

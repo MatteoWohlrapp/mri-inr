@@ -11,7 +11,7 @@ from einops import rearrange
 from src.configuration.simple_conf import load_configuration
 from src.util.tiling import extract_with_inner_patches, classify_tile, collate_fn, extract_center
 
-data_root = pathlib.Path(r"../../dataset/fastmri/brain/singlecoil_val/")
+data_root = pathlib.Path(r"C:\Users\jan\Documents\python_files\adlm\data\brain\singlecoil_val")
 
 
 

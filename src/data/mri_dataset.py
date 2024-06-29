@@ -40,6 +40,7 @@ class MRIDataset(Dataset):
 
 
     def _getitem_img(self, idx: int):
+        print(self.metadata)
         file_fullysampled = self.metadata[idx,0]
         file_undersampled = self.metadata[idx,1]
         scan_fullysampled = np.load(file_fullysampled)
