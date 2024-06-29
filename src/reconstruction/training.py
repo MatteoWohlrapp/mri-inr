@@ -63,7 +63,7 @@ class Trainer:
     def _train_epoch(self):
         self.model.train()
         training_loss = 0
-        for (undersampled_batch, fully_sampled_batch) in self.train_loader:
+        for (fully_sampled_batch, undersampled_batch) in self.train_loader:
             training_loss += self._train_iteration(undersampled_batch, fully_sampled_batch)
         return training_loss
 
@@ -120,7 +120,7 @@ class Trainer:
         
 
 class TrainingManager:
-    def __init__(self, model, optimizer, output_dir, save_interval=1000):
+    def __init__(self, model, optimizer, output_dir, save_interval=100):
         self.model = model
         self.optimizer = optimizer
         self.output_dir = output_dir
@@ -140,6 +140,7 @@ class TrainingManager:
     def post_epoch_update(self, training_loss, validation_loss):
         if self.epoch_counter % self.save_interval == 0:
             self.save_model()
+        if self.epoch_counter % 100 == 0:
             self.update_human_readable_short_progress_log()
         self.epoch_counter += 1
         self.update_progress_log(training_loss, validation_loss)
@@ -175,7 +176,7 @@ class TrainingManager:
         """Create .txt file with human readable short progress log.
         Short meaning only every n-th epoch is included.
         """
-        short_log = self.progress_log.take_every(100)
+        short_log = self.progress_log.take_every(20)
         last_log = self.progress_log[-1,:]
         short_log = short_log.extend(last_log)
         short_log = short_log.unique(maintain_order=True, subset=["epoch"])

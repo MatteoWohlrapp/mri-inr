@@ -27,12 +27,12 @@ model:
   
 training:
   lr: 0.0001
-  batch_size: 10
+  batch_size: 20
   epochs: 10000
   limit_io: True
   output_dir: "./output"
   output_name: "modulated_siren"
   model:
-    continue_training: False
-    model_path: "./output/modulated_siren"
-    optimizer_path: "./output/modulated_siren"
+    continue_training: True
+    model_path: "./output/mod_siren/mod_siren_2024-06-26_00-10-29/model_checkpoints/model_epoch_1000.pth"
+    optimizer_path: ""

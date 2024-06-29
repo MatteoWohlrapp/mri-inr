@@ -13,6 +13,11 @@ from src.configuration.simple_conf import load_configuration
 import torch.nn as nn
 import torch.optim as optim
 
+def find_latest_model(directory: pathlib.Path):
+    models = list(directory.glob("**/model*.pth"))
+    return pathlib.Path(max(models, key=lambda x: x.stat().st_mtime))
+
+
 @time_function
 def train_mod_siren(args):
     print("Training the modulated SIREN...")
@@ -27,6 +32,7 @@ def train_mod_siren(args):
         print("Using the GPU")
     else:
         device = torch.device("cpu")
+
 
     # Load the model
     mod_siren = ModulatedSiren(
@@ -63,9 +69,11 @@ def train_mod_siren(args):
         outer_patch_size=args.model.outer_patch_size,
         inner_patch_size=args.model.inner_patch_size,
     )
+    # quick fix to try to mitigate the constant interruption of training runs
+    most_recent_model = find_latest_model(pathlib.Path(r'/vol/aimspace/projects/practical_SoSe24/mri_inr/rogalka/mri-inr/output/mod_siren'))
+    print(most_recent_model)
     trainer.load_model(
-        model_path=pathlib.Path(r"./output/mod_siren/mod_siren_2024-06-24_01-34-35/model_checkpoints/modulated_siren_model.pth"),
-        #optimizer_path=pathlib.Path(r"C:\Users\jan\Documents\python_files\adlm\refactoring\output\mod_siren\mod_siren_2024-06-22_08-29-55\model_checkpoints\optimizer_epoch_100.pth")
+        model_path=most_recent_model,
     )
     # Train the model
     trainer.train(args.training.epochs)

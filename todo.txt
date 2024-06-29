@@ -2,3 +2,6 @@ Jan:
 -maybe test float16 or float8 for (partial) training
 -use diffetent "levels" of undersampling ? 
 -remove scheduler
+-add reconstructionning mean for train and val error
+-normalize train and test error by sample batch_size
+-auto save sonme pictures per model save

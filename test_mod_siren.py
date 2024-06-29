@@ -46,4 +46,4 @@ def test_mod_siren(model_path: pathlib.Path):
     show_image_comparison((undersampled_image, output))
 
 if __name__ == "__main__":
-    test_mod_siren(pathlib.Path(r"./output/mod_siren/mod_siren_2024-06-24_10-02-41/model_checkpoints/model_epoch_0.pth"))
+    test_mod_siren(pathlib.Path(r"./output/mod_siren/mod_siren_2024-06-24_10-02-41/model_checkpoints/model_epoch_3000.pth"))
