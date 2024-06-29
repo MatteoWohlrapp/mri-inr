@@ -85,7 +85,7 @@ class Trainer:
         self.model.eval()
         validation_loss = 0
         with torch.no_grad():
-            for (undersampled_batch, fully_sampled_batch) in self.val_loader:
+            for (fully_sampled_batch, undersampled_batch) in self.val_loader:
                 validation_loss += self._validate_iteration(undersampled_batch, fully_sampled_batch)
         return validation_loss
 
@@ -120,10 +120,12 @@ class Trainer:
         
 
 class TrainingManager:
-    def __init__(self, model, optimizer, output_dir, save_interval=100):
+    def __init__(self, model, optimizer, output_dir, train_loader, val_loader, save_interval=100):
         self.model = model
         self.optimizer = optimizer
         self.output_dir = output_dir
+        self.train_loader = train_loader
+        self.val_loader = val_loader
         self.save_interval = save_interval
         self.epoch_counter = 0
         self.batch_counter = 0
@@ -136,6 +138,18 @@ class TrainingManager:
                 "time_since_start": [0.0],
             }
         )
+
+    def _get_inital_progress_log(self):
+        """Create initial progress log by evaluating the model on both training and validation data."""
+        training_loss = 0
+        validation_loss = 0
+        with torch.no_grad():
+            for (fully_sampled_batch, undersampled_batch) in self.train_loader:
+                training_loss += self._validate_iteration(undersampled_batch, fully_sampled_batch)
+            if self.val_loader:
+                for (fully_sampled_batch, undersampled_batch) in self.val_loader:
+                    validation_loss += self._validate_iteration(undersampled_batch, fully_sampled_batch)
+        return training_loss, validation_loss
 
     def post_epoch_update(self, training_loss, validation_loss):
         if self.epoch_counter % self.save_interval == 0:
@@ -168,7 +182,7 @@ class TrainingManager:
             "epoch": self.epoch_counter,
             "training_loss": training_loss,
             "validation_loss": validation_loss,
-            "time_since_start": (current_time - self.starting_time) / 60,
+            "time_since_start": int(round((current_time - self.starting_time) / 60,0)),
         }
         self.progress_log = self.progress_log.extend(pl.from_dict(current_log))
     
@@ -182,3 +196,4 @@ class TrainingManager:
         short_log = short_log.unique(maintain_order=True, subset=["epoch"])
         with open(f"{self.output_dir}/progress_log.txt", "w",encoding="utf-8") as f:
             print(short_log, file=f)
+

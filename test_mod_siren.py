@@ -85,8 +85,6 @@ def reconstruction_script():
     patches, info = alternative_image_to_tiles(image.unsqueeze(0), 32, 10)
     with torch.no_grad():
         output = model(patches)
-    print(output.shape)
-    print(patches.shape)
     #show_image(output[1000,:,:])
     #rec_image = alternative_tiles_to_image(output.squeeze(1), info, 16,10)
     rec_image2 = alternative_tiles_to_image2(output.squeeze(1), info, 16,10)
