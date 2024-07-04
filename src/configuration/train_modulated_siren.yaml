@@ -31,10 +31,8 @@ training:
   batch_size: 10
   epochs: 3
   output_dir: "./output"
-  output_name: "is-this-a-joke"
+  output_name: "refactored"
   optimizer: "Adam"
   save_interval: 1
   model:
     continue_training: False
-    model_path: "./output/mod_siren/mod_siren_2024-06-26_00-10-29/model_checkpoints/model_epoch_1000.pth"
-    optimizer_path: ""

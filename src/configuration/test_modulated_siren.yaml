@@ -19,6 +19,6 @@ model:
   
 testing: 
   output_dir: "./output"
-  output_name: "is-this-a-joke_2024-07-04_17-05-49"
-  model_path: "./output/is-this-a-joke_2024-07-04_17-05-49/models/is-this-a-joke_2024-07-04_17-05-49_model_epoch_3_final.pth"
+  output_name: "refactored_2024-07-05_00-06-35"
+  model_path: "output/refactored_2024-07-05_00-06-35/models/refactored_2024-07-05_00-06-35_optimizer_epoch_1_.pth"
 

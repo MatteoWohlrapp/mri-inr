@@ -8,7 +8,6 @@ Group Members:
 - Matteo Wohlrapp
 
 
-To train the model, simply execute the main.py file. You can see visualizations with `tensorboard --logdir=runs`. 
 
 ## Project Overview
 This project implements implicit neural representations for MRI images using modulated SIREN (Sinusoidal Representation Networks). It is designed to reconstruct high-quality images from undersampled k-space images.
@@ -25,85 +24,82 @@ This will install all necessary Python packages as specified in the `requirement
 ## Configuration
 The project uses YAML files for configuration to specify parameters for training and testing. Modify these files to adjust various parameters like dataset paths, network architecture, learning rates, etc. Alternatively, you can adjust all of the parameters through command line arguments. 
 
-Example configuration files are located in the `./configuration` directory:
-- `train.yml` for training setup.
-- `test.yml` for testing setup.
+Example configuration files are located in the `src/configuration` directory:
+- `train_modulated_siren.yml` for training setup.
+- `test_modulated_siren.yml` for testing setup.
 
 ## Running the Application
-To run the application, use the `main.py` script. You can specify a custom configuration file or use the provided examples. Just make sure to specify the execution mode:
+To run the application, use one of the two main scripts. You can specify a custom configuration file or use the provided examples.
 
 **Training:**
 ```bash
-python main.py -c ./configuration/train.yml
+python train_mod_siren.py --config src/configuration/train_modulated_siren.yml
 ```
-You can see visualizations of the training by running `tensorboard --logdir=runs`.
+You can see visualizations of the training by running `tensorboard --logdir={output_folder}/runs`.
 
 **Testing:**
 ```bash
-python main.py -c ./configuration/test.yml
+python test_mod_siren.py --config src/configuration/test_modulated_siren.yml
 ```
 
-The `-c` flag is used to specify the path to the configuration file. <br>
-To run the `autoencoder` encoder, you will need to download the VGG-16 pretrained model on ImageNet from [here](https://github.com/Horizon2333/imagenet-autoencoder/tree/main) and add it under `output/model_checkpoints` in the root of the repository.
+The `--config` flag is used to specify the path to the configuration file. <br>
 
-## Command-Line Arguments
-Use the `-h` option to view all available command-line arguments and their descriptions:
+## Configuration parameters 
+There is a number of configuration parameters for both training and testing. 
 
-```bash
-python main.py -h
-```
+### Common Parameters for Both Training and Testing
 
-This will display help information for each argument, including default values and choices where applicable.
+- **model**
+  - `dim_in`: Input dimension of the model.
+  - `dim_hidden`: Dimension of hidden layers.
+  - `dim_out`: Output dimension of the model.
+  - `latent_dim`: Dimension of the latent space.
+  - `num_layers`: Number of layers in the model.
+  - `w0`: The omega_0 parameter for SIREN.
+  - `w0_initial`: Initial value of omega_0.
+  - `use_bias`: Boolean flag to use bias in layers.
+  - `dropout`: Dropout rate.
+  - `encoder_type`: Type of encoder used.
+  - `encoder_path`: Path to a custom encoder model.
+  - `outer_patch_size`: Size of the outer patch in the input.
+  - `inner_patch_size`: Size of the inner patch in the input.
+
+### Training Configuration
+
+- **data**
+  - `train`
+    - `dataset`: Path to the training dataset.
+    - `num_samples`: Number of samples to use from the training dataset.
+    - `mri_type`: Type of MRI images (e.g., FLAIR).
+    - `num_workers`: Number of workers for data loading.
+  - `val`
+    - `dataset`: Path to the validation dataset.
+    - `num_samples`: Number of samples to use from the validation dataset.
+
+- **training**
+  - `lr`: Learning rate.
+  - `batch_size`: Batch size.
+  - `epochs`: Total number of epochs to train.
+  - `limit_io`: Boolean to limit I/O operations.
+  - `output_dir`: Directory to save output files.
+  - `output_name`: Base name for output files.
+  - `optimizer`: Type of optimizer to use (`Adam`, `SGD`, etc.).
+  - `model`
+    - `continue_training`: Boolean to indicate whether to continue training from a previous checkpoint.
+    - `model_path`: Path to the model checkpoint for resuming training.
+    - `optimizer_path`: Path to the optimizer checkpoint.
+
+### Testing Configuration
+
+- **data**
+  - `dataset`: Path to the testing dataset.
+  - `num_samples`: Number of samples to use from the testing dataset.
+  - `test_files`: Specific files to test within the dataset.
+
+- **testing**
+  - `output_dir`: Directory to save output files.
+  - `output_name`: Base name for output files.
+  - `model_path`: Path to the model file for testing.
 
 ## Output
-All output files, including saved models and reconstructed images, are stored in a subdirectory withing the `output` directory specified by the `--name` argument within the configuration file. This allows for easy organization and retrieval of results from different runs.
-
-
-## Detailed Description
-
-Our model aims to generate high-resolution images from their low-resolution counterparts through implicit neural representations. Here's a detailed description of the network's structure and workflow:
-
-#### Input and Tile-Based Processing
-
-- **Input**: The input to the network is a low-resolution image.
-- **Tile-based Approach**: The low-resolution image is divided into smaller tiles of size \( \text{tile size} \times \text{tile size} \).
-  - This method helps in managing computational load and improving efficiency.
-
-#### Encoding
-
-- **Tile Encoding**: Each tile is encoded into a specified latent dimension.
-  - **Latent Dimension**: We typically use a latent dimension of 256 for encoding.
-- **Encoding Network**: The encoder network processes each tile to produce a latent vector that captures the essential features of the tile.
-
-#### Modulation
-
-- **Modulator Network**: The latent vector produced by the encoder is then fed into the modulator network.
-  - **Function**: The modulator adjusts the weights of the subsequent synthesizer network.
-  - This modulation ensures that the weights of the synthesizer are tailored specifically for each tile, based on its encoded features.
-
-#### Synthesis
-
-- **Synthesizer Network**: The synthesizer network receives two types of inputs:
-  - **Coordinates**: Coordinates relative to the tile (normalized to be between -1 and 1 for both dimensions).
-  - **Modulated Parameters**: Parameters modulated by the modulator network.
-- **Activation Function**: The synthesizer uses the sine function as its activation function.
-  - **Parameters of Sine Function**: The frequency and other parameters of the sine function are modulated by the output of the modulator network.     
-
-The synthesizer network generates the high-resolution data for each tile based on the input coordinates and the modulated parameters.
-
-#### Training and Reconstruction
-
-- **Training**: During the training phase, the network is optimized to reconstruct the high-resolution tiles from the low-resolution input tiles.      
-  - High-resolution images are not directly reconstructed during training; instead, the focus is on individual tiles.
-
-- **Reconstruction**: For visualization and verification, a reconstruction function is used to combine the individual high-resolution tiles back into a complete high-resolution image.
-
-#### Summary of Steps
-
-1. **Low-Resolution Image** is divided into tiles of size \( \text{tile size} \times \text{tile size} \).
-2. Each **tile** is encoded into a latent vector.
-3. The **encoded vector** is fed into the **modulator network**.
-4. The **modulator network** tunes the weights of the **synthesizer network**.
-5. The **synthesizer network** receives **coordinates** and **modulated parameters** to generate the high-resolution output for each tile.
-6. **Training** focuses on perfecting this process tile-by-tile.
-7. **Reconstruction function** assembles the tiles to visualize the complete high-resolution image.
+All output files, including saved models and reconstructed images, are stored in a subdirectory withing the `output_name` directory specified by the `output_dir` argument within the configuration file. This allows for easy organization and retrieval of results from different runs.

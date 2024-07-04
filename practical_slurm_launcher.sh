@@ -9,6 +9,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=16   # number of processor cores (i.e. tasks)
 #SBATCH --gres=gpu:1  # replace 0 with 1 if gpu needed
+#SBATCH --qos=master-queuesave
 
 # load python module
 . "/opt/anaconda3/etc/profile.d/conda.sh"

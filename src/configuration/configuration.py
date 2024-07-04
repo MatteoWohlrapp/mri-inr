@@ -99,7 +99,7 @@ def load_configuration(file_path, testing=False):
 
     types_namespace = convert_to_namespace(full_config)
 
-    if not testing: 
+    if not testing:
         current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         types_namespace.training.output_name = (
             f"{types_namespace.training.output_name}_{current_time}"
