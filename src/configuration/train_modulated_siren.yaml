@@ -1,3 +1,4 @@
+name: "is-this-a-joke"
 data:
   train:
     dataset: '../../dataset/fastmri/brain/singlecoil_train/'
