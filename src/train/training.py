@@ -2,7 +2,6 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-from datetime import datetime
 import time
 import pathlib
 import os
@@ -11,6 +10,12 @@ import os
 import polars as pl
 from src.data.mri_dataset import MRIDataset
 from src.util.visualization import save_image_comparison
+import numpy as np
+from src.util.tiling import (
+    image_to_patches,
+    patches_to_image_weighted_average,
+    patches_to_image,
+)
 
 pl.Config.set_tbl_rows(1000)
 amp_enabled = True
@@ -29,6 +34,7 @@ class Trainer:
         val_dataset=None,
         batch_size=1,
         output_name="modulated_siren",
+        save_interval=100,
     ):
         self.model: nn.Module = model.to(device)
         self.device = device
@@ -38,7 +44,6 @@ class Trainer:
             train_dataset,
             batch_size=batch_size,
             shuffle=True,
-            collate_fn=collate_fn,
             num_workers=4,
         )
         if val_dataset:
@@ -46,7 +51,6 @@ class Trainer:
                 val_dataset,
                 batch_size=batch_size,
                 shuffle=True,
-                collate_fn=collate_fn,
                 num_workers=4,
             )
         else:
@@ -54,15 +58,20 @@ class Trainer:
         self.optimizer = optimizer
         self.output_name = output_name
         self.output_dir = output_dir
-        self.output_model_dir = (
-            pathlib.Path(output_dir)
-            / "mod_siren"
-            / f'mod_siren_{time.strftime("%Y-%m-%d_%H-%M-%S")}'
-        )
-        self.output_model_dir.mkdir(parents=False, exist_ok=False)
         self.criterion = nn.MSELoss()
-        self.writer = SummaryWriter(log_dir=f"{output_dir}/runs/{output_name}")
-        self.training_manager = TrainingManager(model, optimizer, self.output_model_dir)
+        self.writer = SummaryWriter(log_dir=f"{output_dir}/{output_name}/runs")
+        self.training_manager = TrainingManager(
+            model,
+            optimizer,
+            output_dir,
+            output_name,
+            self.train_loader,
+            train_dataset,
+            self.val_loader,
+            val_dataset,
+            device,
+            save_interval,
+        )
         self.scaler = torch.cuda.amp.GradScaler(enabled=True)
 
     def train(self, num_epochs):
@@ -71,7 +80,7 @@ class Trainer:
             validation_loss = self._validate_epoch() if self.val_loader else 0
             self.training_manager.post_epoch_update(training_loss, validation_loss)
         self.training_manager.update_human_readable_short_progress_log()
-        self._save_model()
+        self.training_manager.save_model("final")
 
     def _train_epoch(self):
         self.model.train()
@@ -84,6 +93,7 @@ class Trainer:
 
     def _train_iteration(self, undersampled_batch, fully_sampled_batch):
         undersampled_batch = undersampled_batch.to(self.device).float()
+
         fully_sampled_batch = (
             extract_center_batch(
                 fully_sampled_batch, self.outer_patch_size, self.inner_patch_size
@@ -127,20 +137,6 @@ class Trainer:
 
         return loss.item()
 
-    def _save_model(self):
-        with torch.no_grad():
-            if not os.path.exists(f"{self.output_model_dir}/model_checkpoints"):
-                os.makedirs(f"{self.output_model_dir}/model_checkpoints")
-
-            torch.save(
-                self.model.state_dict(),
-                f"{self.output_model_dir}/model_checkpoints/{self.output_name}_model.pth",
-            )
-            torch.save(
-                self.optimizer.state_dict(),
-                f"{self.output_model_dir}/model_checkpoints/{self.output_name}_optimizer.pth",
-            )
-
     def load_model(self, model_path, optimizer_path=None):
         """Used to continue training from a checkpoint."""
         self.model.load_state_dict(torch.load(model_path))
@@ -151,13 +147,27 @@ class Trainer:
 
 class TrainingManager:
     def __init__(
-        self, model, optimizer, output_dir, train_loader, val_loader, save_interval=100
+        self,
+        model,
+        optimizer,
+        output_dir,
+        output_name,
+        train_loader,
+        train_dataset,
+        val_loader,
+        val_dataset,
+        device,
+        save_interval=100,
     ):
         self.model = model
         self.optimizer = optimizer
         self.output_dir = output_dir
+        self.output_name = output_name
         self.train_loader = train_loader
+        self.train_dataset = train_dataset
         self.val_loader = val_loader
+        self.val_dataset = val_dataset
+        self.device = device
         self.save_interval = save_interval
         self.epoch_counter = 0
         self.batch_counter = 0
@@ -174,6 +184,7 @@ class TrainingManager:
     def post_epoch_update(self, training_loss, validation_loss):
         if self.epoch_counter % self.save_interval == 0:
             self.save_model()
+            self.save_snapshot()
         if self.epoch_counter % 100 == 0:
             self.update_human_readable_short_progress_log()
         self.epoch_counter += 1
@@ -184,17 +195,70 @@ class TrainingManager:
         self.batch_counter += 1
         # Perform post-batch updates here
 
-    def save_model(self):
-        if not os.path.exists(f"{self.output_dir}/model_checkpoints"):
-            os.makedirs(f"{self.output_dir}/model_checkpoints")
+    def save_model(self, suffix=""):
+        if not os.path.exists(f"{self.output_dir}/{self.output_name}/models"):
+            os.makedirs(f"{self.output_dir}/{self.output_name}/models")
         torch.save(
             self.model.state_dict(),
-            f"{self.output_dir}/model_checkpoints/model_epoch_{self.epoch_counter}.pth",
+            f"{self.output_dir}/{self.output_name}/models/{self.output_name}_model_epoch_{self.epoch_counter}_{suffix}.pth",
         )
         torch.save(
             self.optimizer.state_dict(),
-            f"{self.output_dir}/model_checkpoints/optimizer_epoch_{self.epoch_counter}.pth",
+            f"{self.output_dir}/{self.output_name}/models/{self.output_name}_optimizer_epoch_{self.epoch_counter}_{suffix}.pth",
         )
+
+    def save_snapshot(self):
+        output_dir = f"{self.output_dir}/{self.output_name}/snapshots"
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+        for i in 0, 1:
+            fully_sampled, undersampled = self.train_dataset.get_random_image()
+            fully_sampled = fully_sampled.unsqueeze(0).to(self.device).float()
+            undersampled = undersampled.unsqueeze(0).to(self.device).float()
+
+            fully_sampled, fully_sampled_information = image_to_patches(
+                fully_sampled, 32, 16
+            )
+            undersampled, undersampled_information = image_to_patches(
+                undersampled, 32, 16
+            )
+
+            with torch.no_grad():
+                output = self.model(undersampled)
+
+            save_image_comparison(
+                patches_to_image(fully_sampled, fully_sampled_information, 32, 16),
+                patches_to_image(undersampled, undersampled_information, 32, 16),
+                patches_to_image_weighted_average(
+                    output, undersampled_information, 16, 16
+                ),
+                f"{output_dir}/snapshot_train_epoch_{self.epoch_counter}_{i}.png",
+            )
+
+            if self.val_dataset:
+                fully_sampled, undersampled = self.val_dataset.get_random_image()
+                fully_sampled = fully_sampled.unsqueeze(0).to(self.device).float()
+                undersampled = undersampled.unsqueeze(0).to(self.device).float()
+
+                fully_sampled, fully_sampled_information = image_to_patches(
+                    fully_sampled, 32, 16
+                )
+                undersampled, undersampled_information = image_to_patches(
+                    undersampled, 32, 16
+                )
+
+                with torch.no_grad():
+                    output = self.model(undersampled)
+
+                save_image_comparison(
+                    patches_to_image(fully_sampled, fully_sampled_information, 32, 16),
+                    patches_to_image(undersampled, undersampled_information, 32, 16),
+                    patches_to_image_weighted_average(
+                        output, undersampled_information, 16, 16
+                    ),
+                    f"{output_dir}/snapshot_val_epoch_{self.epoch_counter}_{i}.png",
+                )
 
     def update_progress_log(self, training_loss, validation_loss):
         current_time = time.time()
@@ -202,7 +266,9 @@ class TrainingManager:
             "epoch": self.epoch_counter,
             "training_loss": training_loss,
             "validation_loss": validation_loss,
-            "time_since_start": int(round((current_time - self.starting_time) / 60, 0)),
+            "time_since_start": float(
+                round((current_time - self.starting_time) / 60, 0)
+            ),
         }
         self.progress_log = self.progress_log.extend(pl.from_dict(current_log))
 
@@ -210,42 +276,9 @@ class TrainingManager:
         """Create .txt file with human readable short progress log.
         Short meaning only every n-th epoch is included.
         """
-        short_log = self.progress_log.take_every(20)
+        short_log = self.progress_log.gather_every(20)
         last_log = self.progress_log[-1, :]
         short_log = short_log.extend(last_log)
         short_log = short_log.unique(maintain_order=True, subset=["epoch"])
         with open(f"{self.output_dir}/progress_log.txt", "w", encoding="utf-8") as f:
             print(short_log, file=f)
-
-
-def save_example_images(model, output_dir):
-    test_slice_ids = ["file_100", "file_200", "file_300"]
-    val_slice_ids = ["file_400", "file_500", "file_600"]
-    test_path = pathlib.Path(
-        r"C:\Users\jan\Documents\python_files\adlm\data\brain\singlecoil_val"
-    )  # TODO remove hardcoded paths
-    val_path = pathlib.Path(
-        r"C:\Users\jan\Documents\python_files\adlm\data\brain\singlecoil_val"
-    )  # TODO remove hardcoded paths
-    test_dataset = MRIDataset(test_path, specific_slice_ids=test_slice_ids)
-    val_dataset = MRIDataset(val_path, specific_slice_ids=val_slice_ids)
-    for slice_id in test_slice_ids:
-        fully_sampled, undersampled = test_dataset.get_image(slice_id)
-        with torch.no_grad():
-            output = model(undersampled.unsqueeze(0))
-        save_image_comparison(
-            fully_sampled,
-            undersampled,
-            output,
-            f"{output_dir}/{slice_id}_comparison.png",
-        )
-    for slice_id in val_slice_ids:
-        fully_sampled, undersampled = val_dataset.get_image(slice_id)
-        with torch.no_grad():
-            output = model(undersampled.unsqueeze(0))
-        save_image_comparison(
-            fully_sampled,
-            undersampled,
-            output,
-            f"{output_dir}/{slice_id}_comparison.png",
-        )

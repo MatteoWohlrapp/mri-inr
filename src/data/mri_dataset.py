@@ -5,7 +5,7 @@ from typing import List, Optional, Callable
 import pathlib
 import polars as pl
 from src.util.tiling import (
-    extract_with_inner_patches,
+    image_to_patches,
 )
 
 
@@ -64,12 +64,13 @@ class MRIDataset(Dataset):
             if self.transform:
                 scan_fullysampled = self.transform(scan_fullysampled)
                 scan_undersampled = self.transform(scan_undersampled)
-            fullysampled_tiles.append(
-                extract_with_inner_patches(scan_fullysampled.unsqueeze(0), 32, 32)
-            )
-            undersampled_tiles.append(
-                extract_with_inner_patches(scan_undersampled.unsqueeze(0), 32, 32)
-            )
+
+            patches, _ = image_to_patches(scan_fullysampled.unsqueeze(0), 32, 32)
+            fullysampled_tiles.append(patches)
+
+            patches, _ = image_to_patches(scan_undersampled.unsqueeze(0), 32, 32)
+            undersampled_tiles.append(patches)
+
         self.fullysampled_tiles = torch.cat(fullysampled_tiles, dim=0)
         self.undersampled_tiles = torch.cat(undersampled_tiles, dim=0)
 
@@ -88,6 +89,19 @@ class MRIDataset(Dataset):
             .collect()
             .index[0]
         )
+        file_fullysampled = self.metadata[idx, 0]
+        file_undersampled = self.metadata[idx, 1]
+        scan_fullysampled = np.load(file_fullysampled)
+        scan_undersampled = np.load(file_undersampled)
+        scan_fullysampled = torch.from_numpy(scan_fullysampled)
+        scan_undersampled = torch.from_numpy(scan_undersampled)
+        if self.transform:
+            scan_fullysampled = self.transform(scan_fullysampled)
+            scan_undersampled = self.transform(scan_undersampled)
+        return scan_fullysampled, scan_undersampled
+
+    def get_random_image(self):
+        idx = np.random.randint(len(self.metadata))
         file_fullysampled = self.metadata[idx, 0]
         file_undersampled = self.metadata[idx, 1]
         scan_fullysampled = np.load(file_fullysampled)

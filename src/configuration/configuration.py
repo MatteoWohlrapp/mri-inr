@@ -1,6 +1,7 @@
 import types
 import yaml
 import argparse
+import datetime
 
 default_config = {
     "data": {
@@ -11,7 +12,7 @@ default_config = {
             "num_workers": 4,
         },
         "val": {
-            "dataset": "",
+            "dataset": None,
             "num_samples": 10,
             "mri_type": "FLAIR",
             "num_workers": 4,
@@ -69,6 +70,12 @@ def load_configuration(file_path):
     full_config = merge_configs(default_config, user_config)
 
     types_namespace = convert_to_namespace(full_config)
+
+    current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    types_namespace.training.output_name = (
+        f"{types_namespace.training.output_name}_{current_time}"
+    )
+
     return types_namespace
 
 

@@ -10,11 +10,11 @@ import numpy as np
 from src.reconstruction.modulated_siren import ModulatedSiren
 from src.data.mri_dataset import MRIDataset
 from src.util.tiling import (
-    extract_with_inner_patches_with_info,
+    image_to_patches,
     extract_center,
     alternative_tiles_to_image,
     alternative_image_to_tiles,
-    alternative_tiles_to_image2,
+    patches_to_image_weighted_average,
 )
 from src.util.visualization import show_image, show_image_comparison, show_batch
 
@@ -77,7 +77,7 @@ def test_mod_siren(model_path: pathlib.Path):
 def reconstruct_img(image: torch.Tensor, model: ModulatedSiren):
     if image.dim() == 2:
         image = image.unsqueeze(0)
-    tiles, info = extract_with_inner_patches_with_info(image, 32, 16)
+    tiles, info = image_to_patches(image, 32, 16)
     with torch.no_grad():
         output = model(tiles).unsqueeze(0)
     print(output.shape)
@@ -126,7 +126,7 @@ def reconstruction_script():
         output = model(patches)
     # show_image(output[1000,:,:])
     # rec_image = alternative_tiles_to_image(output.squeeze(1), info, 16,10)
-    rec_image2 = alternative_tiles_to_image2(output.squeeze(1), info, 16, 10)
+    rec_image2 = patches_to_image_weighted_average(output.squeeze(1), info, 16, 10)
     show_image_comparison((image, fullysampled_image, rec_image2))
 
 
