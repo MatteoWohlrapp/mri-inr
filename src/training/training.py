@@ -1,5 +1,5 @@
 import torch
-from torch import nn, optim
+from torch import nn
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from datetime import datetime
@@ -15,6 +15,7 @@ from src.util.visualization import save_image_comparison
 pl.Config.set_tbl_rows(1000)
 amp_enabled = True
 
+
 class Trainer:
     def __init__(
         self,
@@ -27,28 +28,38 @@ class Trainer:
         inner_patch_size,
         val_dataset=None,
         batch_size=1,
-        output_name="output",
-        limit_io=False,
+        output_name="modulated_siren",
     ):
         self.model: nn.Module = model.to(device)
         self.device = device
         self.outer_patch_size = outer_patch_size
         self.inner_patch_size = inner_patch_size
         self.train_loader = DataLoader(
-            train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn, num_workers=4
+            train_dataset,
+            batch_size=batch_size,
+            shuffle=True,
+            collate_fn=collate_fn,
+            num_workers=4,
         )
         if val_dataset:
             self.val_loader = DataLoader(
-                val_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn, num_workers=4
+                val_dataset,
+                batch_size=batch_size,
+                shuffle=True,
+                collate_fn=collate_fn,
+                num_workers=4,
             )
         else:
             self.val_loader = None
         self.optimizer = optimizer
         self.output_name = output_name
         self.output_dir = output_dir
-        self.output_model_dir = pathlib.Path(output_dir) / 'mod_siren' / f'mod_siren_{time.strftime("%Y-%m-%d_%H-%M-%S")}'
+        self.output_model_dir = (
+            pathlib.Path(output_dir)
+            / "mod_siren"
+            / f'mod_siren_{time.strftime("%Y-%m-%d_%H-%M-%S")}'
+        )
         self.output_model_dir.mkdir(parents=False, exist_ok=False)
-        self.limit_io = limit_io
         self.criterion = nn.MSELoss()
         self.writer = SummaryWriter(log_dir=f"{output_dir}/runs/{output_name}")
         self.training_manager = TrainingManager(model, optimizer, self.output_model_dir)
@@ -65,13 +76,21 @@ class Trainer:
     def _train_epoch(self):
         self.model.train()
         training_loss = 0
-        for (fully_sampled_batch, undersampled_batch) in self.train_loader:
-            training_loss += self._train_iteration(undersampled_batch, fully_sampled_batch)
+        for fully_sampled_batch, undersampled_batch in self.train_loader:
+            training_loss += self._train_iteration(
+                undersampled_batch, fully_sampled_batch
+            )
         return training_loss
 
     def _train_iteration(self, undersampled_batch, fully_sampled_batch):
         undersampled_batch = undersampled_batch.to(self.device).float()
-        fully_sampled_batch = extract_center_batch(fully_sampled_batch,self.outer_patch_size, self.inner_patch_size).to(self.device).float()
+        fully_sampled_batch = (
+            extract_center_batch(
+                fully_sampled_batch, self.outer_patch_size, self.inner_patch_size
+            )
+            .to(self.device)
+            .float()
+        )
         with torch.cuda.amp.autocast(enabled=amp_enabled):
             self.optimizer.zero_grad()
             outputs = self.model(undersampled_batch)
@@ -87,13 +106,21 @@ class Trainer:
         self.model.eval()
         validation_loss = 0
         with torch.no_grad():
-            for (fully_sampled_batch, undersampled_batch) in self.val_loader:
-                validation_loss += self._validate_iteration(undersampled_batch, fully_sampled_batch)
+            for fully_sampled_batch, undersampled_batch in self.val_loader:
+                validation_loss += self._validate_iteration(
+                    undersampled_batch, fully_sampled_batch
+                )
         return validation_loss
 
     def _validate_iteration(self, undersampled_batch, fully_sampled_batch):
         undersampled_batch = undersampled_batch.to(self.device).float()
-        fully_sampled_batch = extract_center_batch(fully_sampled_batch,self.outer_patch_size, self.inner_patch_size).to(self.device).float()
+        fully_sampled_batch = (
+            extract_center_batch(
+                fully_sampled_batch, self.outer_patch_size, self.inner_patch_size
+            )
+            .to(self.device)
+            .float()
+        )
         with torch.cuda.amp.autocast(enabled=amp_enabled):
             outputs = self.model(undersampled_batch)
             loss = self.criterion(outputs, fully_sampled_batch)
@@ -113,16 +140,19 @@ class Trainer:
                 self.optimizer.state_dict(),
                 f"{self.output_model_dir}/model_checkpoints/{self.output_name}_optimizer.pth",
             )
+
     def load_model(self, model_path, optimizer_path=None):
         """Used to continue training from a checkpoint."""
         self.model.load_state_dict(torch.load(model_path))
         self.model.to(self.device)
         if optimizer_path:
             self.optimizer.load_state_dict(torch.load(optimizer_path))
-        
+
 
 class TrainingManager:
-    def __init__(self, model, optimizer, output_dir, train_loader, val_loader, save_interval=100):
+    def __init__(
+        self, model, optimizer, output_dir, train_loader, val_loader, save_interval=100
+    ):
         self.model = model
         self.optimizer = optimizer
         self.output_dir = output_dir
@@ -172,35 +202,50 @@ class TrainingManager:
             "epoch": self.epoch_counter,
             "training_loss": training_loss,
             "validation_loss": validation_loss,
-            "time_since_start": int(round((current_time - self.starting_time) / 60,0)),
+            "time_since_start": int(round((current_time - self.starting_time) / 60, 0)),
         }
         self.progress_log = self.progress_log.extend(pl.from_dict(current_log))
-    
+
     def update_human_readable_short_progress_log(self):
         """Create .txt file with human readable short progress log.
         Short meaning only every n-th epoch is included.
         """
         short_log = self.progress_log.take_every(20)
-        last_log = self.progress_log[-1,:]
+        last_log = self.progress_log[-1, :]
         short_log = short_log.extend(last_log)
         short_log = short_log.unique(maintain_order=True, subset=["epoch"])
-        with open(f"{self.output_dir}/progress_log.txt", "w",encoding="utf-8") as f:
+        with open(f"{self.output_dir}/progress_log.txt", "w", encoding="utf-8") as f:
             print(short_log, file=f)
+
 
 def save_example_images(model, output_dir):
     test_slice_ids = ["file_100", "file_200", "file_300"]
     val_slice_ids = ["file_400", "file_500", "file_600"]
-    test_path = pathlib.Path(r"C:\Users\jan\Documents\python_files\adlm\data\brain\singlecoil_val") #TODO remove hardcoded paths
-    val_path = pathlib.Path(r"C:\Users\jan\Documents\python_files\adlm\data\brain\singlecoil_val") #TODO remove hardcoded paths
+    test_path = pathlib.Path(
+        r"C:\Users\jan\Documents\python_files\adlm\data\brain\singlecoil_val"
+    )  # TODO remove hardcoded paths
+    val_path = pathlib.Path(
+        r"C:\Users\jan\Documents\python_files\adlm\data\brain\singlecoil_val"
+    )  # TODO remove hardcoded paths
     test_dataset = MRIDataset(test_path, specific_slice_ids=test_slice_ids)
     val_dataset = MRIDataset(val_path, specific_slice_ids=val_slice_ids)
     for slice_id in test_slice_ids:
         fully_sampled, undersampled = test_dataset.get_image(slice_id)
         with torch.no_grad():
             output = model(undersampled.unsqueeze(0))
-        save_image_comparison(fully_sampled, undersampled, output, f"{output_dir}/{slice_id}_comparison.png")
+        save_image_comparison(
+            fully_sampled,
+            undersampled,
+            output,
+            f"{output_dir}/{slice_id}_comparison.png",
+        )
     for slice_id in val_slice_ids:
         fully_sampled, undersampled = val_dataset.get_image(slice_id)
         with torch.no_grad():
             output = model(undersampled.unsqueeze(0))
-        save_image_comparison(fully_sampled, undersampled, output, f"{output_dir}/{slice_id}_comparison.png")
+        save_image_comparison(
+            fully_sampled,
+            undersampled,
+            output,
+            f"{output_dir}/{slice_id}_comparison.png",
+        )

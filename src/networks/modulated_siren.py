@@ -3,9 +3,9 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 from einops import rearrange
-from torchvision import models
-from torchvision.models import resnet18, ResNet18_Weights
-from src.networks.encoding.custom_mri_encoder import build_autoencoder, load_model, config, CustomEncoder
+from src.networks.encoding.custom_mri_encoder import (
+    CustomEncoder,
+)
 import pathlib
 
 
@@ -105,23 +105,23 @@ class SirenNet(nn.Module):
                 x *= rearrange(mod, "b d -> b () d")
 
         return self.last_layer(x)
-    
+
+
 # encoder
 class Encoder(nn.Module):
 
-    def __init__(self, latent_dim, encoder_type = 'custom'):
+    def __init__(self, latent_dim, encoder_path, device, encoder_type="custom"):
         super().__init__()
         self.latent_dim = latent_dim
         self.encoder_type = encoder_type
-        if encoder_type == 'custom':
-            self.encoder = CustomEncoder(pathlib.Path(r'./output/custom_encoder/model1.pth'))
+        if encoder_type == "custom":
+            self.encoder = CustomEncoder(pathlib.Path(encoder_path), device)
             self.encoder.train()
         else:
-            pass #for now
+            pass  # for now
 
     def forward(self, x):
         return self.encoder(x)
-        
 
 
 # modulatory feed forward network
@@ -147,6 +147,7 @@ class Modulator(nn.Module):
 
         return tuple(hiddens)
 
+
 # complete network
 class ModulatedSiren(nn.Module):
     def __init__(
@@ -162,8 +163,10 @@ class ModulatedSiren(nn.Module):
         dropout,
         modulate,
         encoder_type,
+        encoder_path,
         outer_patch_size,
         inner_patch_size,
+        device,
     ):
         super().__init__()
 
@@ -191,7 +194,12 @@ class ModulatedSiren(nn.Module):
             dim_in=latent_dim, dim_hidden=dim_hidden, num_layers=num_layers
         )
 
-        self.encoder = Encoder(latent_dim=latent_dim, encoder_type=encoder_type)
+        self.encoder = Encoder(
+            latent_dim=latent_dim,
+            encoder_path=encoder_path,
+            device=device,
+            encoder_type=encoder_type,
+        )
 
         tensors = [
             torch.linspace(-1, 1, steps=self.inner_patch_size),

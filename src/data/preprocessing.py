@@ -8,11 +8,11 @@ from fastmri.data import transforms as T
 from fastmri.data.subsample import RandomMaskFunc
 
 
-
 def load_h5(path) -> np.ndarray:
     with h5py.File(path, "r") as f:
         data = f["kspace"][()]
     return data
+
 
 def load_mri_scan(path: pathlib.Path, undersampled=False) -> torch.Tensor:
     mri_data = load_h5(path)
@@ -27,11 +27,13 @@ def load_mri_scan(path: pathlib.Path, undersampled=False) -> torch.Tensor:
     scan = mri_data
     return scan
 
+
 def normalize_scan(scan: torch.Tensor) -> torch.Tensor:
     scan_min = scan.min()
     scan_max = scan.max()
     normalized_scan = (scan - scan_min) / (scan_max - scan_min)
     return normalized_scan
+
 
 def get_mri_type(file: pathlib.Path) -> str:
     if "flair" in file.stem.lower():
@@ -50,7 +52,7 @@ def process_files(data_root: pathlib.Path):
         "path_fullysampled": [],
         "path_undersampled": [],
         "stem": [],
-        "slice_id": [], # stem + slice_id = unique identifier
+        "slice_id": [],  # stem + slice_id = unique identifier
         "slice_num": [],
         "width": [],
         "height": [],
@@ -62,8 +64,12 @@ def process_files(data_root: pathlib.Path):
         scan = normalize_scan(scan)
         undersampled_scan = normalize_scan(undersampled_scan)
         for i in range(scan.shape[0]):
-            metadata["path_fullysampled"].append(str(data_root / f"{file.stem}_{i}.npy"))
-            metadata["path_undersampled"].append(str(data_root / f"{file.stem}_{i}_undersampled.npy"))
+            metadata["path_fullysampled"].append(
+                str(data_root / f"{file.stem}_{i}.npy")
+            )
+            metadata["path_undersampled"].append(
+                str(data_root / f"{file.stem}_{i}_undersampled.npy")
+            )
             metadata["stem"].append(file.stem)
             metadata["slice_id"].append(f"{file.stem}_{i}")
             metadata["slice_num"].append(i)
@@ -71,7 +77,10 @@ def process_files(data_root: pathlib.Path):
             metadata["height"].append(scan.shape[2])
             metadata["mri_type"].append(get_mri_type(file))
             np.save(data_root / f"{file.stem}_{i}.npy", scan[i].numpy())
-            np.save(data_root / f"{file.stem}_{i}_undersampled.npy", undersampled_scan[i].numpy())
+            np.save(
+                data_root / f"{file.stem}_{i}_undersampled.npy",
+                undersampled_scan[i].numpy(),
+            )
     metadata = pl.DataFrame(metadata)
     print(metadata)
     print(data_root)

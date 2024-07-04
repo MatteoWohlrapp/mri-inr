@@ -4,7 +4,6 @@ import torch
 import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
 import datetime
-import pathlib
 from src.util.tiling import collate_fn
 
 tile_size = 32
@@ -116,6 +115,7 @@ class Autoencoder(nn.Module):
         x = x.view(batch_size, -1, tile_size, tile_size)
         return x
 
+
 def build_autoencoder(config):
     def build_layers(layer_configs):
         layers = []
@@ -149,19 +149,21 @@ def build_autoencoder(config):
         config["id"],
     )
 
+
 def save_model(autoencoder, path):
     print(path)
-    torch.save({
-        'config': autoencoder.config,
-        'state_dict': autoencoder.state_dict()
-    }, path)
+    torch.save(
+        {"config": autoencoder.config, "state_dict": autoencoder.state_dict()}, path
+    )
 
-def load_model(path):
-    checkpoint = torch.load(path)
-    config = checkpoint['config']
+
+def load_model(path, device):
+    checkpoint = torch.load(path, map_location=device)
+    config = checkpoint["config"]
     autoencoder = build_autoencoder(config)
-    autoencoder.load_state_dict(checkpoint['state_dict'])
+    autoencoder.load_state_dict(checkpoint["state_dict"])
     return autoencoder
+
 
 class Trainer:
     def __init__(
@@ -209,17 +211,27 @@ class Trainer:
         val_loss = 0
         with torch.no_grad():
             for i, (batch_fullysampled, batch_undersampled) in enumerate(val_loader):
-                output, loss = self.process_batch(batch_fullysampled, batch_undersampled)
+                output, loss = self.process_batch(
+                    batch_fullysampled, batch_undersampled
+                )
                 val_loss += loss.item()
         self.writer.add_scalar("val_loss", val_loss, epoch)
         return val_loss
 
     def train(self, num_epochs):
         train_loader = torch.utils.data.DataLoader(
-            self.train_dataset, batch_size=self.batch_size, shuffle=True, num_workers=0, collate_fn=collate_fn
+            self.train_dataset,
+            batch_size=self.batch_size,
+            shuffle=True,
+            num_workers=0,
+            collate_fn=collate_fn,
         )
         val_loader = torch.utils.data.DataLoader(
-            self.val_dataset, batch_size=self.batch_size, shuffle=True, num_workers=0, collate_fn=collate_fn
+            self.val_dataset,
+            batch_size=self.batch_size,
+            shuffle=True,
+            num_workers=0,
+            collate_fn=collate_fn,
         )
         for epoch in range(num_epochs):
             self.train_one_epoch(train_loader, epoch)
@@ -227,11 +239,13 @@ class Trainer:
             print(f"Epoch {epoch}, Val Loss: {val_loss:.5f}")
         self.writer.close()
 
+
 class CustomEncoder(nn.Module):
     """Encoder model extracted from the autoencoder model"""
-    def __init__(self, autoencoder_path):
+
+    def __init__(self, autoencoder_path, device):
         super(CustomEncoder, self).__init__()
-        autoencoder = load_model(autoencoder_path)
+        autoencoder = load_model(autoencoder_path, device)
         self.encoder = autoencoder.encoder
         self.latent_dim = autoencoder.latent_dim
 
@@ -239,4 +253,3 @@ class CustomEncoder(nn.Module):
         x = x.view(-1, 1, tile_size, tile_size)
         x = self.encoder(x)
         return x
-

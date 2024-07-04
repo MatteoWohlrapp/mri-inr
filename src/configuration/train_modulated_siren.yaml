@@ -6,7 +6,7 @@ data:
     mri_type: "FLAIR"
     num_workers: 4
   val:
-    dataset: '../../dataset/fastmri/brain/singlecoil_train/'
+    dataset: '../../dataset/fastmri/brain/singlecoil_val/'
     num_samples: 10
     mri_type: "FLAIR"
     num_workers: 4
@@ -23,6 +23,7 @@ model:
   use_bias: True
   dropout: 0.1
   encoder_type: "custom"
+  encoder_path: './models/custom_encoder.pth'
   outer_patch_size: 32
   inner_patch_size: 16
   
@@ -30,9 +31,9 @@ training:
   lr: 0.0001
   batch_size: 20
   epochs: 10000
-  limit_io: True
   output_dir: "./output"
   output_name: "modulated_siren"
+  optimizer: "Adam"
   model:
     continue_training: True
     model_path: "./output/mod_siren/mod_siren_2024-06-26_00-10-29/model_checkpoints/model_epoch_1000.pth"
