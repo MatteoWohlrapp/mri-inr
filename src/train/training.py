@@ -3,9 +3,8 @@ from torch import nn
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 import time
-import pathlib
 import os
-from src.util.tiling import collate_fn, extract_center_batch
+from src.util.tiling import extract_center_batch
 import os
 import polars as pl
 from src.data.mri_dataset import MRIDataset

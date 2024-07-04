@@ -1,135 +1,102 @@
-"""Test a modulated Siren model by:
-1. Loading it.
-2. Test it on a single image.
-"""
-
 import torch
 import pathlib
-import numpy as np
-
-from src.reconstruction.modulated_siren import ModulatedSiren
-from src.data.mri_dataset import MRIDataset
+from src.networks.modulated_siren import ModulatedSiren
+from src.data.mri_sampler import MRISampler
+import os
+from src.configuration.configuration import load_configuration, parse_args
 from src.util.tiling import (
     image_to_patches,
-    extract_center,
-    alternative_tiles_to_image,
-    alternative_image_to_tiles,
-    patches_to_image_weighted_average,
 )
-from src.util.visualization import show_image, show_image_comparison, show_batch
+from src.util.error import error_metrics
 
 
-def test_mod_siren(model_path: pathlib.Path):
+def save_args_to_file(args, output_dir):
 
-    å  # Set the device
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    config_path = os.path.join(output_dir, "config.txt")
+
+    with open(config_path, "w") as f:
+        for arg, value in vars(args).items():
+            f.write(f"{arg}: {value}\n")
+
+
+def test_mod_siren(config):
+    print("Testing the modulated SIREN...")
+
+    output_dir = f"{config.testing.output_dir}/{config.testing.output_name}/test"
+
+    # Set the device
     if torch.cuda.is_available():
         device = torch.device("cuda")
     else:
         device = torch.device("cpu")
 
+    # Load datatset
+    sampler = MRISampler(pathlib.Path(config.data.dataset), config.data.test_files)
+
     # Load the model
     mod_siren = ModulatedSiren(
-        dim_in=2,
-        dim_hidden=256,
-        dim_out=1,
-        num_layers=5,
-        latent_dim=256,
-        w0=1.0,
-        w0_initial=30.0,
-        use_bias=True,
-        dropout=0.1,
+        dim_in=config.model.dim_in,
+        dim_hidden=config.model.dim_hidden,
+        dim_out=config.model.dim_out,
+        num_layers=config.model.num_layers,
+        latent_dim=config.model.latent_dim,
+        w0=config.model.w0,
+        w0_initial=config.model.w0_initial,
+        use_bias=config.model.use_bias,
+        dropout=config.model.dropout,
         modulate=True,
-        encoder_type="custom",
-        encoder_path="./models/custom_encoder.pth",
-        outer_patch_size=32,
-        inner_patch_size=16,
+        encoder_type=config.model.encoder_type,
+        encoder_path=config.model.encoder_path,
+        outer_patch_size=config.model.outer_patch_size,
+        inner_patch_size=config.model.inner_patch_size,
         device=device,
     )
+    mod_siren.to(device)
 
-    mod_siren.load_state_dict(torch.load(model_path))
-    mod_siren.eval()
+    mod_siren.load_state_dict(torch.load(config.testing.model_path))
 
-    tile_number = 54
-    dataset = MRIDataset(
-        pathlib.Path(
-            r"C:\Users\jan\Documents\python_files\adlm\data\brain\singlecoil_train"
-        ),
-        number_of_samples=14,
-    )
-    undersampled_image = dataset[2][1][tile_number].float()
-    fullysampled_image = dataset[2][0][tile_number].float()
-    print(undersampled_image.shape)
-
-    # Test the model
     with torch.no_grad():
-        output = mod_siren(undersampled_image.unsqueeze(0))
+        mod_siren.eval()
 
-    # Show the image
-    show_image_comparison(
-        (
-            extract_center(undersampled_image, 32, 16),
-            extract_center(fullysampled_image, 32, 16),
-            output,
-        )
-    )
+        for i in range(config.data.num_samples):
+            print(f"Processing sample {i + 1}/{config.data.num_samples}...")
+            # Load the image
+            fully_sampled_img, undersampled_img, filename = sampler.get_random_sample()
 
+            # unsqueeze image to add batch dimension
+            fully_sampled_img = fully_sampled_img.unsqueeze(0).float()
+            undersampled_img = undersampled_img.unsqueeze(0).float()
 
-def reconstruct_img(image: torch.Tensor, model: ModulatedSiren):
-    if image.dim() == 2:
-        image = image.unsqueeze(0)
-    tiles, info = image_to_patches(image, 32, 16)
-    with torch.no_grad():
-        output = model(tiles).unsqueeze(0)
-    print(output.shape)
-
-
-def find_latest_model(directory: pathlib.Path):
-    models = list(directory.glob("**/*.pth"))
-    return pathlib.Path(max(models, key=lambda x: x.stat().st_mtime))
-
-
-def reconstruction_script():
-    model = ModulatedSiren(
-        dim_in=2,
-        dim_hidden=256,
-        dim_out=1,
-        num_layers=5,
-        latent_dim=256,
-        w0=1.0,
-        w0_initial=30.0,
-        use_bias=True,
-        dropout=0.1,
-        modulate=True,
-        encoder_type="custom",
-        outer_patch_size=32,
-        inner_patch_size=16,
-    )
-    model.load_state_dict(
-        torch.load(
-            pathlib.Path(
-                r"./output/mod_siren/mod_siren_2024-06-24_10-02-41/model_checkpoints/model_epoch_2100.pth"
+            fully_sampled_patch, _ = image_to_patches(
+                fully_sampled_img,
+                config.model.outer_patch_size,
+                config.model.inner_patch_size,
             )
-        )
-    )
-    model.eval()
+            undersampled_patch, undersampled_information = image_to_patches(
+                undersampled_img,
+                config.model.outer_patch_size,
+                config.model.inner_patch_size,
+            )
 
-    dataset = MRIDataset(
-        pathlib.Path(
-            r"C:\Users\jan\Documents\python_files\adlm\data\brain\singlecoil_val"
-        ),
-        number_of_samples=1,
-    )
-    image = dataset._getitem_img(0)[1].float()
-    fullysampled_image = dataset._getitem_img(0)[0].float()
-    patches, info = alternative_image_to_tiles(image.unsqueeze(0), 32, 10)
-    with torch.no_grad():
-        output = model(patches)
-    # show_image(output[1000,:,:])
-    # rec_image = alternative_tiles_to_image(output.squeeze(1), info, 16,10)
-    rec_image2 = patches_to_image_weighted_average(output.squeeze(1), info, 16, 10)
-    show_image_comparison((image, fullysampled_image, rec_image2))
+            output_dir_temp = os.path.join(output_dir, filename)
+            if not os.path.exists(output_dir_temp):
+                os.makedirs(output_dir_temp)
+
+            error_metrics(
+                mod_siren,
+                output_dir_temp,
+                filename,
+                fully_sampled_patch,
+                undersampled_patch,
+                undersampled_information,
+            )
 
 
 if __name__ == "__main__":
-    reconstruction_script()
-    # print(find_latest_model(pathlib.Path(r"C:\Users\jan\Documents\python_files\adlm\refactoring\output\mod_siren")))
+    args = parse_args()
+    config_path = pathlib.Path(args.config)
+    config = load_configuration(config_path, testing=True)
+    test_mod_siren(config)

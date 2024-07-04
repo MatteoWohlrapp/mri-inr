@@ -3,7 +3,7 @@ import yaml
 import argparse
 import datetime
 
-default_config = {
+default_train_config = {
     "data": {
         "train": {
             "dataset": "",
@@ -46,6 +46,31 @@ default_config = {
 }
 
 
+default_test_config = {
+    "data": {"dataset": "", "num_samples": 100, "test_files": None},
+    "model": {
+        "dim_in": 2,
+        "dim_hidden": 256,
+        "dim_out": 1,
+        "latent_dim": 256,
+        "num_layers": 5,
+        "w0": 1.0,
+        "w0_initial": 30.0,
+        "use_bias": True,
+        "dropout": 0.1,
+        "encoder_type": "default",
+        "encoder_path": "./model/custom_encoder.pth",
+        "outer_patch_size": 32,
+        "inner_patch_size": 16,
+    },
+    "testing": {
+        "output_dir": "./output",
+        "output_name": "modulated_siren",
+        "model_path": "",
+    },
+}
+
+
 def merge_configs(defaults, user_configs):
     for key, value in user_configs.items():
         if isinstance(value, dict) and key in defaults:
@@ -63,18 +88,22 @@ def convert_to_namespace(data):
     return data
 
 
-def load_configuration(file_path):
+def load_configuration(file_path, testing=False):
     with open(file_path, "r") as file:
         user_config = yaml.safe_load(file)
 
-    full_config = merge_configs(default_config, user_config)
+    if testing:
+        full_config = merge_configs(default_test_config, user_config)
+    else:
+        full_config = merge_configs(default_train_config, user_config)
 
     types_namespace = convert_to_namespace(full_config)
 
-    current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    types_namespace.training.output_name = (
-        f"{types_namespace.training.output_name}_{current_time}"
-    )
+    if not testing: 
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        types_namespace.training.output_name = (
+            f"{types_namespace.training.output_name}_{current_time}"
+        )
 
     return types_namespace
 

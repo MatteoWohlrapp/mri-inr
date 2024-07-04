@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
 
 def show_image(image, cmap="gray"):
@@ -67,3 +68,26 @@ def show_batch(batch, cmap="gray", ncols=2):
         ax[i // ncols, i % ncols].imshow(image.squeeze(), cmap=cmap, vmin=0, vmax=1)
         ax[i // ncols, i % ncols].axis("off")
     plt.show()
+
+
+def save_image(image, filename, output_dir, cmap="gray"):
+    """
+    Save a single image using matplotlib.
+
+    Args:
+        image (torch.Tensor): A single image as a 2D tensor (height x width).
+        filename (str): The filename to save the image as.
+        output_dir (str): The directory to save the image in.
+    """
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    plt.imshow(image.squeeze(), cmap=cmap)
+    plt.axis("off")
+    plt.savefig(
+        f"{output_dir}/{filename}.png",
+        bbox_inches="tight",
+        pad_inches=0,
+        dpi=1200,
+    )
+    plt.close()
