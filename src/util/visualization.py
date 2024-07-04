@@ -39,6 +39,9 @@ def save_image_comparison(
     fully_sampled, undersampled, reconstructed, path, cmap="gray"
 ):
     """Save undersampled, fully sampled, reconstruction, and difference images side by side."""
+    fully_sampled = fully_sampled.cpu()
+    undersampled = undersampled.cpu()
+    reconstructed = reconstructed.cpu()
     fig, ax = plt.subplots(1, 4, figsize=(10, 5))
     ax[0].imshow(undersampled.squeeze(), cmap=cmap, vmin=0, vmax=1)
     ax[0].set_title("Undersampled")

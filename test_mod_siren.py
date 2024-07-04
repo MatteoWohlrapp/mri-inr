@@ -92,6 +92,7 @@ def test_mod_siren(config):
                 fully_sampled_patch,
                 undersampled_patch,
                 undersampled_information,
+                device
             )
 
 

@@ -54,7 +54,7 @@ def calculate_difference(original, predicted):
 
 
 def error_metrics(
-    model, output_dir, filename, fully_sampled, undersampled, img_information
+    model, output_dir, filename, fully_sampled, undersampled, img_information, device
 ):
 
     reconstructed_patches = model(undersampled)
@@ -63,7 +63,7 @@ def error_metrics(
         reconstructed_patches = reconstructed_patches.cpu()
 
     reconstructed_img = patches_to_image_weighted_average(
-        reconstructed_patches, img_information, 16, 16
+        reconstructed_patches, img_information, 16, 16, self.device
     )
     undersampled_img = patches_to_image(undersampled, img_information, 32, 16)
     fully_sampled_img = patches_to_image(fully_sampled, img_information, 32, 16)

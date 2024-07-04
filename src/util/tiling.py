@@ -77,7 +77,7 @@ def generate_weight_matrix(tile_size):
 
 
 def patches_to_image_weighted_average(
-    tiles, image_information, outer_patch_size, inner_patch_size
+    tiles, image_information, outer_patch_size, inner_patch_size, device
 ):
     # Assuming a single-channel image. Adjust for multi-channel images.
     output_size = (
@@ -87,7 +87,7 @@ def patches_to_image_weighted_average(
     kernel_size = outer_patch_size
     stride = inner_patch_size
     padding = (outer_patch_size - inner_patch_size) // 2
-    weights = generate_weight_matrix(kernel_size)
+    weights = generate_weight_matrix(kernel_size).to(device)
 
     tiles = tiles * weights
     normalization = torch.ones_like(tiles) * weights

@@ -230,7 +230,7 @@ class TrainingManager:
                 patches_to_image(fully_sampled, fully_sampled_information, 32, 16),
                 patches_to_image(undersampled, undersampled_information, 32, 16),
                 patches_to_image_weighted_average(
-                    output, undersampled_information, 16, 16
+                    output, undersampled_information, 16, 16, self.device
                 ),
                 f"{output_dir}/snapshot_train_epoch_{self.epoch_counter}_{i}.png",
             )
@@ -254,7 +254,7 @@ class TrainingManager:
                     patches_to_image(fully_sampled, fully_sampled_information, 32, 16),
                     patches_to_image(undersampled, undersampled_information, 32, 16),
                     patches_to_image_weighted_average(
-                        output, undersampled_information, 16, 16
+                        output, undersampled_information, 16, 16, self.device
                     ),
                     f"{output_dir}/snapshot_val_epoch_{self.epoch_counter}_{i}.png",
                 )
