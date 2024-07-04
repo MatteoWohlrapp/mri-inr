@@ -76,7 +76,7 @@ def reconstruction_script():
         outer_patch_size=32,
         inner_patch_size=16,
     )
-    model.load_state_dict(torch.load(pathlib.Path(r"./output/mod_siren/mod_siren_2024-06-24_10-02-41/model_checkpoints/model_epoch_2100.pth")))
+    model.load_state_dict(torch.load(pathlib.Path(r"./output/mod_siren/mod_siren_2024-06-24_10-02-41/model_checkpoints/model_epoch_6200.pth")))
     model.eval()
 
     dataset = MRIDataset(pathlib.Path(r"C:\Users\jan\Documents\python_files\adlm\data\brain\singlecoil_val"), number_of_samples=1)

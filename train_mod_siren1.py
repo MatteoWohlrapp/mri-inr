@@ -3,7 +3,7 @@ import torch
 import pathlib
 import types
 from torch.utils.data import DataLoader
-from src.data.mri_dataset import MRIDataset
+from src.data.mri_dataset import MRIDataset, MRIDataset2
 from src.reconstruction.modulated_siren import ModulatedSiren
 from src.reconstruction.training import Trainer
 from src.util.util import time_function
@@ -17,16 +17,15 @@ def find_latest_model(directory: pathlib.Path):
     models = list(directory.glob("**/model*.pth"))
     return pathlib.Path(max(models, key=lambda x: x.stat().st_mtime))
 
-torch.cuda.memory_usage
-
 @time_function
 def train_mod_siren(args):
     print("Training the modulated SIREN...")
     print(args)
     # Load dataset
-    train_dataset = MRIDataset(pathlib.Path(args.data.train.dataset), number_of_samples = args.data.train.num_samples)
-    val_dataset = MRIDataset(pathlib.Path(args.data.val.dataset), number_of_samples = args.data.val.num_samples)
-
+    train_dataset = MRIDataset2(pathlib.Path(args.data.train.dataset), number_of_samples = args.data.train.num_samples)
+    val_dataset = MRIDataset2(pathlib.Path(args.data.val.dataset), number_of_samples = args.data.val.num_samples)
+    print("Train dataset length: ", len(train_dataset))
+    print("Val dataset length: ", len(val_dataset))
     # Set the device
     if torch.cuda.is_available():
         device = torch.device("cuda")
@@ -71,11 +70,11 @@ def train_mod_siren(args):
         inner_patch_size=args.model.inner_patch_size,
     )
     # quick fix to try to mitigate the constant interruption of training runs
-    most_recent_model = find_latest_model(pathlib.Path(r'/vol/aimspace/projects/practical_SoSe24/mri_inr/rogalka/mri-inr/output/mod_siren'))
-    print(most_recent_model)
-    trainer.load_model(
-        model_path=most_recent_model,
-    )
+    #most_recent_model = find_latest_model(pathlib.Path(r'/vol/aimspace/projects/practical_SoSe24/mri_inr/rogalka/mri-inr/output/mod_siren'))
+    #print(most_recent_model)
+    #trainer.load_model(
+    #    model_path=most_recent_model,
+    #)
     # Train the model
     trainer.train(args.training.epochs)
 

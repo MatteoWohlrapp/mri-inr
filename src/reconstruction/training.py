@@ -35,11 +35,11 @@ class Trainer:
         self.outer_patch_size = outer_patch_size
         self.inner_patch_size = inner_patch_size
         self.train_loader = DataLoader(
-            train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn, num_workers=4
+            train_dataset, batch_size=batch_size, shuffle=True, num_workers=4 #collate_fn=collate_fn
         )
         if val_dataset:
             self.val_loader = DataLoader(
-                val_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn, num_workers=4
+                val_dataset, batch_size=batch_size, shuffle=True,  num_workers=4 #collate_fn=collate_fn,
             )
         else:
             self.val_loader = None
@@ -51,11 +51,14 @@ class Trainer:
         self.limit_io = limit_io
         self.criterion = nn.MSELoss()
         self.writer = SummaryWriter(log_dir=f"{output_dir}/runs/{output_name}")
-        self.training_manager = TrainingManager(model, optimizer, self.output_model_dir)
         self.scaler = torch.cuda.amp.GradScaler(enabled=True)
+        initial_training_loss, initial_validation_loss = self.get_initial_errors()
+        self.training_manager = TrainingManager(model, optimizer, self.output_model_dir, initial_training_loss, initial_validation_loss)
 
     def train(self, num_epochs):
+        print("Training...")
         for _ in range(num_epochs):
+            print(f"Epoch: {self.training_manager.epoch_counter}")
             training_loss = self._train_epoch()
             validation_loss = self._validate_epoch() if self.val_loader else 0
             self.training_manager.post_epoch_update(training_loss, validation_loss)
@@ -66,6 +69,8 @@ class Trainer:
         self.model.train()
         training_loss = 0
         for (fully_sampled_batch, undersampled_batch) in self.train_loader:
+            print("Batch")
+            print(fully_sampled_batch.shape, undersampled_batch.shape)
             training_loss += self._train_iteration(undersampled_batch, fully_sampled_batch)
         return training_loss
 
@@ -119,15 +124,30 @@ class Trainer:
         self.model.to(self.device)
         if optimizer_path:
             self.optimizer.load_state_dict(torch.load(optimizer_path))
+    
+    def get_initial_errors(self):
+        print("Calculating initial errors...")
+        with torch.no_grad():
+            training_loss = 0
+            validation_loss = 0
+            for (fully_sampled_batch, undersampled_batch) in self.train_loader:
+                fully_sampled_batch = extract_center_batch(fully_sampled_batch,self.outer_patch_size, self.inner_patch_size).to(self.device).float()
+                outputs = self.model(undersampled_batch.to(self.device).float())
+                training_loss += self.criterion(outputs, fully_sampled_batch).item()
+            if self.val_loader:
+                for (fully_sampled_batch, undersampled_batch) in self.val_loader:
+                    fully_sampled_batch = extract_center_batch(fully_sampled_batch,self.outer_patch_size, self.inner_patch_size).to(self.device).float()
+                    outputs = self.model(undersampled_batch.to(self.device).float())
+                    validation_loss += self.criterion(outputs, fully_sampled_batch).item()
+        print("Initial errors calculated.")
+        return training_loss, validation_loss
         
 
 class TrainingManager:
-    def __init__(self, model, optimizer, output_dir, train_loader, val_loader, save_interval=100):
+    def __init__(self, model, optimizer, output_dir, initial_training_loss, initial_validation_loss, save_interval=100):
         self.model = model
         self.optimizer = optimizer
         self.output_dir = output_dir
-        self.train_loader = train_loader
-        self.val_loader = val_loader
         self.save_interval = save_interval
         self.epoch_counter = 0
         self.batch_counter = 0
@@ -135,23 +155,11 @@ class TrainingManager:
         self.progress_log: pl.DataFrame = pl.from_dict(
             {
                 "epoch": [-1],
-                "training_loss": [0.0],
-                "validation_loss": [0.0],
+                "training_loss": [initial_training_loss],
+                "validation_loss": [initial_validation_loss],
                 "time_since_start": [0.0],
             }
         )
-
-    def _get_inital_progress_log(self):
-        """Create initial progress log by evaluating the model on both training and validation data."""
-        training_loss = 0
-        validation_loss = 0
-        with torch.no_grad():
-            for (fully_sampled_batch, undersampled_batch) in self.train_loader:
-                training_loss += self._validate_iteration(undersampled_batch, fully_sampled_batch)
-            if self.val_loader:
-                for (fully_sampled_batch, undersampled_batch) in self.val_loader:
-                    validation_loss += self._validate_iteration(undersampled_batch, fully_sampled_batch)
-        return training_loss, validation_loss
 
     def post_epoch_update(self, training_loss, validation_loss):
         if self.epoch_counter % self.save_interval == 0:
@@ -179,13 +187,16 @@ class TrainingManager:
         )
 
     def update_progress_log(self, training_loss, validation_loss):
+        print(f"Epoch: {self.epoch_counter}, Training loss: {training_loss}, Validation loss: {validation_loss}")
         current_time = time.time()
         current_log = {
             "epoch": self.epoch_counter,
             "training_loss": training_loss,
             "validation_loss": validation_loss,
-            "time_since_start": int(round((current_time - self.starting_time) / 60,0)),
+            "time_since_start": round((current_time - self.starting_time) / 60,0),
         }
+        print(current_log)
+        print(self.progress_log)
         self.progress_log = self.progress_log.extend(pl.from_dict(current_log))
     
     def update_human_readable_short_progress_log(self):

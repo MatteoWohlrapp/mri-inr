@@ -1,12 +1,14 @@
 data:
   train:
-    dataset: '../../dataset/fastmri/brain/singlecoil_train/'
+    #dataset: '../../dataset/fastmri/brain/singlecoil_train/'
+    dataset: 'C:\Users\jan\Documents\python_files\adlm\data\brain\singlecoil_train\processed'
     num_samples: 0
     mri_type: "FLAIR"
     num_workers: 4
   val:
-    dataset: '../../dataset/fastmri/brain/singlecoil_train/'
-    num_samples: 10
+    #dataset: '../../dataset/fastmri/brain/singlecoil_train/'
+    dataset: 'C:\Users\jan\Documents\python_files\adlm\data\brain\singlecoil_val\processed'
+    num_samples: 0
     mri_type: "FLAIR"
     num_workers: 4
 
@@ -28,7 +30,7 @@ model:
 training:
   lr: 0.0001
   batch_size: 20
-  epochs: 10000
+  epochs: 200
   limit_io: True
   output_dir: "./output"
   output_name: "modulated_siren"

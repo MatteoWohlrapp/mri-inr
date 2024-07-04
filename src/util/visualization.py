@@ -9,8 +9,40 @@ def show_image(image, cmap="gray"):
         image (torch.Tensor): A single image as a 2D tensor (height x width).
         cmap (str): The colormap to use for displaying the image. Default is 'gray'.
     """
-    plt.imshow(image.squeeze(), cmap=cmap,vmin=0, vmax=1)
+    plt.imshow(image.squeeze(), cmap=cmap)
     plt.axis("off")
+    plt.show()
+
+def save_image(image, path, cmap="gray"):
+    """
+    Save a single image using matplotlib.
+
+    Args:
+        image (torch.Tensor): A single image as a 2D tensor (height x width).
+        path (str): The path to save the image to.
+        cmap (str): The colormap to use for displaying the image. Default is 'gray'.
+    """
+    plt.imshow(image.squeeze(), cmap=cmap)
+    plt.axis("off")
+    plt.savefig(path)
+
+def show_images(images, cmap="gray", ncols=2, labels=None):
+    """
+    Display multiple images using matplotlib.
+
+    Args:
+        images (list): A list of images as 2D tensors (height x width).
+        cmap (str): The colormap to use for displaying the images. Default is 'gray'.
+        ncols (int): The number of columns to use for displaying the images. Default is 2.
+        labels (list): A list of labels for the images. Default is None.
+    """
+    nrows = (len(images) + ncols - 1) // ncols
+    fig, ax = plt.subplots(nrows, ncols, figsize=(5, 10))
+    for i, image in enumerate(images):
+        ax[i // ncols, i % ncols].imshow(image.squeeze(), cmap=cmap)
+        ax[i // ncols, i % ncols].axis("off")
+        if labels is not None:
+            ax[i // ncols, i % ncols].set_title(labels[i])
     plt.show()
 
 def show_image_comparison(image, cmap='gray'):
