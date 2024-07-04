@@ -7,3 +7,4 @@ requests
 einops
 pyyaml
 scikit-image
+polars

@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from einops import rearrange
 from torchvision import models
 from torchvision.models import resnet18, ResNet18_Weights
-from src.encoding.custom_mri_encoder import build_autoencoder, load_model, config, CustomEncoder
+from src.networks.encoding.custom_mri_encoder import build_autoencoder, load_model, config, CustomEncoder
 import pathlib
 
 

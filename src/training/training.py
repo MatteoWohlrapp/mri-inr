@@ -9,7 +9,7 @@ import os
 from src.util.tiling import collate_fn, extract_center_batch
 import os
 import polars as pl
-from src.data.mri_dataset import MRIDataset2
+from src.data.mri_dataset import MRIDataset
 from src.util.visualization import save_image_comparison
 
 pl.Config.set_tbl_rows(1000)
@@ -141,18 +141,6 @@ class TrainingManager:
             }
         )
 
-    def _get_inital_progress_log(self):
-        """Create initial progress log by evaluating the model on both training and validation data."""
-        training_loss = 0
-        validation_loss = 0
-        with torch.no_grad():
-            for (fully_sampled_batch, undersampled_batch) in self.train_loader:
-                training_loss += self._validate_iteration(undersampled_batch, fully_sampled_batch)
-            if self.val_loader:
-                for (fully_sampled_batch, undersampled_batch) in self.val_loader:
-                    validation_loss += self._validate_iteration(undersampled_batch, fully_sampled_batch)
-        return training_loss, validation_loss
-
     def post_epoch_update(self, training_loss, validation_loss):
         if self.epoch_counter % self.save_interval == 0:
             self.save_model()
@@ -204,8 +192,8 @@ def save_example_images(model, output_dir):
     val_slice_ids = ["file_400", "file_500", "file_600"]
     test_path = pathlib.Path(r"C:\Users\jan\Documents\python_files\adlm\data\brain\singlecoil_val") #TODO remove hardcoded paths
     val_path = pathlib.Path(r"C:\Users\jan\Documents\python_files\adlm\data\brain\singlecoil_val") #TODO remove hardcoded paths
-    test_dataset = MRIDataset2(test_path, specific_slice_ids=test_slice_ids)
-    val_dataset = MRIDataset2(val_path, specific_slice_ids=val_slice_ids)
+    test_dataset = MRIDataset(test_path, specific_slice_ids=test_slice_ids)
+    val_dataset = MRIDataset(val_path, specific_slice_ids=val_slice_ids)
     for slice_id in test_slice_ids:
         fully_sampled, undersampled = test_dataset.get_image(slice_id)
         with torch.no_grad():
