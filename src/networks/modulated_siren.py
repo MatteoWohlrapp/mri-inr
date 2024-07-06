@@ -7,6 +7,7 @@ from src.networks.encoding.custom_mri_encoder import (
     CustomEncoder,
 )
 import pathlib
+from src.networks.encoding.vgg import VGGAutoEncoder, get_configs, load_dict
 
 
 def cast_tuple(val, repeat=1):
@@ -116,11 +117,33 @@ class Encoder(nn.Module):
         if encoder_type == "custom":
             self.encoder = CustomEncoder(pathlib.Path(encoder_path), device)
             self.encoder.train()
-        else:
-            pass  # for now
+            self.fc = nn.Linear(num_features, latent_dim)
+        elif encoder_type == "vgg":
+            self.encoder, num_features = self.load_vgg()
+            self.encoder.conv1 = nn.Conv2d(
+                1, 64, kernel_size=3, stride=1, padding=1, bias=False
+            )
+            self.adaptive_pool = nn.AdaptiveAvgPool2d((7, 7))
+            self.fc = nn.Linear(num_features, latent_dim)
+
+    def load_autoencoder(self):
+
+        model = VGGAutoEncoder(get_configs("vgg16"))
+        load_dict("../output/model_checkpoints/imagenet-vgg16.pth", model)
+
+        num_features = 512 * 7 * 7
+
+        return model.encoder, num_features
 
     def forward(self, x):
-        return self.encoder(x)
+        x = self.encoder(x)
+
+        if self.encoder_type == "vgg":
+            x = self.adaptive_pool(x)
+            x = torch.flatten(x, 1)
+
+        x = self.fc(x)
+        return x
 
 
 # modulatory feed forward network
