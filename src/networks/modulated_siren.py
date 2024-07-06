@@ -117,30 +117,35 @@ class Encoder(nn.Module):
         if encoder_type == "custom":
             self.encoder = CustomEncoder(pathlib.Path(encoder_path), device)
             self.encoder.train()
-            self.fc = nn.Linear(num_features, latent_dim)
+            self.fc = nn.Identity()
         elif encoder_type == "vgg":
-            self.encoder, num_features = self.load_vgg()
+            self.encoder, num_features = self.load_vgg(encoder_path)
             self.encoder.conv1 = nn.Conv2d(
                 1, 64, kernel_size=3, stride=1, padding=1, bias=False
             )
             self.adaptive_pool = nn.AdaptiveAvgPool2d((7, 7))
             self.fc = nn.Linear(num_features, latent_dim)
 
-    def load_autoencoder(self):
-
+    def load_vgg(self, encoder_path):
         model = VGGAutoEncoder(get_configs("vgg16"))
-        load_dict("../output/model_checkpoints/imagenet-vgg16.pth", model)
+        load_dict(encoder_path, model)
 
         num_features = 512 * 7 * 7
 
         return model.encoder, num_features
 
     def forward(self, x):
-        x = self.encoder(x)
-
-        if self.encoder_type == "vgg":
+        
+        if self.encoder_type == "custom": 
+            x = self.encoder(x)
+        elif self.encoder_type == "vgg":
+            print(x.shape)
+            x = x.unsqueeze(1)
+            print(x.shape)
+            x = self.encoder(x)
             x = self.adaptive_pool(x)
             x = torch.flatten(x, 1)
+            print(x.shape)
 
         x = self.fc(x)
         return x
