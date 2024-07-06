@@ -59,6 +59,7 @@ class Trainer:
         self.output_dir = output_dir
         self.criterion = nn.MSELoss()
         self.writer = SummaryWriter(log_dir=f"{output_dir}/{output_name}/runs")
+        initial_training_loss, initial_validation_loss = self.get_initial_errors()
         self.training_manager = TrainingManager(
             model,
             optimizer,
@@ -68,6 +69,8 @@ class Trainer:
             train_dataset,
             self.val_loader,
             val_dataset,
+            initial_training_loss,
+            initial_validation_loss,
             device,
             save_interval,
         )
@@ -143,6 +146,39 @@ class Trainer:
         if optimizer_path:
             self.optimizer.load_state_dict(torch.load(optimizer_path))
 
+    def get_initial_errors(self):
+        with torch.no_grad():
+            training_loss = 0
+            validation_loss = 0
+            for fully_sampled_batch, undersampled_batch in self.train_loader:
+                fully_sampled_batch = (
+                    extract_center_batch(
+                        fully_sampled_batch,
+                        self.outer_patch_size,
+                        self.inner_patch_size,
+                    )
+                    .to(self.device)
+                    .float()
+                )
+                outputs = self.model(undersampled_batch.to(self.device).float())
+                training_loss += self.criterion(outputs, fully_sampled_batch).item()
+            if self.val_loader:
+                for fully_sampled_batch, undersampled_batch in self.val_loader:
+                    fully_sampled_batch = (
+                        extract_center_batch(
+                            fully_sampled_batch,
+                            self.outer_patch_size,
+                            self.inner_patch_size,
+                        )
+                        .to(self.device)
+                        .float()
+                    )
+                    outputs = self.model(undersampled_batch.to(self.device).float())
+                    validation_loss += self.criterion(
+                        outputs, fully_sampled_batch
+                    ).item()
+        return training_loss, validation_loss
+
 
 class TrainingManager:
     def __init__(
@@ -155,6 +191,8 @@ class TrainingManager:
         train_dataset,
         val_loader,
         val_dataset,
+        initial_training_loss,
+        initial_validation_loss,
         device,
         save_interval=100,
     ):
@@ -174,8 +212,8 @@ class TrainingManager:
         self.progress_log: pl.DataFrame = pl.from_dict(
             {
                 "epoch": [-1],
-                "training_loss": [0.0],
-                "validation_loss": [0.0],
+                "training_loss": [initial_training_loss],
+                "validation_loss": [initial_validation_loss],
                 "time_since_start": [0.0],
             }
         )

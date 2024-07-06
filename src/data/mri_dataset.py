@@ -6,6 +6,7 @@ import pathlib
 import polars as pl
 from src.util.tiling import (
     image_to_patches,
+    filter_black_tiles,
 )
 
 
@@ -73,6 +74,9 @@ class MRIDataset(Dataset):
 
         self.fullysampled_tiles = torch.cat(fullysampled_tiles, dim=0)
         self.undersampled_tiles = torch.cat(undersampled_tiles, dim=0)
+        self.undersampled_tiles, self.fullysampled_tiles = filter_black_tiles(
+            self.undersampled_tiles, self.fullysampled_tiles
+        )
 
     def __len__(self):
         return self.fullysampled_tiles.shape[0]
