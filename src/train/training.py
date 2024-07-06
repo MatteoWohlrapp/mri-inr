@@ -14,6 +14,8 @@ from src.util.tiling import (
     image_to_patches,
     patches_to_image_weighted_average,
     patches_to_image,
+    filter_and_remember_black_tiles,
+    reintegrate_black_patches,
 )
 
 pl.Config.set_tbl_rows(1000)
@@ -30,27 +32,31 @@ class Trainer:
         output_dir,
         outer_patch_size,
         inner_patch_size,
+        siren_patch_size,
         val_dataset=None,
         batch_size=1,
         output_name="modulated_siren",
+        num_workers=4,
         save_interval=100,
     ):
         self.model: nn.Module = model.to(device)
         self.device = device
         self.outer_patch_size = outer_patch_size
         self.inner_patch_size = inner_patch_size
+        self.siren_patch_size = siren_patch_size
+        self.num_workers = num_workers
         self.train_loader = DataLoader(
             train_dataset,
             batch_size=batch_size,
             shuffle=True,
-            num_workers=4,
+            num_workers=num_workers,
         )
         if val_dataset:
             self.val_loader = DataLoader(
                 val_dataset,
                 batch_size=batch_size,
                 shuffle=True,
-                num_workers=4,
+                num_workers=num_workers,
             )
         else:
             self.val_loader = None
@@ -72,6 +78,9 @@ class Trainer:
             initial_training_loss,
             initial_validation_loss,
             device,
+            outer_patch_size,
+            inner_patch_size,
+            siren_patch_size,
             save_interval,
         )
         self.scaler = torch.cuda.amp.GradScaler(enabled=True)
@@ -98,7 +107,7 @@ class Trainer:
 
         fully_sampled_batch = (
             extract_center_batch(
-                fully_sampled_batch, self.outer_patch_size, self.inner_patch_size
+                fully_sampled_batch, self.outer_patch_size, self.siren_patch_size
             )
             .to(self.device)
             .float()
@@ -155,7 +164,7 @@ class Trainer:
                     extract_center_batch(
                         fully_sampled_batch,
                         self.outer_patch_size,
-                        self.inner_patch_size,
+                        self.siren_patch_size,
                     )
                     .to(self.device)
                     .float()
@@ -168,7 +177,7 @@ class Trainer:
                         extract_center_batch(
                             fully_sampled_batch,
                             self.outer_patch_size,
-                            self.inner_patch_size,
+                            self.siren_patch_size,
                         )
                         .to(self.device)
                         .float()
@@ -194,6 +203,9 @@ class TrainingManager:
         initial_training_loss,
         initial_validation_loss,
         device,
+        outer_patch_size,
+        inner_patch_size,
+        siren_patch_size,
         save_interval=100,
     ):
         self.model = model
@@ -205,6 +217,9 @@ class TrainingManager:
         self.val_loader = val_loader
         self.val_dataset = val_dataset
         self.device = device
+        self.outer_patch_size = outer_patch_size
+        self.inner_patch_size = inner_patch_size
+        self.siren_patch_size = siren_patch_size
         self.save_interval = save_interval
         self.epoch_counter = 0
         self.batch_counter = 0
@@ -212,9 +227,9 @@ class TrainingManager:
         self.progress_log: pl.DataFrame = pl.from_dict(
             {
                 "epoch": [-1],
-                "training_loss": [initial_training_loss],
-                "validation_loss": [initial_validation_loss],
-                "time_since_start": [0.0],
+                "training_loss": [float(initial_training_loss)],
+                "validation_loss": [float(initial_validation_loss)],
+                "time_since_start": [float(0.0)],
             }
         )
 
@@ -255,20 +270,40 @@ class TrainingManager:
             undersampled = undersampled.unsqueeze(0).to(self.device).float()
 
             fully_sampled, fully_sampled_information = image_to_patches(
-                fully_sampled, 32, 16
+                fully_sampled, self.outer_patch_size, self.inner_patch_size
             )
             undersampled, undersampled_information = image_to_patches(
-                undersampled, 32, 16
+                undersampled, self.outer_patch_size, self.inner_patch_size
             )
 
             with torch.no_grad():
-                output = self.model(undersampled)
+                undersampled_filtered, filter_information, original_shape = (
+                    filter_and_remember_black_tiles(undersampled)
+                )
+                output = self.model(undersampled_filtered)
+                output = reintegrate_black_patches(
+                    output, filter_information, original_shape
+                )
 
             save_image_comparison(
-                patches_to_image(fully_sampled, fully_sampled_information, 32, 16),
-                patches_to_image(undersampled, undersampled_information, 32, 16),
+                patches_to_image(
+                    fully_sampled,
+                    fully_sampled_information,
+                    self.outer_patch_size,
+                    self.inner_patch_size,
+                ),
+                patches_to_image(
+                    undersampled,
+                    undersampled_information,
+                    self.outer_patch_size,
+                    self.inner_patch_size,
+                ),
                 patches_to_image_weighted_average(
-                    output, undersampled_information, 16, 16, self.device
+                    output,
+                    undersampled_information,
+                    self.siren_patch_size,
+                    self.inner_patch_size,
+                    self.device,
                 ),
                 f"{output_dir}/snapshot_train_epoch_{self.epoch_counter}_{i}.png",
             )
@@ -279,20 +314,40 @@ class TrainingManager:
                 undersampled = undersampled.unsqueeze(0).to(self.device).float()
 
                 fully_sampled, fully_sampled_information = image_to_patches(
-                    fully_sampled, 32, 16
+                    fully_sampled, self.outer_patch_size, self.inner_patch_size
                 )
                 undersampled, undersampled_information = image_to_patches(
-                    undersampled, 32, 16
+                    undersampled, self.outer_patch_size, self.inner_patch_size
                 )
 
                 with torch.no_grad():
-                    output = self.model(undersampled)
+                    undersampled_filtered, filter_information, original_shape = (
+                        filter_and_remember_black_tiles(undersampled)
+                    )
+                    output = self.model(undersampled_filtered)
+                    output = reintegrate_black_patches(
+                        output, filter_information, original_shape
+                    )
 
                 save_image_comparison(
-                    patches_to_image(fully_sampled, fully_sampled_information, 32, 16),
-                    patches_to_image(undersampled, undersampled_information, 32, 16),
+                    patches_to_image(
+                        fully_sampled,
+                        fully_sampled_information,
+                        self.outer_patch_size,
+                        self.inner_patch_size,
+                    ),
+                    patches_to_image(
+                        undersampled,
+                        undersampled_information,
+                        self.outer_patch_size,
+                        self.inner_patch_size,
+                    ),
                     patches_to_image_weighted_average(
-                        output, undersampled_information, 16, 16, self.device
+                        output,
+                        undersampled_information,
+                        self.siren_patch_size,
+                        self.inner_patch_size,
+                        self.device,
                     ),
                     f"{output_dir}/snapshot_val_epoch_{self.epoch_counter}_{i}.png",
                 )

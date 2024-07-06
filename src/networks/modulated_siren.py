@@ -165,6 +165,7 @@ class ModulatedSiren(nn.Module):
         encoder_path,
         outer_patch_size,
         inner_patch_size,
+        siren_patch_size,
         device,
     ):
         super().__init__()
@@ -177,6 +178,7 @@ class ModulatedSiren(nn.Module):
         self.encoder_type = encoder_type
         self.outer_patch_size = outer_patch_size
         self.inner_patch_size = inner_patch_size
+        self.siren_patch_size = siren_patch_size
 
         self.net = SirenNet(
             dim_in=dim_in,
@@ -201,8 +203,8 @@ class ModulatedSiren(nn.Module):
         )
 
         tensors = [
-            torch.linspace(-1, 1, steps=self.inner_patch_size),
-            torch.linspace(-1, 1, steps=self.inner_patch_size),
+            torch.linspace(-1, 1, steps=self.siren_patch_size),
+            torch.linspace(-1, 1, steps=self.siren_patch_size),
         ]
         mgrid = torch.stack(torch.meshgrid(*tensors, indexing="ij"), dim=-1)
         mgrid = rearrange(mgrid, "h w b -> (h w) b")
@@ -217,7 +219,7 @@ class ModulatedSiren(nn.Module):
         out = self.net(coords, mods)
         out = out.squeeze(2)
         out = rearrange(
-            out, "b (h w)-> () b h w", h=self.inner_patch_size, w=self.inner_patch_size
+            out, "b (h w)-> () b h w", h=self.siren_patch_size, w=self.siren_patch_size
         )
         out = out.squeeze(0)
 

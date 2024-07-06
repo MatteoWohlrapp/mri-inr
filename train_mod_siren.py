@@ -21,6 +21,8 @@ def train_mod_siren(config):
         MRIDataset(
             pathlib.Path(config.data.val.dataset),
             number_of_samples=config.data.val.num_samples,
+            outer_patch_size=config.model.outer_patch_size,
+            inner_patch_size=config.model.inner_patch_size,
         )
         if config.data.val.dataset
         else None
@@ -48,6 +50,7 @@ def train_mod_siren(config):
         encoder_path=config.model.encoder_path,
         outer_patch_size=config.model.outer_patch_size,
         inner_patch_size=config.model.inner_patch_size,
+        siren_patch_size=config.model.siren_patch_size,
         device=device,
     )
     mod_siren.to(device)
@@ -72,7 +75,9 @@ def train_mod_siren(config):
         output_name=config.training.output_name,
         outer_patch_size=config.model.outer_patch_size,
         inner_patch_size=config.model.inner_patch_size,
+        siren_patch_size=config.model.siren_patch_size,
         save_interval=config.training.save_interval,
+        num_workers=config.data.train.num_workers,
     )
 
     # Check if we want to load an existing model

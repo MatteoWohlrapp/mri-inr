@@ -1,7 +1,7 @@
 data:
   train:
     dataset: '../../dataset/fastmri/brain/singlecoil_train/'
-    num_samples: 10000
+    num_samples: 1
     mri_type: "FLAIR"
     num_workers: 4
 
@@ -20,14 +20,15 @@ model:
   encoder_path: './models/custom_encoder.pth'
   outer_patch_size: 32
   inner_patch_size: 16
+  siren_patch_size: 24
   
 training:
   lr: 0.0001
   batch_size: 400
-  epochs: 10000
+  epochs: 3
   output_dir: "./output"
   output_name: "refactored"
   optimizer: "Adam"
-  save_interval: 100
+  save_interval: 1
   model:
     continue_training: False

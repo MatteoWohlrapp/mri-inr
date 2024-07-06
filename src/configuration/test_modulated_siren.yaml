@@ -1,6 +1,6 @@
 data:
   dataset: '../../dataset/fastmri/brain/singlecoil_val/'
-  num_samples: 10
+  num_samples: 5
 
 model:
   dim_in: 2
@@ -16,9 +16,10 @@ model:
   encoder_path: './models/custom_encoder.pth'
   outer_patch_size: 32
   inner_patch_size: 16
+  siren_patch_size: 24
   
 testing: 
   output_dir: "./output"
-  output_name: "refactored_2024-07-05_00-06-35"
-  model_path: "output/refactored_2024-07-05_00-06-35/models/refactored_2024-07-05_00-06-35_optimizer_epoch_1_.pth"
+  output_name: "refactored_2024-07-06_12-29-02"
+  model_path: "output/refactored_2024-07-06_12-29-02/models/refactored_2024-07-06_12-29-02_model_epoch_3_final.pth"
 

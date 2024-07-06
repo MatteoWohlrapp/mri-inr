@@ -166,6 +166,65 @@ def filter_black_tiles(undersampled, fullysampled):
     )
 
 
+def filter_and_remember_black_tiles(patches):
+    """
+    Filters out black patches from a batch and remembers their positions.
+
+    Args:
+        patches (torch.Tensor): Batch of patches with shape (N, C, H, W).
+
+    Returns:
+        tuple: A tuple containing:
+            - Non-black patches (torch.Tensor).
+            - Indices of black patches (list).
+    """
+    non_black_indices = []
+    black_indices = []
+
+    for index, patch in enumerate(patches):
+        if classify_tile(patch) == 1:  # Assuming 1 means non-black
+            non_black_indices.append(index)
+        else:
+            black_indices.append(index)
+
+    non_black_patches = patches[non_black_indices]
+    original_shape = patches.shape
+
+    return non_black_patches, black_indices, original_shape
+
+
+def reintegrate_black_patches(processed_patches, black_indices, original_shape):
+    """
+    Reintegrates black patches into the batch at their original positions.
+
+    Args:
+        processed_patches (torch.Tensor): Tensor of processed non-black patches.
+        black_indices (list): List of indices where black patches were located.
+        original_shape (tuple): Original shape of the batch (total number of patches, channels, height, width).
+
+    Returns:
+        torch.Tensor: Tensor with black patches reintegrated.
+    """
+    # Ensure that the shape for the full batch accounts for the processed patches' dimensions
+    full_batch = torch.zeros(
+        (original_shape[0], *processed_patches.shape[1:]),
+        dtype=processed_patches.dtype,
+        device=processed_patches.device,
+    )
+    non_black_index = 0
+
+    for i in range(original_shape[0]):
+        if i in black_indices:
+            # Insert a black patch with the same dimensions as the processed patches
+            full_batch[i] = torch.zeros_like(processed_patches[0])
+        else:
+            # Insert a processed patch
+            full_batch[i] = processed_patches[non_black_index]
+            non_black_index += 1
+
+    return full_batch
+
+
 def extract_center_batch(batch, outer_patch_size, inner_patch_size) -> torch.Tensor:
     """
     Extract the center of a batch of tensors with the given outer patch size, to the size of the inner patch size.

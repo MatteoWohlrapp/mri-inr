@@ -32,6 +32,7 @@ default_train_config = {
         "encoder_path": "./model/custom_encoder.pth",
         "outer_patch_size": 32,
         "inner_patch_size": 16,
+        "siren_patch_size": 24,
     },
     "training": {
         "lr": 0.0001,
@@ -62,6 +63,7 @@ default_test_config = {
         "encoder_path": "./model/custom_encoder.pth",
         "outer_patch_size": 32,
         "inner_patch_size": 16,
+        "siren_patch_size": 24,
     },
     "testing": {
         "output_dir": "./output",

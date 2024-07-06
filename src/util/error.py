@@ -6,6 +6,8 @@ import numpy as np
 from src.util.tiling import (
     patches_to_image_weighted_average,
     patches_to_image,
+    filter_and_remember_black_tiles,
+    reintegrate_black_patches,
 )
 import os
 
@@ -54,15 +56,44 @@ def calculate_difference(original, predicted):
 
 
 def error_metrics(
-    model, output_dir, filename, fully_sampled, undersampled, img_information, device
+    model,
+    output_dir,
+    filename,
+    fully_sampled,
+    undersampled,
+    img_information,
+    device,
+    outer_patch_size,
+    inner_patch_size,
+    siren_patch_size,
 ):
-    reconstructed_patches = model(undersampled)
+
+    # Filter black tiles
+    undersampled_filtered, filter_information, original_shape = (
+        filter_and_remember_black_tiles(undersampled)
+    )
+    undersampled_filtered = undersampled_filtered.to(device)
+
+    reconstructed_patches = model(undersampled_filtered)
+
+    # Reintegrate black tiles
+    reconstructed_patches = reintegrate_black_patches(
+        reconstructed_patches, filter_information, original_shape
+    )
 
     reconstructed_img = patches_to_image_weighted_average(
-        reconstructed_patches, img_information, 16, 16, device
+        reconstructed_patches,
+        img_information,
+        siren_patch_size,
+        inner_patch_size,
+        device,
     )
-    undersampled_img = patches_to_image(undersampled, img_information, 32, 16)
-    fully_sampled_img = patches_to_image(fully_sampled, img_information, 32, 16)
+    undersampled_img = patches_to_image(
+        undersampled, img_information, outer_patch_size, inner_patch_size
+    )
+    fully_sampled_img = patches_to_image(
+        fully_sampled, img_information, outer_patch_size, inner_patch_size
+    )
 
     reconstructed_img = reconstructed_img.cpu()
     fully_sampled_img = fully_sampled_img.cpu()

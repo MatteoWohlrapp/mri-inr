@@ -51,6 +51,7 @@ def test_mod_siren(config):
         encoder_path=config.model.encoder_path,
         outer_patch_size=config.model.outer_patch_size,
         inner_patch_size=config.model.inner_patch_size,
+        siren_patch_size=config.model.siren_patch_size,
         device=device,
     )
 
@@ -93,6 +94,9 @@ def test_mod_siren(config):
                 undersampled_patch,
                 undersampled_information,
                 device,
+                config.model.outer_patch_size,
+                config.model.inner_patch_size,
+                config.model.siren_patch_size,
             )
 
 

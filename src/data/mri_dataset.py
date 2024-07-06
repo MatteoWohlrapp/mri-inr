@@ -24,6 +24,8 @@ class MRIDataset(Dataset):
         mri_type: str = "Flair",
         seed: Optional[int] = 31415,
         specific_slice_ids: Optional[List[str]] = None,
+        outer_patch_size: int = 32,
+        inner_patch_size: int = 16,
     ):
         self.data_root: pathlib.Path = data_root
         self.transform = transform
@@ -31,6 +33,8 @@ class MRIDataset(Dataset):
         self.mri_type = mri_type
         self.seed = seed
         self.slice_ids = specific_slice_ids
+        self.outer_patch_size = outer_patch_size
+        self.inner_patch_size = inner_patch_size
         self.metadata: pl.LazyFrame = pl.scan_csv(data_root / "metadata.csv")
         self.fullysampled_tiles: torch.Tensor = torch.empty(0)
         self.undersampled_tiles: torch.Tensor = torch.empty(0)
@@ -66,10 +70,18 @@ class MRIDataset(Dataset):
                 scan_fullysampled = self.transform(scan_fullysampled)
                 scan_undersampled = self.transform(scan_undersampled)
 
-            patches, _ = image_to_patches(scan_fullysampled.unsqueeze(0), 32, 32)
+            patches, _ = image_to_patches(
+                scan_fullysampled.unsqueeze(0),
+                self.outer_patch_size,
+                self.inner_patch_size,
+            )
             fullysampled_tiles.append(patches)
 
-            patches, _ = image_to_patches(scan_undersampled.unsqueeze(0), 32, 32)
+            patches, _ = image_to_patches(
+                scan_undersampled.unsqueeze(0),
+                self.outer_patch_size,
+                self.inner_patch_size,
+            )
             undersampled_tiles.append(patches)
 
         self.fullysampled_tiles = torch.cat(fullysampled_tiles, dim=0)
