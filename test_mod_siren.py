@@ -11,7 +11,6 @@ from src.util.error import error_metrics
 
 
 def save_args_to_file(args, output_dir):
-
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
@@ -54,9 +53,10 @@ def test_mod_siren(config):
         inner_patch_size=config.model.inner_patch_size,
         device=device,
     )
-    mod_siren.to(device)
 
     mod_siren.load_state_dict(torch.load(config.testing.model_path))
+
+    mod_siren.to(device)
 
     with torch.no_grad():
         mod_siren.eval()
@@ -67,8 +67,8 @@ def test_mod_siren(config):
             fully_sampled_img, undersampled_img, filename = sampler.get_random_sample()
 
             # unsqueeze image to add batch dimension
-            fully_sampled_img = fully_sampled_img.unsqueeze(0).float()
-            undersampled_img = undersampled_img.unsqueeze(0).float()
+            fully_sampled_img = fully_sampled_img.unsqueeze(0).float().to(device)
+            undersampled_img = undersampled_img.unsqueeze(0).float().to(device)
 
             fully_sampled_patch, _ = image_to_patches(
                 fully_sampled_img,
@@ -92,7 +92,7 @@ def test_mod_siren(config):
                 fully_sampled_patch,
                 undersampled_patch,
                 undersampled_information,
-                device
+                device,
             )
 
 

@@ -7,7 +7,7 @@ default_train_config = {
     "data": {
         "train": {
             "dataset": "",
-            "num_samples": 100,
+            "num_samples": None,
             "mri_type": "FLAIR",
             "num_workers": 4,
         },
