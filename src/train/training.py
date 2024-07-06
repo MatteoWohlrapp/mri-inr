@@ -38,6 +38,7 @@ class Trainer:
         output_name="modulated_siren",
         num_workers=4,
         save_interval=100,
+        logging=False,
     ):
         self.model: nn.Module = model.to(device)
         self.device = device
@@ -64,7 +65,11 @@ class Trainer:
         self.output_name = output_name
         self.output_dir = output_dir
         self.criterion = nn.MSELoss()
-        self.writer = SummaryWriter(log_dir=f"{output_dir}/{output_name}/runs")
+        self.writer = (
+            SummaryWriter(log_dir=f"{output_dir}/{output_name}/tensorboard")
+            if logging
+            else None
+        )
         initial_training_loss, initial_validation_loss = self.get_initial_errors()
         self.training_manager = TrainingManager(
             model,
@@ -81,7 +86,9 @@ class Trainer:
             outer_patch_size,
             inner_patch_size,
             siren_patch_size,
+            batch_size,
             save_interval,
+            self.writer,
         )
         self.scaler = torch.cuda.amp.GradScaler(enabled=True)
 
@@ -92,15 +99,19 @@ class Trainer:
             self.training_manager.post_epoch_update(training_loss, validation_loss)
         self.training_manager.update_human_readable_short_progress_log()
         self.training_manager.save_model("final")
+        if self.writer:
+            self.writer.close()
 
     def _train_epoch(self):
         self.model.train()
         training_loss = 0
+        batches = 0
         for fully_sampled_batch, undersampled_batch in self.train_loader:
+            batches += 1
             training_loss += self._train_iteration(
                 undersampled_batch, fully_sampled_batch
             )
-        return training_loss
+        return training_loss / batches
 
     def _train_iteration(self, undersampled_batch, fully_sampled_batch):
         undersampled_batch = undersampled_batch.to(self.device).float()
@@ -120,18 +131,21 @@ class Trainer:
             self.scaler.step(self.optimizer)
             self.scaler.update()
             loss_item = loss.item()
+
         self.training_manager.post_batch_update(loss_item)
         return loss_item
 
     def _validate_epoch(self):
         self.model.eval()
         validation_loss = 0
+        batches = 0
         with torch.no_grad():
             for fully_sampled_batch, undersampled_batch in self.val_loader:
+                batches += 1
                 validation_loss += self._validate_iteration(
                     undersampled_batch, fully_sampled_batch
                 )
-        return validation_loss
+        return validation_loss / batches
 
     def _validate_iteration(self, undersampled_batch, fully_sampled_batch):
         undersampled_batch = undersampled_batch.to(self.device).float()
@@ -206,7 +220,9 @@ class TrainingManager:
         outer_patch_size,
         inner_patch_size,
         siren_patch_size,
+        batch_size=1,
         save_interval=100,
+        writer=None,
     ):
         self.model = model
         self.optimizer = optimizer
@@ -221,6 +237,8 @@ class TrainingManager:
         self.inner_patch_size = inner_patch_size
         self.siren_patch_size = siren_patch_size
         self.save_interval = save_interval
+        self.batch_size = batch_size
+        self.writer = writer
         self.epoch_counter = 0
         self.batch_counter = 0
         self.starting_time = time.time()
@@ -241,11 +259,14 @@ class TrainingManager:
             self.update_human_readable_short_progress_log()
         self.epoch_counter += 1
         self.update_progress_log(training_loss, validation_loss)
-        # Perform other post-epoch updates here
+        if self.writer:
+            self.writer.add_scalar("training_loss", training_loss, self.epoch_counter)
+            self.writer.add_scalar(
+                "validation_loss", validation_loss, self.epoch_counter
+            )
 
     def post_batch_update(self, loss):
         self.batch_counter += 1
-        # Perform post-batch updates here
 
     def save_model(self, suffix=""):
         if not os.path.exists(f"{self.output_dir}/{self.output_name}/models"):
@@ -365,7 +386,7 @@ class TrainingManager:
         self.progress_log = self.progress_log.extend(pl.from_dict(current_log))
 
     def update_human_readable_short_progress_log(self):
-        output_dir = f"{self.output_dir}/{self.output_name}/progress"
+        output_dir = f"{self.output_dir}/{self.output_name}"
         os.makedirs(output_dir, exist_ok=True)
         """Create .txt file with human readable short progress log.
         Short meaning only every n-th epoch is included.

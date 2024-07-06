@@ -42,6 +42,7 @@ default_train_config = {
         "output_dir": "./output",
         "output_name": "modulated_siren",
         "optimizer": "Adam",
+        "logging": False,
         "model": {"continue_training": False, "model_path": "", "optimizer_path": ""},
     },
 }
@@ -88,6 +89,22 @@ def convert_to_namespace(data):
             data[key] = convert_to_namespace(value)
         return types.SimpleNamespace(**data)
     return data
+
+
+def namespace_to_dict(obj):
+    if isinstance(obj, types.SimpleNamespace):
+        obj = vars(obj)
+    if isinstance(obj, dict):
+        return {k: namespace_to_dict(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [namespace_to_dict(v) for v in obj]
+    else:
+        return obj
+
+
+def save_config_to_yaml(config, filename):
+    with open(filename, "w") as file:
+        yaml.dump(config, file, default_flow_style=False, sort_keys=False)
 
 
 def load_configuration(file_path, testing=False):

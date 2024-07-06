@@ -5,16 +5,28 @@ from src.networks.modulated_siren import ModulatedSiren
 from src.train.training import Trainer
 from src.util.util import time_function
 from src.configuration.configuration import load_configuration, parse_args
+import os
+from src.configuration.configuration import namespace_to_dict, save_config_to_yaml
 
 
 @time_function
 def train_mod_siren(config):
-    print("Training the modulated SIREN...")
+
+    # Write configuration to file
+    config_path = pathlib.Path(config.training.output_dir) / config.training.output_name
+    os.makedirs(config_path, exist_ok=True)
+    with open(f"{config_path}/config.yaml", "w", encoding="utf-8") as f:
+        dict = namespace_to_dict(config)
+        save_config_to_yaml(dict, f"{config_path}/config.yaml")
 
     # Load dataset
     train_dataset = MRIDataset(
         pathlib.Path(config.data.train.dataset),
         number_of_samples=config.data.train.num_samples,
+        outer_patch_size=config.model.outer_patch_size,
+        inner_patch_size=config.model.inner_patch_size,
+        output_dir=config.training.output_dir,
+        output_name=config.training.output_name,
     )
 
     val_dataset = (
@@ -23,6 +35,8 @@ def train_mod_siren(config):
             number_of_samples=config.data.val.num_samples,
             outer_patch_size=config.model.outer_patch_size,
             inner_patch_size=config.model.inner_patch_size,
+            output_dir=config.training.output_dir,
+            output_name=config.training.output_name,
         )
         if config.data.val.dataset
         else None
@@ -78,6 +92,7 @@ def train_mod_siren(config):
         siren_patch_size=config.model.siren_patch_size,
         save_interval=config.training.save_interval,
         num_workers=config.data.train.num_workers,
+        logging=config.training.logging,
     )
 
     # Check if we want to load an existing model
@@ -85,6 +100,10 @@ def train_mod_siren(config):
         trainer.load_model(
             model_path=pathlib.Path(config.model.model_path),
         )
+
+    print(
+        f"Training the modulated SIREN..., output name is {config.training.output_name}"
+    )
 
     # Train the model
     trainer.train(config.training.epochs)

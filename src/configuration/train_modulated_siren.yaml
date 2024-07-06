@@ -30,5 +30,6 @@ training:
   output_name: "refactored"
   optimizer: "Adam"
   save_interval: 1
+  logging: True
   model:
     continue_training: False

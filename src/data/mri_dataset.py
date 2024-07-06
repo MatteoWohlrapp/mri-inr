@@ -8,6 +8,7 @@ from src.util.tiling import (
     image_to_patches,
     filter_black_tiles,
 )
+import os
 
 
 class MRIDataset(Dataset):
@@ -26,6 +27,8 @@ class MRIDataset(Dataset):
         specific_slice_ids: Optional[List[str]] = None,
         outer_patch_size: int = 32,
         inner_patch_size: int = 16,
+        output_dir: str = "output",
+        output_name: str = "modulated_siren",
     ):
         self.data_root: pathlib.Path = data_root
         self.transform = transform
@@ -35,6 +38,8 @@ class MRIDataset(Dataset):
         self.slice_ids = specific_slice_ids
         self.outer_patch_size = outer_patch_size
         self.inner_patch_size = inner_patch_size
+        self.output_dir = output_dir
+        self.output_name = output_name
         self.metadata: pl.LazyFrame = pl.scan_csv(data_root / "metadata.csv")
         self.fullysampled_tiles: torch.Tensor = torch.empty(0)
         self.undersampled_tiles: torch.Tensor = torch.empty(0)
@@ -55,6 +60,17 @@ class MRIDataset(Dataset):
         else:
             self.metadata = self.metadata.collect()
         self.slice_ids = self.metadata.select(pl.col("slice_id")).to_numpy().flatten()
+
+        # Print all files used for training
+        files = []
+        for i in range(len(self.metadata)):
+            files.append(self.metadata[i, 2])
+
+        files = list(set(files))
+        output_dir = f"{self.output_dir}/{self.output_name}"
+        os.makedirs(output_dir, exist_ok=True)
+        with open(f"{output_dir}/processed_files.txt", "w", encoding="utf-8") as f:
+            print(files, file=f)
 
     def _create_tiles(self):
         fullysampled_tiles = []
