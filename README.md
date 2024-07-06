@@ -63,6 +63,7 @@ There is a number of configuration parameters for both training and testing.
   - `encoder_path`: Path to a custom encoder model.
   - `outer_patch_size`: Size of the outer patch in the input.
   - `inner_patch_size`: Size of the inner patch in the input.
+  - `siren_patch_size`: Size of the patch the siren network is actually trained on.
 
 ### Training Configuration
 
@@ -80,10 +81,10 @@ There is a number of configuration parameters for both training and testing.
   - `lr`: Learning rate.
   - `batch_size`: Batch size.
   - `epochs`: Total number of epochs to train.
-  - `limit_io`: Boolean to limit I/O operations.
   - `output_dir`: Directory to save output files.
   - `output_name`: Base name for output files.
   - `optimizer`: Type of optimizer to use (`Adam`, `SGD`, etc.).
+  - `logging`: Specify if tensorboard should be turned on or off.
   - `model`
     - `continue_training`: Boolean to indicate whether to continue training from a previous checkpoint.
     - `model_path`: Path to the model checkpoint for resuming training.

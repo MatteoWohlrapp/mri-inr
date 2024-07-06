@@ -7,10 +7,21 @@ from src.util.util import time_function
 from src.configuration.configuration import load_configuration, parse_args
 import os
 from src.configuration.configuration import namespace_to_dict, save_config_to_yaml
+from src.util.slurm_restart import find_latest_checkpoint, find_latest_folder
+import datetime
 
 
 @time_function
 def train_mod_siren(config):
+
+    # Checking if we want to continue training
+    if config.training.model.continue_training:
+        config.training.output_name = find_latest_folder(
+            config.training.output_dir, config.training.output_name
+        )
+    else:
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        config.training.output_name = f"{config.training.output_name}_{current_time}"
 
     # Write configuration to file
     config_path = pathlib.Path(config.training.output_dir) / config.training.output_name
@@ -95,18 +106,31 @@ def train_mod_siren(config):
         logging=config.training.logging,
     )
 
+    initial_epoch = 0
+
     # Check if we want to load an existing model
     if config.training.model.continue_training:
-        trainer.load_model(
-            model_path=pathlib.Path(config.model.model_path),
-        )
+        if config.training.model.model_path:
+            trainer.load_model(
+                model_path=pathlib.Path(config.model.model_path),
+                optimizer_path=pathlib.Path(config.model.optimizer_path),
+            )
+        else:
+            model_path, optimizer_path, epoch_number = find_latest_checkpoint(
+                config.training.output_dir, config.training.output_name
+            )
+            trainer.load_model(
+                model_path=pathlib.Path(model_path),
+                optimizer_path=pathlib.Path(optimizer_path),
+            )
+            initial_epoch = epoch_number + 1
 
     print(
         f"Training the modulated SIREN..., output name is {config.training.output_name}"
     )
 
     # Train the model
-    trainer.train(config.training.epochs)
+    trainer.train(initial_epoch, config.training.epochs)
 
 
 if __name__ == "__main__":

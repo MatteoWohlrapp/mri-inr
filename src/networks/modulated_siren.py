@@ -135,8 +135,8 @@ class Encoder(nn.Module):
         return model.encoder, num_features
 
     def forward(self, x):
-        
-        if self.encoder_type == "custom": 
+
+        if self.encoder_type == "custom":
             x = self.encoder(x)
         elif self.encoder_type == "vgg":
             print(x.shape)

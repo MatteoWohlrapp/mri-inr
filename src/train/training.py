@@ -92,8 +92,9 @@ class Trainer:
         )
         self.scaler = torch.cuda.amp.GradScaler(enabled=True)
 
-    def train(self, num_epochs):
-        for _ in range(num_epochs):
+    def train(self, initial_epoch, num_epochs):
+        self.training_manager.set_epoch_counter(initial_epoch)
+        for _ in range(initial_epoch, num_epochs):
             training_loss = self._train_epoch()
             validation_loss = self._validate_epoch() if self.val_loader else 0
             self.training_manager.post_epoch_update(training_loss, validation_loss)
@@ -397,3 +398,6 @@ class TrainingManager:
         short_log = short_log.unique(maintain_order=True, subset=["epoch"])
         with open(f"{output_dir}/progress_log.txt", "w", encoding="utf-8") as f:
             print(short_log, file=f)
+
+    def set_epoch_counter(self, epoch):
+        self.epoch_counter = epoch

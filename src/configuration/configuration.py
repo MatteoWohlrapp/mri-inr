@@ -1,7 +1,6 @@
 import types
 import yaml
 import argparse
-import datetime
 
 default_train_config = {
     "data": {
@@ -38,7 +37,6 @@ default_train_config = {
         "lr": 0.0001,
         "batch_size": 10,
         "epochs": 100,
-        "limit_io": False,
         "output_dir": "./output",
         "output_name": "modulated_siren",
         "optimizer": "Adam",
@@ -117,12 +115,6 @@ def load_configuration(file_path, testing=False):
         full_config = merge_configs(default_train_config, user_config)
 
     types_namespace = convert_to_namespace(full_config)
-
-    if not testing:
-        current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        types_namespace.training.output_name = (
-            f"{types_namespace.training.output_name}_{current_time}"
-        )
 
     return types_namespace
 
