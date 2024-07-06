@@ -96,7 +96,6 @@ class Inspector(nn.Module):
 
 
 class Autoencoder(nn.Module):
-
     def __init__(self, encoder, decoder, id_):
         super(Autoencoder, self).__init__()
         self.encoder = encoder

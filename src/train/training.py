@@ -268,7 +268,7 @@ class TrainingManager:
                 patches_to_image(fully_sampled, fully_sampled_information, 32, 16),
                 patches_to_image(undersampled, undersampled_information, 32, 16),
                 patches_to_image_weighted_average(
-                    output, undersampled_information, 16, 16
+                    output, undersampled_information, 16, 16, self.device
                 ),
                 f"{output_dir}/snapshot_train_epoch_{self.epoch_counter}_{i}.png",
             )
@@ -292,7 +292,7 @@ class TrainingManager:
                     patches_to_image(fully_sampled, fully_sampled_information, 32, 16),
                     patches_to_image(undersampled, undersampled_information, 32, 16),
                     patches_to_image_weighted_average(
-                        output, undersampled_information, 16, 16
+                        output, undersampled_information, 16, 16, self.device
                     ),
                     f"{output_dir}/snapshot_val_epoch_{self.epoch_counter}_{i}.png",
                 )
@@ -301,8 +301,8 @@ class TrainingManager:
         current_time = time.time()
         current_log = {
             "epoch": self.epoch_counter,
-            "training_loss": training_loss,
-            "validation_loss": validation_loss,
+            "training_loss": float(training_loss),
+            "validation_loss": float(validation_loss),
             "time_since_start": float(
                 round((current_time - self.starting_time) / 60, 0)
             ),
@@ -310,6 +310,8 @@ class TrainingManager:
         self.progress_log = self.progress_log.extend(pl.from_dict(current_log))
 
     def update_human_readable_short_progress_log(self):
+        output_dir = f"{self.output_dir}/{self.output_name}/progress"
+        os.makedirs(output_dir, exist_ok=True)
         """Create .txt file with human readable short progress log.
         Short meaning only every n-th epoch is included.
         """
@@ -317,5 +319,5 @@ class TrainingManager:
         last_log = self.progress_log[-1, :]
         short_log = short_log.extend(last_log)
         short_log = short_log.unique(maintain_order=True, subset=["epoch"])
-        with open(f"{self.output_dir}/progress_log.txt", "w", encoding="utf-8") as f:
+        with open(f"{output_dir}/progress_log.txt", "w", encoding="utf-8") as f:
             print(short_log, file=f)

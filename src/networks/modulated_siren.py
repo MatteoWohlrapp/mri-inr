@@ -109,7 +109,6 @@ class SirenNet(nn.Module):
 
 # encoder
 class Encoder(nn.Module):
-
     def __init__(self, latent_dim, encoder_path, device, encoder_type="custom"):
         super().__init__()
         self.latent_dim = latent_dim
