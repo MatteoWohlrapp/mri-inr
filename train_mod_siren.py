@@ -15,7 +15,7 @@ import datetime
 def train_mod_siren(config):
 
     # Checking if we want to continue training
-    if config.training.model.continue_training:
+    if config.training.model.continue_training and not config.training.model.model_path:
         config.training.output_name = find_latest_folder(
             config.training.output_dir, config.training.output_name
         )
@@ -112,8 +112,8 @@ def train_mod_siren(config):
     if config.training.model.continue_training:
         if config.training.model.model_path:
             trainer.load_model(
-                model_path=pathlib.Path(config.model.model_path),
-                optimizer_path=pathlib.Path(config.model.optimizer_path),
+                model_path=config.training.model.model_path,
+                optimizer_path=config.training.model.optimizer_path,
             )
         else:
             model_path, optimizer_path, epoch_number = find_latest_checkpoint(
