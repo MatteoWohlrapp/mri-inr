@@ -152,20 +152,22 @@ def classify_tile(tile: torch.Tensor):
     else:
         return 1
 
-
-def filter_black_tiles(undersampled, fullysampled):
-    """Filter out tiles that are classified as 0 or black."""
-    non_black_tiles = [
-        (u_tile, f_tile)
-        for u_tile, f_tile in zip(undersampled, fullysampled)
-        if classify_tile(u_tile) != 0
-    ]
-    return (
-        torch.stack([tile[0] for tile in non_black_tiles]),
-        torch.stack([tile[1] for tile in non_black_tiles]),
-    )
-
-
+def filter_black_tiles(undersampled: list[torch.tensor], fullysampled:list[torch.tensor]):
+    """Filter out tiles that are classified as 0 or black.
+    Alternative implementation that works with lists of tensors.
+    To handle the filtering without needing to copy the whole tensor, since
+    RAM is a limiting factor when working with large datasets.
+    """
+    for i in range(len(undersampled)):
+        non_black_indices = [
+            index
+            for index, u_tile in enumerate(undersampled[i])
+            if classify_tile(u_tile) != 0
+        ]
+        undersampled[i] = undersampled[i][non_black_indices]
+        fullysampled[i] = fullysampled[i][non_black_indices]
+    return undersampled, fullysampled
+        
 def filter_and_remember_black_tiles(patches):
     """
     Filters out black patches from a batch and remembers their positions.

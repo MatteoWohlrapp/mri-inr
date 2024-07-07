@@ -102,11 +102,11 @@ class MRIDataset(Dataset):
             )
             undersampled_tiles.append(patches)
 
-        self.fullysampled_tiles = torch.cat(fullysampled_tiles, dim=0)
-        self.undersampled_tiles = torch.cat(undersampled_tiles, dim=0)
         self.undersampled_tiles, self.fullysampled_tiles = filter_black_tiles(
             self.undersampled_tiles, self.fullysampled_tiles
         )
+        self.fullysampled_tiles = torch.cat(fullysampled_tiles, dim=0)
+        self.undersampled_tiles = torch.cat(undersampled_tiles, dim=0)
 
     def __len__(self):
         return self.fullysampled_tiles.shape[0]
