@@ -13,7 +13,6 @@ import datetime
 
 @time_function
 def train_mod_siren(config):
-
     # Checking if we want to continue training
     if config.training.model.continue_training and not config.training.model.model_path:
         config.training.output_name = find_latest_folder(

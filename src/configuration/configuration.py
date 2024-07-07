@@ -41,7 +41,11 @@ default_train_config = {
         "output_name": "modulated_siren",
         "optimizer": "Adam",
         "logging": False,
-        "model": {"continue_training": False, "model_path": None, "optimizer_path": None},
+        "model": {
+            "continue_training": False,
+            "model_path": None,
+            "optimizer_path": None,
+        },
     },
 }
 
