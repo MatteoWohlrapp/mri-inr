@@ -47,6 +47,7 @@ class MRIDataset(Dataset):
         self._create_tiles()
 
     def _prepare_metadata(self):
+        self.metadata = self.metadata.filter(pl.col("slice_num") <= 10)
         if self.mri_type:
             self.metadata = self.metadata.filter(pl.col("mri_type") == self.mri_type)
         if self.slice_ids:
@@ -70,7 +71,8 @@ class MRIDataset(Dataset):
         output_dir = f"{self.output_dir}/{self.output_name}"
         os.makedirs(output_dir, exist_ok=True)
         with open(f"{output_dir}/processed_files.txt", "w", encoding="utf-8") as f:
-            print(files, file=f)
+            for file in files:
+                print(file, file=f)
 
     def _create_tiles(self):
         fullysampled_tiles = []
