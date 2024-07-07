@@ -1,6 +1,6 @@
 import torch
 from src.data.mri_dataset import MRIDataset
-from src.encoding.custom_mri_encoder import (
+from src.networks.encoding.custom_mri_encoder import (
     Trainer,
     build_autoencoder,
     config,
@@ -15,13 +15,23 @@ import types
 
 @time_function
 def train_encoder(args):
-    print("Training the encoder...")
+    print("Training the encoder...", flush=True)
     # Load dataset
     train_dataset = MRIDataset(
-        pathlib.Path(args.path_train_dataset), number_of_samples=args.num_samples_train
+        pathlib.Path(args.path_train_dataset), 
+        number_of_samples=args.num_samples_val,
+        outer_patch_size=args.outer_patch_size,
+        inner_patch_size=args.inner_patch_size,
+        output_dir=args.outer_patch_size,
+        output_name=args.output_name,
     )
     val_dataset = MRIDataset(
-        pathlib.Path(args.path_val_dataset), number_of_samples=args.num_samples_val
+        pathlib.Path(args.path_val_dataset), 
+        number_of_samples=args.num_samples_val,
+        outer_patch_size=args.outer_patch_size,
+        inner_patch_size=args.inner_patch_size,
+        output_dir=args.outer_patch_size,
+        output_name=args.output_name,
     )
 
     # Set the device
@@ -70,6 +80,10 @@ if __name__ == "__main__":
         "model_path": r"",
         "batch_size": 10,
         "epochs": 1000,
+        "output_dir": "./models",
+        "output_name": "encoder_v1",
+        "outer_patch_size": 32,
+        "inner_patch_size": 32,
     }
     args = types.SimpleNamespace(**args)
     train_encoder(args)
