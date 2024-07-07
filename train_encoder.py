@@ -1,17 +1,28 @@
 import torch
 from src.data.mri_dataset import MRIDataset
-from src.encoding.custom_mri_encoder import Trainer, build_autoencoder, config, load_model, save_model
+from src.encoding.custom_mri_encoder import (
+    Trainer,
+    build_autoencoder,
+    config,
+    load_model,
+    save_model,
+)
 from src.util.util import time_function
 import pathlib
 import torch.nn as nn
 import types
 
+
 @time_function
 def train_encoder(args):
     print("Training the encoder...")
     # Load dataset
-    train_dataset = MRIDataset(pathlib.Path(args.path_train_dataset), number_of_samples = args.num_samples_train)
-    val_dataset = MRIDataset(pathlib.Path(args.path_val_dataset), number_of_samples = args.num_samples_val)
+    train_dataset = MRIDataset(
+        pathlib.Path(args.path_train_dataset), number_of_samples=args.num_samples_train
+    )
+    val_dataset = MRIDataset(
+        pathlib.Path(args.path_val_dataset), number_of_samples=args.num_samples_val
+    )
 
     # Set the device
     if torch.cuda.is_available():
@@ -45,10 +56,11 @@ def train_encoder(args):
     trainer.train(args.epochs)
 
     # Save the model TODO change path if not given
-    save_model(autoencoder, pathlib.Path(r'./output/custom_encoder/model1.pth'))
+    save_model(autoencoder, pathlib.Path(r"./output/custom_encoder/model1.pth"))
 
-if __name__ == '__main__':
-    print('start training encoder')
+
+if __name__ == "__main__":
+    print("start training encoder")
     args = {
         "path_train_dataset": r"../../dataset/fastmri/brain/singlecoil_train/",
         "path_val_dataset": r"../../dataset/fastmri/brain/singlecoil_train/",
@@ -57,8 +69,8 @@ if __name__ == '__main__':
         "device": "cuda",
         "model_path": r"",
         "batch_size": 10,
-        "epochs": 1000
+        "epochs": 1000,
     }
     args = types.SimpleNamespace(**args)
     train_encoder(args)
-    print('Done training encoder')
+    print("Done training encoder")

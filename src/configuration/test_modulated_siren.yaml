@@ -1,10 +1,6 @@
 data:
-  train:
-    dataset: '../../dataset/fastmri/brain/singlecoil_train/'
-    num_samples: 1
-    mri_type: "FLAIR"
-    num_workers: 4
-
+  dataset: '../../dataset/fastmri/brain/singlecoil_val/'
+  num_samples: 5
 
 model:
   dim_in: 2
@@ -22,14 +18,8 @@ model:
   inner_patch_size: 16
   siren_patch_size: 24
   
-training:
-  lr: 0.0001
-  batch_size: 400
-  epochs: 3
+testing: 
   output_dir: "./output"
-  output_name: "refactored"
-  optimizer: "Adam"
-  save_interval: 1
-  logging: True
-  model:
-    continue_training: False
+  output_name: "refactored_2024-07-06_12-29-02"
+  model_path: "output/refactored_2024-07-06_12-29-02/models/refactored_2024-07-06_12-29-02_model_epoch_3_final.pth"
+
