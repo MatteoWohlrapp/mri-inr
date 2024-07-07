@@ -1,9 +1,9 @@
 import pathlib
-from src.data.preprocessing import process_file
+from src.data.preprocessing import process_files
 
 def run_preprocessing(path):
     # Call the process_file function from the preprocessing module
-    process_file(path)
+    process_files(path)
 
 if __name__ == "__main__":
     path  = pathlib.Path("data/raw")
