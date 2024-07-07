@@ -223,14 +223,12 @@ class Trainer:
             batch_size=self.batch_size,
             shuffle=True,
             num_workers=0,
-            collate_fn=collate_fn,
         )
         val_loader = torch.utils.data.DataLoader(
             self.val_dataset,
             batch_size=self.batch_size,
             shuffle=True,
             num_workers=0,
-            collate_fn=collate_fn,
         )
         for epoch in range(num_epochs):
             self.train_one_epoch(train_loader, epoch)
