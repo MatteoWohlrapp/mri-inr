@@ -158,6 +158,7 @@ def filter_black_tiles(undersampled: list[torch.tensor], fullysampled:list[torch
     To handle the filtering without needing to copy the whole tensor, since
     RAM is a limiting factor when working with large datasets.
     """
+    print("Trying to filter black tiles.", flush=True)
     for i in range(len(undersampled)):
         non_black_indices = [
             index

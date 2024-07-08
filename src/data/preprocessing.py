@@ -19,7 +19,7 @@ def load_mri_scan(path: pathlib.Path, undersampled=False) -> torch.Tensor:
     mri_data = T.to_tensor(mri_data)
 
     if undersampled:
-        mask_func = RandomMaskFunc(center_fractions=[0.1], accelerations=[8])
+        mask_func = RandomMaskFunc(center_fractions=[0.05], accelerations=[6])
         mri_data, _, _ = T.apply_mask(mri_data, mask_func)
 
     mri_data = fastmri.ifft2c(mri_data)
@@ -58,7 +58,7 @@ def process_files(data_root: pathlib.Path):
         "height": [],
         "mri_type": [],
     }
-    dest_dir = data_root / "processed"
+    dest_dir = data_root / "processed_2"
     dest_dir.mkdir(exist_ok=True)
     for file in data_root.glob("*.h5"):
         scan = load_mri_scan(file, undersampled=False)
@@ -67,10 +67,10 @@ def process_files(data_root: pathlib.Path):
         undersampled_scan = normalize_scan(undersampled_scan)
         for i in range(scan.shape[0]):
             metadata["path_fullysampled"].append(
-                str(data_root / f"{file.stem}_{i}.npy")
+                str(dest_dir / f"{file.stem}_{i}.npy")
             )
             metadata["path_undersampled"].append(
-                str(data_root / f"{file.stem}_{i}_undersampled.npy")
+                str(dest_dir / f"{file.stem}_{i}_undersampled.npy")
             )
             metadata["stem"].append(file.stem)
             metadata["slice_id"].append(f"{file.stem}_{i}")
@@ -78,12 +78,10 @@ def process_files(data_root: pathlib.Path):
             metadata["width"].append(scan.shape[1])
             metadata["height"].append(scan.shape[2])
             metadata["mri_type"].append(get_mri_type(file))
-            np.save(data_root / f"{file.stem}_{i}.npy", scan[i].numpy())
+            np.save(dest_dir / f"{file.stem}_{i}.npy", scan[i].numpy())
             np.save(
-                data_root / f"{file.stem}_{i}_undersampled.npy",
+                dest_dir / f"{file.stem}_{i}_undersampled.npy",
                 undersampled_scan[i].numpy(),
             )
     metadata = pl.DataFrame(metadata)
-    print(metadata)
-    print(data_root)
-    metadata.write_csv(data_root / "metadata.csv")
+    metadata.write_csv(dest_dir / "metadata.csv")

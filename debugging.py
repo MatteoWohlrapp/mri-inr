@@ -6,6 +6,6 @@ def run_preprocessing(path):
     process_files(path)
 
 if __name__ == "__main__":
-    path  = pathlib.Path("data/raw")
+    path  = pathlib.Path(r"../../dataset/fastmri/brain/singlecoil_train/")
     # Call the run_preprocessing function with the provided path
     run_preprocessing(path)
