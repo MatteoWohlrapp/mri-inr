@@ -3,6 +3,10 @@ data:
     dataset: '../../dataset/fastmri/brain/singlecoil_train/'
     mri_type: "FLAIR"
     num_workers: 4
+  val:
+    dataset: '../../dataset/fastmri/brain/singlecoil_val/'
+    mri_type: "FLAIR"
+    num_workers: 4
 
 model:
   dim_in: 2
