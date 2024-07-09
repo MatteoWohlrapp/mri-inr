@@ -11,18 +11,17 @@ from src.util.util import time_function
 import pathlib
 import torch.nn as nn
 import types
+import datetime
 
-
-@time_function
 def train_encoder(args):
     print("Training the encoder...", flush=True)
     # Load dataset
     train_dataset = MRIDataset(
         pathlib.Path(args.path_train_dataset), 
-        number_of_samples=args.num_samples_val,
+        number_of_samples=args.num_samples_train,
         outer_patch_size=args.outer_patch_size,
         inner_patch_size=args.inner_patch_size,
-        output_dir=args.outer_patch_size,
+        output_dir=args.output_dir,
         output_name=args.output_name,
     )
     val_dataset = MRIDataset(
@@ -30,7 +29,7 @@ def train_encoder(args):
         number_of_samples=args.num_samples_val,
         outer_patch_size=args.outer_patch_size,
         inner_patch_size=args.inner_patch_size,
-        output_dir=args.outer_patch_size,
+        output_dir=args.output_dir,
         output_name=args.output_name,
     )
 
@@ -66,7 +65,7 @@ def train_encoder(args):
     trainer.train(args.epochs)
 
     # Save the model TODO change path if not given
-    save_model(autoencoder, pathlib.Path(r"./output/custom_encoder/model1.pth"))
+    save_model(autoencoder, pathlib.Path(r"./output/custom_encoder/model1.pth"), trainer)
 
 
 if __name__ == "__main__":
@@ -81,7 +80,7 @@ if __name__ == "__main__":
         "batch_size": 10,
         "epochs": 1000,
         "output_dir": "./models",
-        "output_name": "encoder_v1",
+        "output_name": "encoder_v1" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"),
         "outer_patch_size": 32,
         "inner_patch_size": 32,
     }
