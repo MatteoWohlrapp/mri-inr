@@ -7,7 +7,6 @@ data:
     dataset: '../../dataset/fastmri/brain/singlecoil_val/'
     mri_type: "FLAIR"
     num_workers: 4
-    num_samples: 5
 
 model:
   dim_in: 2
@@ -20,7 +19,7 @@ model:
   use_bias: True
   dropout: 0.1
   encoder_type: "custom"
-  encoder_path: './models/custom_encoder.pth'
+  encoder_path: './output/custom_encoder/model1.pth'
   outer_patch_size: 32
   inner_patch_size: 16
   siren_patch_size: 24
