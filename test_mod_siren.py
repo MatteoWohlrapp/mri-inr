@@ -40,7 +40,7 @@ def test_mod_siren(config):
         dim_in=config.model.dim_in,
         dim_hidden=config.model.dim_hidden,
         dim_out=config.model.dim_out,
-        num_layers=config.model.num_layers,
+        latent_dim=config.model.latent_dim,
         num_blocks=config.model.num_blocks,
         block_depth=config.model.block_depth,
         w0=config.model.w0,

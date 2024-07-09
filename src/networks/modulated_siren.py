@@ -12,7 +12,8 @@ from src.networks.encoding.vgg import VGGAutoEncoder, get_configs, load_dict
 
 def cast_tuple(val, repeat=1):
     return val if isinstance(val, tuple) else ((val,) * repeat)
-    
+
+
 # sin activation
 class Sine(nn.Module):
     def __init__(self, w0=1.0):
@@ -64,19 +65,22 @@ class Siren(nn.Module):
         out = self.dropout(out)
         return out
 
+
 class ResidualBlock(nn.Module):
     def __init__(self, dim_in, dim_hidden, depth, w0, use_bias, dropout):
         super().__init__()
-        self.layers = nn.ModuleList([
-            Siren(
-                dim_in=dim_in if i == 0 else dim_hidden,
-                dim_out=dim_hidden if i < depth - 1 else dim_in,
-                w0=w0,
-                use_bias=use_bias,
-                dropout=dropout
-            )
-            for i in range(depth)
-        ])
+        self.layers = nn.ModuleList(
+            [
+                Siren(
+                    dim_in=dim_in if i == 0 else dim_hidden,
+                    dim_out=dim_hidden if i < depth - 1 else dim_in,
+                    w0=w0,
+                    use_bias=use_bias,
+                    dropout=dropout,
+                )
+                for i in range(depth)
+            ]
+        )
 
     def forward(self, x):
         residual = x
@@ -85,26 +89,48 @@ class ResidualBlock(nn.Module):
         x = (x + residual) / 2  # averaging the output with the residual
         return x
 
+
 # siren network
 class SirenNet(nn.Module):
     def __init__(
-        self, dim_in, dim_hidden, dim_out, num_blocks, block_depth, w0, w0_initial, use_bias, dropout
+        self,
+        dim_in,
+        dim_hidden,
+        dim_out,
+        num_blocks,
+        block_depth,
+        w0,
+        w0_initial,
+        use_bias,
+        dropout,
     ):
         super().__init__()
         self.num_blocks = num_blocks
         self.dim_hidden = dim_hidden
 
-        self.blocks = nn.ModuleList([
-            ResidualBlock(
-                dim_in=dim_in if i == 0 else dim_hidden,
-                dim_hidden=dim_hidden,
-                depth=block_depth,
-                w0=w0_initial if i == 0 else w0,
-                use_bias=use_bias,
-                dropout=dropout
-            )
-            for i in range(num_blocks)
-        ])
+
+        self.first_layer = Siren(
+            dim_in=dim_in,
+            dim_out=dim_hidden,
+            w0=w0_initial,
+            use_bias=use_bias,
+            is_first=True,
+            dropout=dropout,
+        )
+
+        self.blocks = nn.ModuleList(
+            [
+                ResidualBlock(
+                    dim_in=dim_hidden,
+                    dim_hidden=dim_hidden,
+                    depth=block_depth,
+                    w0=w0,
+                    use_bias=use_bias,
+                    dropout=dropout,
+                )
+                for i in range(num_blocks)
+            ]
+        )
 
         self.last_layer = Siren(
             dim_in=dim_hidden, dim_out=dim_out, w0=w0, use_bias=use_bias
@@ -113,15 +139,16 @@ class SirenNet(nn.Module):
     def forward(self, x, mods=None):
         mods = cast_tuple(mods, len(self.blocks))
 
+        x = self.first_layer(x)
+
         for block, mod in zip(self.blocks, mods):
             x = block(x)
             if mod is not None:
-                print(f"mod shape: {mod.shape}")
-                print(f"x shape: {x.shape}")
                 x *= rearrange(mod, "b d -> b () d")
 
         return self.last_layer(x)
-    
+
+
 # encoder
 class Encoder(nn.Module):
     def __init__(self, latent_dim, encoder_path, device, encoder_type="custom"):
@@ -264,7 +291,7 @@ class ModulatedSiren(nn.Module):
         out = self.net(coords, mods)
         out = out.squeeze(2)
         out = rearrange(
-            out, "b (h w) -> () b h w", h=self.siren_patch_size, w=self.siren_patch_size
+            out, "b (h w) -> b h w", h=self.siren_patch_size, w=self.siren_patch_size
         )
 
         return out

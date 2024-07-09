@@ -4,10 +4,11 @@ data:
 
 model:
   dim_in: 2
-  dim_hidden: 256
+  dim_hidden: 128
   dim_out: 1
   latent_dim: 256
-  num_layers: 5
+  num_blocks: 4
+  block_depth: 2
   w0: 1.0
   w0_initial: 30.0
   use_bias: True
@@ -20,6 +21,6 @@ model:
   
 testing: 
   output_dir: "./output"
-  output_name: "refactored_2024-07-06_12-29-02"
-  model_path: "output/refactored_2024-07-06_12-29-02/models/refactored_2024-07-06_12-29-02_model_epoch_3_final.pth"
+  output_name: "residual_2024-07-09_15-06-18"
+  model_path: "output/residual_2024-07-09_15-06-18/models/residual_2024-07-09_15-06-18_model_epoch_1_final.pth"
 
