@@ -152,7 +152,7 @@ class Trainer:
         undersampled_batch = undersampled_batch.to(self.device).float()
         fully_sampled_batch = (
             extract_center_batch(
-                fully_sampled_batch, self.outer_patch_size, self.inner_patch_size
+                fully_sampled_batch, self.outer_patch_size, self.siren_patch_size
             )
             .to(self.device)
             .float()
