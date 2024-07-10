@@ -1,12 +1,14 @@
 data:
   train:
-    dataset: '../../dataset/fastmri/brain/singlecoil_train/'
+    dataset: '../../dataset/fastmri/brain/singlecoil_train/processed_v2'
     mri_type: "FLAIR"
     num_workers: 4
+    num_samples: 10
   val:
-    dataset: '../../dataset/fastmri/brain/singlecoil_val/'
+    dataset: '../../dataset/fastmri/brain/singlecoil_train/processed_v2'
     mri_type: "FLAIR"
     num_workers: 4
+    num_samples: 10
 
 model:
   dim_in: 2

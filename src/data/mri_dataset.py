@@ -69,7 +69,7 @@ class MRIDataset(Dataset):
         #Find the column index of the fullysampled and the specific undersampled files by looking at the columns list and checking at which index the column name is
         columns = self.metadata.columns
         self.fullysampled_column_index = columns.index("path_fullysampled")
-        self.undersampled_column_index = columns.index(f"path_undersampled_center_fraction_{self.center_fraction}_acceleration_{self.acceleration}")
+        self.undersampled_column_index = columns.index(f"path_undersampled_{self.center_fraction}_{self.acceleration}")
 
         # Print all files used for training
         files = self.metadata.select(pl.col("stem").unique()).to_numpy().flatten().tolist()

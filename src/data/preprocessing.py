@@ -62,7 +62,8 @@ def process_files(data_root: pathlib.Path, undersample_params: list):
         "slice_num",
         "width",
         "height",
-        "mri_type"
+        "mri_type",
+        "mri_area"
     ]
     metadata_keys += [f"path_undersampled_{cf}_{acc}" for cf, acc in undersample_params]
     metadata = {key: [] for key in metadata_keys}
@@ -71,7 +72,7 @@ def process_files(data_root: pathlib.Path, undersample_params: list):
     dest_dir.mkdir(exist_ok=True)
 
     for file in data_root.glob("*.h5"):
-        scan = normalize_scan(load_mri_scan(file, undersampled=False))
+        scan = normalize_scan(load_mri_scan(file, undersampled=False,center_fraction=1, acceleration=1))
         undersampled_scans = [
             normalize_scan(load_mri_scan(file, undersampled=True, center_fraction=cf, acceleration=acc))
             for cf, acc in undersample_params

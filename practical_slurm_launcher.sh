@@ -20,5 +20,5 @@ conda activate jrdev
 
 cd "/vol/aimspace/projects/practical_SoSe24/mri_inr/rogalka/mri-inr"
 
-python3 train_mod_siren.py --config src/configuration/train_modulated_siren.yaml
-#python3 debugging.py
+#python3 train_mod_siren.py --config src/configuration/train_modulated_siren.yaml
+python3 debugging.py
