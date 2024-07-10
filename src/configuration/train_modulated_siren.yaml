@@ -3,12 +3,11 @@ data:
     dataset: '../../dataset/fastmri/brain/singlecoil_train/'
     mri_type: "FLAIR"
     num_workers: 4
-    num_samples: 1
   val:
     dataset: '../../dataset/fastmri/brain/singlecoil_val/'
     mri_type: "FLAIR"
     num_workers: 4
-    num_samples: 1
+    num_samples: 5
 
 model:
   dim_in: 2
@@ -30,11 +29,11 @@ model:
 training:
   lr: 0.0001
   batch_size: 400
-  epochs: 1
+  epochs: 10000
   output_dir: "./output"
   output_name: "residual"
   optimizer: "Adam"
-  save_interval: 25
+  save_interval: 10
   logging: True
   model:
     continue_training: False
