@@ -67,7 +67,7 @@ class Trainer:
         self.output_name = output_name
         self.output_dir = output_dir
         #self.criterion = nn.MSELoss()
-        self.criterion = PerceptualLoss(pathlib.Path(r"C:\Users\jan\Documents\python_files\adlm\refactoring\output\mod_siren\mod_siren_2024-06-24_10-02-41\model_checkpoints\encoder.pth"), nn.MSELoss(), self.device)
+        self.criterion = PerceptualLoss(pathlib.Path(r"./output/custom_encoder/20240710-002727_autoencoder_v1_256_epoch_170.pth"), nn.MSELoss(), self.device)
         self.writer = (
             SummaryWriter(log_dir=f"{output_dir}/{output_name}/tensorboard")
             if logging

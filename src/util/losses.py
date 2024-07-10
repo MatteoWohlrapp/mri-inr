@@ -11,8 +11,7 @@ class PerceptualLoss(nn.Module):
         self.criterion = criterion
 
     def _load_encoder(self, encoder_path, device):
-        encoder = CustomEncoder()
-        encoder.load_state_dict(torch.load(encoder_path, map_location=device))
+        encoder = CustomEncoder(encoder_path, device)
         encoder.to(device)
         
         # Disable gradients for the encoder
@@ -22,6 +21,7 @@ class PerceptualLoss(nn.Module):
         return encoder
 
     def forward(self, x, y):
+        print(x.shape, y.shape, flush=True)
         x_encoded = self.encoder(x)
         y_encoded = self.encoder(y)
         return self.criterion(x_encoded, y_encoded)

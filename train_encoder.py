@@ -71,18 +71,18 @@ def train_encoder(args):
 if __name__ == "__main__":
     print("start training encoder")
     args = {
-        "path_train_dataset": r"../../dataset/fastmri/brain/singlecoil_train/",
-        "path_val_dataset": r"../../dataset/fastmri/brain/singlecoil_train/",
-        "num_samples_train": 15,
-        "num_samples_val": 2,
+        "path_train_dataset": r"../../dataset/fastmri/brain/singlecoil_train/processed_v2",
+        "path_val_dataset": r"../../dataset/fastmri/brain/singlecoil_val/processed_v2",
+        "num_samples_train": 0,
+        "num_samples_val": 10,
         "device": "cuda",
         "model_path": r"",
-        "batch_size": 10,
+        "batch_size": 400,
         "epochs": 1000,
         "output_dir": "./models",
-        "output_name": "encoder_v1" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"),
-        "outer_patch_size": 32,
-        "inner_patch_size": 32,
+        "output_name": "encoder_v2" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"),
+        "outer_patch_size": 24,
+        "inner_patch_size": 24,
     }
     args = types.SimpleNamespace(**args)
     train_encoder(args)

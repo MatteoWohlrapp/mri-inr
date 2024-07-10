@@ -96,4 +96,4 @@ def process_files(data_root: pathlib.Path, undersample_params: list):
                 np.save(dest_dir / f"{file.stem}_{i}_undersampled_{cf}_{acc}.npy", undersampled_scan[i].numpy())
 
     metadata_df = pl.DataFrame(metadata)
-    metadata_df.write_csv(dest_dir / "metadata.csv", index=False)
+    metadata_df.write_csv(dest_dir / "metadata.csv")
