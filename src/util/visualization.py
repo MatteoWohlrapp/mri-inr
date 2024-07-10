@@ -72,7 +72,6 @@ def show_batch(batch, cmap="gray", ncols=2):
         ax[i // ncols, i % ncols].axis("off")
     plt.show()
 
-
 def save_image(image, filename, output_dir, cmap="gray"):
     """
     Save a single image using matplotlib.
@@ -94,3 +93,5 @@ def save_image(image, filename, output_dir, cmap="gray"):
         dpi=1200,
     )
     plt.close()
+
+    

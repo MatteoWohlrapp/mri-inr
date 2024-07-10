@@ -10,6 +10,8 @@ import polars as pl
 from src.data.mri_dataset import MRIDataset
 from src.util.visualization import save_image_comparison
 import numpy as np
+from src.util.losses import PerceptualLoss
+import pathlib
 from src.util.tiling import (
     image_to_patches,
     patches_to_image_weighted_average,
@@ -64,7 +66,8 @@ class Trainer:
         self.optimizer = optimizer
         self.output_name = output_name
         self.output_dir = output_dir
-        self.criterion = nn.MSELoss()
+        #self.criterion = nn.MSELoss()
+        self.criterion = PerceptualLoss(pathlib.Path(r"./output/custom_encoder/20240710-002727_autoencoder_v1_256_epoch_170.pth"), nn.MSELoss(), self.device)
         self.writer = (
             SummaryWriter(log_dir=f"{output_dir}/{output_name}/tensorboard")
             if logging

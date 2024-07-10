@@ -29,6 +29,8 @@ class MRIDataset(Dataset):
         inner_patch_size: int = 16,
         output_dir: str = "output",
         output_name: str = "modulated_siren",
+        center_fraction: float = 0.05,
+        acceleration: int = 6
     ):
         self.data_root: pathlib.Path = data_root
         self.transform = transform
@@ -40,6 +42,8 @@ class MRIDataset(Dataset):
         self.inner_patch_size = inner_patch_size
         self.output_dir = output_dir
         self.output_name = output_name
+        self.center_fraction = center_fraction
+        self.acceleration = acceleration
         self.metadata: pl.LazyFrame = pl.scan_csv(data_root / "metadata.csv")
         self.fullysampled_tiles: torch.Tensor = torch.empty(0)
         self.undersampled_tiles: torch.Tensor = torch.empty(0)
@@ -62,10 +66,14 @@ class MRIDataset(Dataset):
             self.metadata = self.metadata.collect()
         self.slice_ids = self.metadata.select(pl.col("slice_id")).to_numpy().flatten()
 
+        #Find the column index of the fullysampled and the specific undersampled files by looking at the columns list and checking at which index the column name is
+        columns = self.metadata.columns
+        self.fullysampled_column_index = columns.index("path_fullysampled")
+        self.undersampled_column_index = columns.index(f"path_undersampled_{self.center_fraction}_{self.acceleration}")
+
         # Print all files used for training
-        files = []
-        for i in range(len(self.metadata)):
-            files.append(self.metadata[i, 2])
+        files = self.metadata.select(pl.col("stem").unique()).to_numpy().flatten().tolist()
+        print(f"Files used for training: {files}", flush=True)
 
         files = list(set(files))
         output_dir = f"{self.output_dir}/{self.output_name}"
@@ -78,8 +86,8 @@ class MRIDataset(Dataset):
         fullysampled_tiles = []
         undersampled_tiles = []
         for i in range(len(self.metadata)):
-            file_fullysampled = self.metadata[i, 0]
-            file_undersampled = self.metadata[i, 1]
+            file_fullysampled = self.metadata[i, self.fullysampled_column_index]
+            file_undersampled = self.metadata[i, self.undersampled_column_index]
             scan_fullysampled = np.load(file_fullysampled)
             scan_undersampled = np.load(file_undersampled)
             scan_fullysampled = torch.from_numpy(scan_fullysampled)
@@ -102,11 +110,11 @@ class MRIDataset(Dataset):
             )
             undersampled_tiles.append(patches)
 
-        self.fullysampled_tiles = torch.cat(fullysampled_tiles, dim=0)
-        self.undersampled_tiles = torch.cat(undersampled_tiles, dim=0)
         self.undersampled_tiles, self.fullysampled_tiles = filter_black_tiles(
             self.undersampled_tiles, self.fullysampled_tiles
         )
+        self.fullysampled_tiles = torch.cat(fullysampled_tiles, dim=0)
+        self.undersampled_tiles = torch.cat(undersampled_tiles, dim=0)
 
     def __len__(self):
         return self.fullysampled_tiles.shape[0]
@@ -123,8 +131,8 @@ class MRIDataset(Dataset):
             .collect()
             .index[0]
         )
-        file_fullysampled = self.metadata[idx, 0]
-        file_undersampled = self.metadata[idx, 1]
+        file_fullysampled = self.metadata[idx, self.fullysampled_column_index]
+        file_undersampled = self.metadata[idx, self.undersampled_column_index]
         scan_fullysampled = np.load(file_fullysampled)
         scan_undersampled = np.load(file_undersampled)
         scan_fullysampled = torch.from_numpy(scan_fullysampled)
@@ -136,8 +144,8 @@ class MRIDataset(Dataset):
 
     def get_random_image(self):
         idx = np.random.randint(len(self.metadata))
-        file_fullysampled = self.metadata[idx, 0]
-        file_undersampled = self.metadata[idx, 1]
+        file_fullysampled = self.metadata[idx, self.fullysampled_column_index]
+        file_undersampled = self.metadata[idx, self.undersampled_column_index]
         scan_fullysampled = np.load(file_fullysampled)
         scan_undersampled = np.load(file_undersampled)
         scan_fullysampled = torch.from_numpy(scan_fullysampled)

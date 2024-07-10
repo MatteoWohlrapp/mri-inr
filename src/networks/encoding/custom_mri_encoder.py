@@ -149,10 +149,11 @@ def build_autoencoder(config):
     )
 
 
-def save_model(autoencoder, path):
+def save_model(autoencoder, path, trainer):
     print(path)
     torch.save(
-        {"config": autoencoder.config, "state_dict": autoencoder.state_dict()}, path
+        {"config": autoencoder.config, "state_dict": autoencoder.state_dict(), "optimizer_state_dict": trainer.optimizer.state_dict()},
+        path
     )
 
 
@@ -223,19 +224,19 @@ class Trainer:
             batch_size=self.batch_size,
             shuffle=True,
             num_workers=0,
-            collate_fn=collate_fn,
         )
         val_loader = torch.utils.data.DataLoader(
             self.val_dataset,
             batch_size=self.batch_size,
             shuffle=True,
             num_workers=0,
-            collate_fn=collate_fn,
         )
         for epoch in range(num_epochs):
             self.train_one_epoch(train_loader, epoch)
             val_loss = self.validate_one_epoch(val_loader, epoch)
             print(f"Epoch {epoch}, Val Loss: {val_loss:.5f}")
+            if epoch % 10 == 0:
+                save_model(self.model, f"./output/custom_encoder/{self.name}_epoch_{epoch}.pth", self)
         self.writer.close()
 
 
