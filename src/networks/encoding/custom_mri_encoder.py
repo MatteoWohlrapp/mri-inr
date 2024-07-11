@@ -10,7 +10,7 @@ tile_size = 32
 latent_dim = 256
 
 config = {
-    "id": f"autoencoder_v1_{latent_dim}",
+    "id": f"autoencoder_v2_{latent_dim}",
     "encoder": [
         {
             "type": "Conv2d",
@@ -187,24 +187,28 @@ class Trainer:
             f'{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}_{self.model.id}'
         )
         self.writer = SummaryWriter(log_dir=f"runs/tensorboard/{self.name}")
+        self.scaler = torch.cuda.amp.GradScaler(enabled=True)
 
     def process_batch(self, batch_fullysampled, batch_undersampled):
         batch_undersampled = batch_undersampled.to(self.device).float()
         batch_fullysampled = batch_fullysampled.to(self.device).float()
         self.optimizer.zero_grad()
         output = self.model(batch_undersampled).squeeze(1)
-        loss = self.criterion(output, batch_fullysampled)
+        #loss = self.criterion(output, batch_fullysampled)
+        loss = self.criterion(output, batch_undersampled)
         return output, loss
 
     def train_one_epoch(self, train_loader, epoch):
-        self.model.train()
-        for i, (batch_fullysampled, batch_undersampled) in enumerate(train_loader):
-            output, loss = self.process_batch(batch_fullysampled, batch_undersampled)
-            loss.backward()
-            self.optimizer.step()
-            self.writer.add_scalar(
-                "training_loss", loss.item(), epoch * len(train_loader) + i
-            )
+        with torch.cuda.amp.autocast(enabled=True):
+            self.model.train()
+            for i, (batch_fullysampled, batch_undersampled) in enumerate(train_loader):
+                output, loss = self.process_batch(batch_fullysampled, batch_undersampled)
+                self.scaler.scale(loss).backward()
+                self.scaler.step(self.optimizer)
+                self.scaler.update()
+                self.writer.add_scalar(
+                    "training_loss", loss.item(), epoch * len(train_loader) + i
+                )
 
     def validate_one_epoch(self, val_loader, epoch):
         self.model.eval()
@@ -234,9 +238,9 @@ class Trainer:
         for epoch in range(num_epochs):
             self.train_one_epoch(train_loader, epoch)
             val_loss = self.validate_one_epoch(val_loader, epoch)
-            print(f"Epoch {epoch}, Val Loss: {val_loss:.5f}")
+            print(f"Epoch {epoch}, Val Loss: {val_loss:.5f}", flush=True)
             if epoch % 10 == 0:
-                save_model(self.model, f"./output/custom_encoder/{self.name}_epoch_{epoch}.pth", self)
+                save_model(self.model, f"./output/custom_encoder/{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}/{self.name}_epoch_{epoch}.pth", self)
         self.writer.close()
 
 

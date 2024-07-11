@@ -44,6 +44,7 @@ def train_encoder(args):
     if args.model_path == "":
         autoencoder = build_autoencoder(config)
     else:
+        print(args.model_path)
         autoencoder = load_model(pathlib.Path(args.model_path), device)
 
     # Define the criterion and optimizer
@@ -74,9 +75,9 @@ if __name__ == "__main__":
         "path_train_dataset": r"../../dataset/fastmri/brain/singlecoil_train/processed_v2",
         "path_val_dataset": r"../../dataset/fastmri/brain/singlecoil_val/processed_v2",
         "num_samples_train": 0,
-        "num_samples_val": 10,
+        "num_samples_val": 50,
         "device": "cuda",
-        "model_path": r"./output/custom_encoder/20240710-213854_autoencoder_v1_256_epoch_990.pth",
+        "model_path": r"./output/custom_encoder/20240711-095147_autoencoder_v1_256_epoch_1140.pth",
         "batch_size": 400,
         "epochs": 10000,
         "output_dir": "./models",
