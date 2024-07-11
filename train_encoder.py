@@ -44,7 +44,7 @@ def train_encoder(args):
     if args.model_path == "":
         autoencoder = build_autoencoder(config)
     else:
-        autoencoder = load_model(pathlib.Path(args.model_path))
+        autoencoder = load_model(pathlib.Path(args.model_path), device)
 
     # Define the criterion and optimizer
     criterion = torch.nn.MSELoss()
@@ -76,13 +76,13 @@ if __name__ == "__main__":
         "num_samples_train": 0,
         "num_samples_val": 10,
         "device": "cuda",
-        "model_path": r"",
+        "model_path": r"./output/custom_encoder/20240710-213854_autoencoder_v1_256_epoch_990.pth",
         "batch_size": 400,
-        "epochs": 1000,
+        "epochs": 10000,
         "output_dir": "./models",
         "output_name": "encoder_v2" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"),
-        "outer_patch_size": 24,
-        "inner_patch_size": 24,
+        "outer_patch_size": 32,
+        "inner_patch_size": 32,
     }
     args = types.SimpleNamespace(**args)
     train_encoder(args)

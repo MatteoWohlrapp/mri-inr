@@ -21,7 +21,6 @@ class PerceptualLoss(nn.Module):
         return encoder
 
     def forward(self, x, y):
-        print(x.shape, y.shape, flush=True)
         x_encoded = self.encoder(x)
         y_encoded = self.encoder(y)
         return self.criterion(x_encoded, y_encoded)

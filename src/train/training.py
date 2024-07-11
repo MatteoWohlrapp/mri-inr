@@ -66,8 +66,8 @@ class Trainer:
         self.optimizer = optimizer
         self.output_name = output_name
         self.output_dir = output_dir
-        #self.criterion = nn.MSELoss()
-        self.criterion = PerceptualLoss(pathlib.Path(r"./output/custom_encoder/20240710-002727_autoencoder_v1_256_epoch_170.pth"), nn.MSELoss(), self.device)
+        self.criterion = nn.MSELoss()
+        #self.criterion = PerceptualLoss(pathlib.Path(r"./output/custom_encoder/20240710-213854_autoencoder_v1_256_epoch_210.pth"), nn.MSELoss(), self.device)
         self.writer = (
             SummaryWriter(log_dir=f"{output_dir}/{output_name}/tensorboard")
             if logging
@@ -248,7 +248,7 @@ class TrainingManager:
         self.starting_time = time.time()
         self.progress_log: pl.DataFrame = pl.from_dict(
             {
-                "epoch": [-1],
+                "epoch": [0],
                 "training_loss": [float(initial_training_loss)],
                 "validation_loss": [float(initial_validation_loss)],
                 "time_since_start": [float(0.0)],

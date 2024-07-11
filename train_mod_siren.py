@@ -109,6 +109,7 @@ def train_mod_siren(config):
 
     # Check if we want to load an existing model
     if config.training.model.continue_training:
+        print(f"Continue training")
         if config.training.model.model_path:
             trainer.load_model(
                 model_path=config.training.model.model_path,

@@ -72,7 +72,7 @@ def error_metrics(
     undersampled_filtered, filter_information, original_shape = (
         filter_and_remember_black_tiles(undersampled)
     )
-    undersampled_filtered = undersampled_filtered.to(device)
+    undersampled_filtered = undersampled_filtered.to(device)#.cpu()
 
     reconstructed_patches = model(undersampled_filtered)
 
@@ -80,6 +80,7 @@ def error_metrics(
     reconstructed_patches = reintegrate_black_patches(
         reconstructed_patches, filter_information, original_shape
     )
+    #reconstructed_patches = reconstructed_patches.to(device)
 
     reconstructed_img = patches_to_image_weighted_average(
         reconstructed_patches,

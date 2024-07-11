@@ -253,3 +253,66 @@ class CustomEncoder(nn.Module):
         x = x.view(-1, 1, tile_size, tile_size)
         x = self.encoder(x)
         return x
+
+from src.data.mri_sampler import MRISampler
+from src.util.tiling import image_to_patches, patches_to_image
+from src.util.error import error_metrics
+import pathlib
+import os
+def test_autoencoder(test_config):
+    print("Testing the modulated SIREN...")
+    print(test_config)
+    output_dir = f"{test_config.testing.output_dir}/{test_config.testing.output_name}/test"
+
+    # Set the device
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
+
+    # Load datatset
+    sampler = MRISampler(pathlib.Path(test_config.data.dataset), test_config.data.test_files)
+
+    # Load the model
+    model = load_model(pathlib.Path(test_config.testing.model_path), device)
+
+
+    with torch.no_grad():
+        model.eval()
+
+        for i in range(test_config.data.num_samples):
+            print(f"Processing sample {i + 1}/{test_config.data.num_samples}...")
+            # Load the image
+            fully_sampled_img, undersampled_img, filename = sampler.get_random_sample()
+
+            # unsqueeze image to add batch dimension
+            fully_sampled_img = fully_sampled_img.unsqueeze(0).float().to(device)
+            undersampled_img = undersampled_img.unsqueeze(0).float().to(device)
+
+            fully_sampled_patch, _ = image_to_patches(
+                fully_sampled_img,
+                test_config.model.outer_patch_size,
+                test_config.model.inner_patch_size,
+            )
+            undersampled_patch, undersampled_information = image_to_patches(
+                undersampled_img,
+                test_config.model.outer_patch_size,
+                test_config.model.inner_patch_size,
+            )
+
+            output_dir_temp = os.path.join(output_dir, filename)
+            if not os.path.exists(output_dir_temp):
+                os.makedirs(output_dir_temp)
+
+            error_metrics(
+                model,
+                output_dir_temp,
+                filename,
+                fully_sampled_patch,
+                undersampled_patch,
+                undersampled_information,
+                device,
+                test_config.model.outer_patch_size,
+                test_config.model.inner_patch_size,
+                test_config.model.siren_patch_size,
+            )
