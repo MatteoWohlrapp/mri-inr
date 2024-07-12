@@ -1,15 +1,17 @@
-import os
-import h5py
+"""
+Sampler for MRI data.
+"""
+
 import numpy as np
 import random
-from fastmri.data.subsample import RandomMaskFunc
-import fastmri
 from fastmri.data import transforms as T
 import polars as pl
 import torch
 
 
 class MRISampler:
+    """Sampler for MRI data used during testing."""
+
     def __init__(
         self,
         path,
@@ -17,6 +19,15 @@ class MRISampler:
         mri_type="Flair",
         test_files=None,
     ):
+        """
+        Initialize the MRISampler.
+
+        Args:
+            path (str): The path to the data directory.
+            seed (int): The seed for reproducibility.
+            mri_type (str): The type of MRI scan to sample.
+            test_files (list): The list of test files to sample from.
+        """
         self.path = path
         self.mri_type = mri_type
         self.test_files = test_files
@@ -31,6 +42,12 @@ class MRISampler:
         self.indices = list(range(len(self.metadata)))
 
     def get_random_sample(self):
+        """
+        Get a random sample from the dataset.
+
+        Returns:
+            tuple: The fully sampled scan, the undersampled scan, and the filename.
+        """
         if not self.indices:
             raise ValueError("No samples available to select from.")
 

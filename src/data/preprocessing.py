@@ -1,3 +1,7 @@
+"""
+Preprocess the data
+"""
+
 import pathlib
 import h5py
 import numpy as np
@@ -9,17 +13,42 @@ from fastmri.data.subsample import RandomMaskFunc
 
 
 def load_h5(path) -> np.ndarray:
+    """
+    Load k-space data from a .h5 file.
+
+    Args:
+        path (str): The path to the .h5 file.
+
+    Returns:
+        np.ndarray: The k-space data.xs
+    """
     with h5py.File(path, "r") as f:
         data = f["kspace"][()]
     return data
 
 
-def load_mri_scan(path: pathlib.Path, center_fraction, acceleration, undersampled=False) -> torch.Tensor:
+def load_mri_scan(
+    path: pathlib.Path, center_fraction, acceleration, undersampled=False
+) -> torch.Tensor:
+    """
+    Load an MRI scan from a .h5 file.
+
+    Args:
+        path (pathlib.Path): The path to the .h5 file.
+        undersampled (bool): Whether to load the undersampled scan.
+        center_fraction (float): The center fraction for the mask.
+        acceleration (int): The acceleration for the mask.xs
+
+    Returns:
+        torch.Tensor: The MRI scan.xs
+    """
     mri_data = load_h5(path)
     mri_data = T.to_tensor(mri_data)
 
     if undersampled:
-        mask_func = RandomMaskFunc(center_fractions=[center_fraction], accelerations=[acceleration])
+        mask_func = RandomMaskFunc(
+            center_fractions=[center_fraction], accelerations=[acceleration]
+        )
         mri_data, _, _ = T.apply_mask(mri_data, mask_func)
 
     mri_data = fastmri.ifft2c(mri_data)
@@ -29,6 +58,15 @@ def load_mri_scan(path: pathlib.Path, center_fraction, acceleration, undersample
 
 
 def normalize_scan(scan: torch.Tensor) -> torch.Tensor:
+    """
+    Normalize the MRI scan.
+
+    Args:
+        scan (torch.Tensor): The MRI scan to normalize.
+
+    Returns:
+        torch.Tensor: The normalized MRI scan.
+    """
     scan_min = scan.min()
     scan_max = scan.max()
     normalized_scan = (scan - scan_min) / (scan_max - scan_min)
@@ -36,6 +74,15 @@ def normalize_scan(scan: torch.Tensor) -> torch.Tensor:
 
 
 def get_mri_type(file: pathlib.Path) -> str:
+    """
+    Gets the MRI name from the filename
+
+    Args:
+        file (pathlib.Path): The file to get the MRI type from.
+
+    Returns:
+        str: The MRI type.
+    """
     if "flair" in file.stem.lower():
         return "Flair"
     elif "t1" in file.stem.lower():
@@ -44,8 +91,18 @@ def get_mri_type(file: pathlib.Path) -> str:
         return "T2"
     else:
         return None
-    
+
+
 def get_mri_area(file: pathlib.Path) -> str:
+    """
+    Gets the MRI area from the filename
+
+    Args:
+        file (pathlib.Path): The file to get the MRI area from.
+
+    Returns:
+        str: The MRI area.
+    """
     if "brain" in file.stem.lower():
         return "Brain"
     elif "knee" in file.stem.lower():
@@ -53,8 +110,16 @@ def get_mri_area(file: pathlib.Path) -> str:
     else:
         print(f"Unknown MRI area for file {file.stem}")
         return None
-            
+
+
 def process_files(data_root: pathlib.Path, undersample_params: list):
+    """
+    Process the files in the data root directory.
+
+    Args:
+        data_root (pathlib.Path): The root directory containing the data files.
+        undersample_params (list): The undersample parameters to use.
+    """
     metadata_keys = [
         "path_fullysampled",
         "stem",
@@ -63,7 +128,7 @@ def process_files(data_root: pathlib.Path, undersample_params: list):
         "width",
         "height",
         "mri_type",
-        "mri_area"
+        "mri_area",
     ]
     metadata_keys += [f"path_undersampled_{cf}_{acc}" for cf, acc in undersample_params]
     metadata = {key: [] for key in metadata_keys}
@@ -72,9 +137,15 @@ def process_files(data_root: pathlib.Path, undersample_params: list):
     dest_dir.mkdir(exist_ok=True)
 
     for file in data_root.glob("*.h5"):
-        scan = normalize_scan(load_mri_scan(file, undersampled=False,center_fraction=1, acceleration=1))
+        scan = normalize_scan(
+            load_mri_scan(file, undersampled=False, center_fraction=1, acceleration=1)
+        )
         undersampled_scans = [
-            normalize_scan(load_mri_scan(file, undersampled=True, center_fraction=cf, acceleration=acc))
+            normalize_scan(
+                load_mri_scan(
+                    file, undersampled=True, center_fraction=cf, acceleration=acc
+                )
+            )
             for cf, acc in undersample_params
         ]
 
@@ -90,10 +161,17 @@ def process_files(data_root: pathlib.Path, undersample_params: list):
 
             np.save(dest_dir / f"{file.stem}_{i}.npy", scan[i].numpy())
 
-            for (cf, acc), undersampled_scan in zip(undersample_params, undersampled_scans):
+            for (cf, acc), undersampled_scan in zip(
+                undersample_params, undersampled_scans
+            ):
                 path_key = f"path_undersampled_{cf}_{acc}"
-                metadata[path_key].append(str(dest_dir / f"{file.stem}_{i}_undersampled_{cf}_{acc}.npy"))
-                np.save(dest_dir / f"{file.stem}_{i}_undersampled_{cf}_{acc}.npy", undersampled_scan[i].numpy())
+                metadata[path_key].append(
+                    str(dest_dir / f"{file.stem}_{i}_undersampled_{cf}_{acc}.npy")
+                )
+                np.save(
+                    dest_dir / f"{file.stem}_{i}_undersampled_{cf}_{acc}.npy",
+                    undersampled_scan[i].numpy(),
+                )
 
     metadata_df = pl.DataFrame(metadata)
     metadata_df.write_csv(dest_dir / "metadata.csv")

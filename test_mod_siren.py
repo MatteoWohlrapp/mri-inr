@@ -1,3 +1,7 @@
+"""
+Script to test the modulated SIREN model.
+"""
+
 import torch
 import pathlib
 from src.networks.modulated_siren import ModulatedSiren
@@ -11,6 +15,13 @@ from src.util.error import error_metrics
 
 
 def save_args_to_file(args, output_dir):
+    """
+    Save the arguments to a file.
+
+    Args:
+        args (argparse.Namespace): The arguments to save.
+        output_dir (str): The directory to save the arguments in.
+    """
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
@@ -22,6 +33,12 @@ def save_args_to_file(args, output_dir):
 
 
 def test_mod_siren(config):
+    """
+    Test the modulated SIREN model.
+
+    Args:
+        config (argparse.Namespace): The configuration to use for testing.
+    """
     print("Testing the modulated SIREN...")
 
     output_dir = f"{config.testing.output_dir}/{config.testing.output_name}/test"

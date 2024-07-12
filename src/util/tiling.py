@@ -1,3 +1,7 @@
+"""
+Util functions for tiling.
+"""
+
 import torch
 import torch.nn.functional as F
 import numpy as np
@@ -62,6 +66,15 @@ def image_to_patches(tensor, outer_patch_size, inner_patch_size):
 
 
 def generate_weight_matrix(tile_size):
+    """
+    Generate a weight matrix for weighted averaging of overlapping patches.
+
+    Args:
+        tile_size (int): Size of the tile.
+
+    Returns:
+        torch.Tensor: Weight matrix for weighted averaging.
+    """
     center = (tile_size - 1) / 2
     weight_matrix = torch.zeros((tile_size, tile_size))
 
@@ -79,6 +92,19 @@ def generate_weight_matrix(tile_size):
 def patches_to_image_weighted_average(
     tiles, image_information, outer_patch_size, inner_patch_size, device
 ):
+    """
+    Combine overlapping patches into a single image using weighted averaging.
+
+    Args:
+        tiles (torch.Tensor): Input tensor of shape (num_patches, outer_patch_size, outer_patch_size).
+        image_information (List[Tuple[int, int]]): List of tuples with number of patches (num_patches_vertical, num_patches_horizontal) for each image.
+        outer_patch_size (int): Total size of each patch including the border.
+        inner_patch_size (int): Size of the core area of each patch.
+        device (torch.device): Device to use for computation.
+
+    Returns:
+        torch.Tensor: Reconstructed image.
+    """
     # Assuming a single-channel image. Adjust for multi-channel images.
     output_size = (
         image_information[0][0] * inner_patch_size,
@@ -116,6 +142,18 @@ def patches_to_image_weighted_average(
 
 
 def patches_to_image(tiles, image_information, outer_patch_size, inner_patch_size):
+    """
+    Combine overlapping patches into a single image.
+
+    Args:
+        tiles (torch.Tensor): Input tensor of shape (num_patches, outer_patch_size, outer_patch_size).
+        image_information (List[Tuple[int, int]]): List of tuples with number of patches (num_patches_vertical, num_patches_horizontal) for each image.
+        outer_patch_size (int): Total size of each patch including the border.
+        inner_patch_size (int): Size of the core area of each patch.
+
+    Returns:
+        torch.Tensor: Reconstructed image.
+    """
     # Assuming a single-channel image. Adjust for multi-channel images.
     output_size = (
         image_information[0][0] * inner_patch_size,
@@ -145,20 +183,35 @@ def patches_to_image(tiles, image_information, outer_patch_size, inner_patch_siz
 
 
 def classify_tile(tile: torch.Tensor):
-    """Seperate into just black(mainly at the conrners) and actual data"""
+    """
+    Seperate into just black(mainly at the conrners) and actual data
+
+    Args:
+        tile (torch.Tensor): Input tensor of shape (1, height, width).
+
+    Returns:
+        int: 0 if the tile is black, 1 otherwise.
+    """
     mean = tile.mean()
     if mean < 1e-10:
         return 0
     else:
         return 1
 
-def filter_black_tiles(undersampled: list[torch.tensor], fullysampled:list[torch.tensor]):
-    """Filter out tiles that are classified as 0 or black.
-    Alternative implementation that works with lists of tensors.
-    To handle the filtering without needing to copy the whole tensor, since
-    RAM is a limiting factor when working with large datasets.
+
+def filter_black_tiles(
+    undersampled: list[torch.tensor], fullysampled: list[torch.tensor]
+):
     """
-    print("Trying to filter black tiles.", flush=True)
+    Filter out tiles that are classified as 0 or black.
+
+    Args:
+        undersampled (list[torch.Tensor]): List of undersampled tiles.
+        fullysampled (list[torch.Tensor]): List of fullysampled tiles.
+
+    Returns:
+        tuple: A tuple containing undersampled and fullysampled tiles with black tiles removed.
+    """
     for i in range(len(undersampled)):
         non_black_indices = [
             index
@@ -168,7 +221,8 @@ def filter_black_tiles(undersampled: list[torch.tensor], fullysampled:list[torch
         undersampled[i] = undersampled[i][non_black_indices]
         fullysampled[i] = fullysampled[i][non_black_indices]
     return undersampled, fullysampled
-        
+
+
 def filter_and_remember_black_tiles(patches):
     """
     Filters out black patches from a batch and remembers their positions.
@@ -180,6 +234,7 @@ def filter_and_remember_black_tiles(patches):
         tuple: A tuple containing:
             - Non-black patches (torch.Tensor).
             - Indices of black patches (list).
+            - Original shape of the batch (tuple).
     """
     non_black_indices = []
     black_indices = []
@@ -248,7 +303,15 @@ def extract_center_batch(batch, outer_patch_size, inner_patch_size) -> torch.Ten
 
 
 def collate_fn(batch):
-    """Collate function to combine tiles into a single tensor."""
+    """
+    Collate function to combine tiles into a single tensor.
+
+    Args:
+        batch (List[Tuple[torch.Tensor, torch.Tensor]]): List of tuples containing fullysampled and undersampled tiles.
+
+    Returns:
+        Tuple[torch.Tensor, torch.Tensor]: Tuple containing fullysampled and undersampled tiles as a single tensor.
+    """
     # Each element in batch is a tuple (tiles_fullysampled, tiles_undersampled)
     # where tiles_fullysampled and tiles_undersampled are tensors of shape (num_tiles, tile_height, tile_width)
 

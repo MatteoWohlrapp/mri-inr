@@ -1,9 +1,13 @@
+"""
+This script trains a modulated SIREN model on MRI data.
+"""
+
 import torch
 import pathlib
 from src.data.mri_dataset import MRIDataset
 from src.networks.modulated_siren import ModulatedSiren
 from src.train.training import Trainer
-from src.util.util import time_function
+from src.util.timing import time_function
 from src.configuration.configuration import load_configuration, parse_args
 import os
 from src.configuration.configuration import namespace_to_dict, save_config_to_yaml
@@ -13,6 +17,12 @@ import datetime
 
 @time_function
 def train_mod_siren(config):
+    """
+    Train the modulated SIREN model.
+
+    Args:
+        config (argparse.Namespace): The configuration to use for training.
+    """
     # Checking if we want to continue training
     if config.training.model.continue_training and not config.training.model.model_path:
         config.training.output_name = find_latest_folder(
