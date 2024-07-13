@@ -5,8 +5,9 @@ Util functions for visualizing images.
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import torch
 
-
+# UNUSED
 def show_image(image, cmap="gray"):
     """
     Display a single image using matplotlib.
@@ -20,6 +21,7 @@ def show_image(image, cmap="gray"):
     plt.show()
 
 
+# UNUSED
 def show_image_comparison(image, cmap="gray"):
     """
     Show undersampled and fully sampled images side by side.
@@ -61,6 +63,11 @@ def save_image_comparison(
     fully_sampled = fully_sampled.cpu()
     undersampled = undersampled.cpu()
     reconstructed = reconstructed.cpu()
+
+    fully_sampled = normalize_scan(fully_sampled)
+    undersampled = normalize_scan(undersampled)
+    reconstructed = normalize_scan(reconstructed)
+
     fig, ax = plt.subplots(1, 4, figsize=(10, 5))
     ax[0].imshow(undersampled.squeeze(), cmap=cmap, vmin=0, vmax=1)
     ax[0].set_title("Undersampled")
@@ -81,7 +88,7 @@ def save_image_comparison(
     ax[3].axis("off")
     plt.savefig(path)
 
-
+# UNUSED
 def show_batch(batch, cmap="gray", ncols=2):
     """
     Show a batch of images.
@@ -98,7 +105,6 @@ def show_batch(batch, cmap="gray", ncols=2):
         ax[i // ncols, i % ncols].axis("off")
     plt.show()
 
-
 def save_image(image, filename, output_dir, cmap="gray"):
     """
     Save a single image using matplotlib.
@@ -108,10 +114,12 @@ def save_image(image, filename, output_dir, cmap="gray"):
         filename (str): The filename to save the image as.
         output_dir (str): The directory to save the image in.
     """
+    image = normalize_scan(image)
+
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    plt.imshow(image.squeeze(), cmap=cmap)
+    plt.imshow(image.squeeze(), cmap=cmap, vmin=0, vmax=1)
     plt.axis("off")
     plt.savefig(
         f"{output_dir}/{filename}.png",
@@ -120,3 +128,18 @@ def save_image(image, filename, output_dir, cmap="gray"):
         dpi=1200,
     )
     plt.close()
+
+def normalize_scan(scan: torch.Tensor) -> torch.Tensor:
+    """
+    Normalize the MRI scan.
+
+    Args:
+        scan (torch.Tensor): The MRI scan to normalize.
+
+    Returns:
+        torch.Tensor: The normalized MRI scan.
+    """
+    scan_min = scan.min()
+    scan_max = scan.max()
+    normalized_scan = (scan - scan_min) / (scan_max - scan_min)
+    return normalized_scan

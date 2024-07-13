@@ -56,7 +56,12 @@ default_train_config = {
 
 
 default_test_config = {
-    "data": {"dataset": "", "num_samples": 100, "test_files": None},
+    "data": {
+        "dataset": "",
+        "test_files": None,
+        "metric_samples": None,
+        "visual_samples": None,
+    },
     "model": {
         "dim_in": 2,
         "dim_hidden": 256,

@@ -10,6 +10,7 @@ import polars as pl
 import fastmri
 from fastmri.data import transforms as T
 from fastmri.data.subsample import RandomMaskFunc
+from src.util.visualization import normalize_scan
 
 
 def load_h5(path) -> np.ndarray:
@@ -55,23 +56,6 @@ def load_mri_scan(
     mri_data = fastmri.complex_abs(mri_data)
     scan = mri_data
     return scan
-
-
-def normalize_scan(scan: torch.Tensor) -> torch.Tensor:
-    """
-    Normalize the MRI scan.
-
-    Args:
-        scan (torch.Tensor): The MRI scan to normalize.
-
-    Returns:
-        torch.Tensor: The normalized MRI scan.
-    """
-    scan_min = scan.min()
-    scan_max = scan.max()
-    normalized_scan = (scan - scan_min) / (scan_max - scan_min)
-    return normalized_scan
-
 
 def get_mri_type(file: pathlib.Path) -> str:
     """

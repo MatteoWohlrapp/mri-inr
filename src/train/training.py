@@ -20,7 +20,7 @@ from src.util.tiling import (
     image_to_patches,
     patches_to_image_weighted_average,
     patches_to_image,
-    filter_and_remember_black_tiles,
+    filter_and_remember_black_patches,
     reintegrate_black_patches,
 )
 
@@ -391,15 +391,17 @@ class TrainingManager:
         Args:
             suffix (str, optional): The suffix. Defaults to "".
         """
+        if suffix != "":
+            suffix = f"_{suffix}"
         if not os.path.exists(f"{self.output_dir}/{self.output_name}/models"):
             os.makedirs(f"{self.output_dir}/{self.output_name}/models")
         torch.save(
             self.model.state_dict(),
-            f"{self.output_dir}/{self.output_name}/models/{self.output_name}_model_epoch_{self.epoch_counter}_{suffix}.pth",
+            f"{self.output_dir}/{self.output_name}/models/{self.output_name}_model_epoch_{self.epoch_counter}{suffix}.pth",
         )
         torch.save(
             self.optimizer.state_dict(),
-            f"{self.output_dir}/{self.output_name}/models/{self.output_name}_optimizer_epoch_{self.epoch_counter}_{suffix}.pth",
+            f"{self.output_dir}/{self.output_name}/models/{self.output_name}_optimizer_epoch_{self.epoch_counter}{suffix}.pth",
         )
 
     def save_snapshot(self):
@@ -424,7 +426,7 @@ class TrainingManager:
 
             with torch.no_grad():
                 undersampled_filtered, filter_information, original_shape = (
-                    filter_and_remember_black_tiles(undersampled)
+                    filter_and_remember_black_patches(undersampled)
                 )
                 output = self.model(undersampled_filtered)
                 output = reintegrate_black_patches(
@@ -468,7 +470,7 @@ class TrainingManager:
 
                 with torch.no_grad():
                     undersampled_filtered, filter_information, original_shape = (
-                        filter_and_remember_black_tiles(undersampled)
+                        filter_and_remember_black_patches(undersampled)
                     )
                     output = self.model(undersampled_filtered)
                     output = reintegrate_black_patches(

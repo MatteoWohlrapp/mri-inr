@@ -5,6 +5,7 @@ Utils function for parsing filenames.
 import re
 
 
+# UNUSED
 def parse_filename(filename: str) -> str:
     """
     Parse the filename to extract the MRI type and the hex values.

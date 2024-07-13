@@ -6,7 +6,7 @@ import pathlib
 import polars as pl
 from src.util.tiling import (
     image_to_patches,
-    filter_black_tiles,
+    filter_black_patches,
 )
 import os
 
@@ -92,12 +92,12 @@ class MRIDataset(Dataset):
         files = (
             self.metadata.select(pl.col("stem").unique()).to_numpy().flatten().tolist()
         )
-        print(f"Files used for training: {files}", flush=True)
 
         files = list(set(files))
         output_dir = f"{self.output_dir}/{self.output_name}"
         os.makedirs(output_dir, exist_ok=True)
-        with open(f"{output_dir}/processed_files.txt", "w", encoding="utf-8") as f:
+        with open(f"{output_dir}/processed_files.txt", "a", encoding="utf-8") as f:
+            print(f"Processing files from {self.data_root}", file=f)
             for file in files:
                 print(file, file=f)
 
@@ -130,7 +130,7 @@ class MRIDataset(Dataset):
             )
             undersampled_tiles.append(patches)
 
-        self.undersampled_tiles, self.fullysampled_tiles = filter_black_tiles(
+        self.undersampled_tiles, self.fullysampled_tiles = filter_black_patches(
             self.undersampled_tiles, self.fullysampled_tiles
         )
         self.fullysampled_tiles = torch.cat(fullysampled_tiles, dim=0)
@@ -145,6 +145,7 @@ class MRIDataset(Dataset):
     def __getitems__(self, idxs: List[int]):
         return [self.__getitem__(idx) for idx in idxs]
 
+    # UNUSED
     def get_image(self, image_slice_id: str):
         """ "
         Get a specific image from the dataset.

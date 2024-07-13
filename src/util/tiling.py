@@ -182,7 +182,7 @@ def patches_to_image(tiles, image_information, outer_patch_size, inner_patch_siz
     return image
 
 
-def classify_tile(tile: torch.Tensor):
+def classify_patches(tile: torch.Tensor):
     """
     Seperate into just black(mainly at the conrners) and actual data
 
@@ -199,7 +199,7 @@ def classify_tile(tile: torch.Tensor):
         return 1
 
 
-def filter_black_tiles(
+def filter_black_patches(
     undersampled: list[torch.tensor], fullysampled: list[torch.tensor]
 ):
     """
@@ -216,14 +216,14 @@ def filter_black_tiles(
         non_black_indices = [
             index
             for index, u_tile in enumerate(undersampled[i])
-            if classify_tile(u_tile) != 0
+            if classify_patches(u_tile) != 0
         ]
         undersampled[i] = undersampled[i][non_black_indices]
         fullysampled[i] = fullysampled[i][non_black_indices]
     return undersampled, fullysampled
 
 
-def filter_and_remember_black_tiles(patches):
+def filter_and_remember_black_patches(patches):
     """
     Filters out black patches from a batch and remembers their positions.
 
@@ -240,7 +240,7 @@ def filter_and_remember_black_tiles(patches):
     black_indices = []
 
     for index, patch in enumerate(patches):
-        if classify_tile(patch) == 1:  # Assuming 1 means non-black
+        if classify_patches(patch) == 1:  # Assuming 1 means non-black
             non_black_indices.append(index)
         else:
             black_indices.append(index)
@@ -302,6 +302,7 @@ def extract_center_batch(batch, outer_patch_size, inner_patch_size) -> torch.Ten
     return center
 
 
+# UNUSED
 def collate_fn(batch):
     """
     Collate function to combine tiles into a single tensor.

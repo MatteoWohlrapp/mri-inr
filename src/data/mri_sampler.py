@@ -54,7 +54,7 @@ class MRISampler:
         # Randomly select an index
         idx = random.choice(self.indices)
         file_fullysampled = self.metadata[idx, 0]
-        file_undersampled = self.metadata[idx, 1]
+        file_undersampled = self.metadata[idx, 8]
         filename = self.metadata[idx, 2]
 
         # Load images
