@@ -1,7 +1,12 @@
+"""
+Configuration module for the modulated SIREN model.
+"""
+
 import types
 import yaml
 import argparse
 
+# Define the default configuration for training and testing
 default_train_config = {
     "data": {
         "train": {
@@ -33,6 +38,7 @@ default_train_config = {
         "outer_patch_size": 32,
         "inner_patch_size": 16,
         "siren_patch_size": 24,
+        "activation": "sine",
     },
     "training": {
         "lr": 0.0001,
@@ -42,6 +48,7 @@ default_train_config = {
         "output_name": "modulated_siren",
         "optimizer": "Adam",
         "logging": False,
+        "criterion": "MSE",
         "model": {
             "continue_training": False,
             "model_path": None,
@@ -52,7 +59,12 @@ default_train_config = {
 
 
 default_test_config = {
-    "data": {"dataset": "", "num_samples": 100, "test_files": None},
+    "data": {
+        "dataset": "",
+        "test_files": None,
+        "metric_samples": None,
+        "visual_samples": None,
+    },
     "model": {
         "dim_in": 2,
         "dim_hidden": 256,
@@ -79,6 +91,16 @@ default_test_config = {
 
 
 def merge_configs(defaults, user_configs):
+    """
+    Merge the default configuration with the user configuration.
+
+    Args:
+        defaults (dict): The default configuration.
+        user_configs (dict): The user configuration.
+
+    Returns:
+        dict: The merged configuration.
+    """
     for key, value in user_configs.items():
         if isinstance(value, dict) and key in defaults:
             merge_configs(defaults[key], value)
@@ -88,6 +110,15 @@ def merge_configs(defaults, user_configs):
 
 
 def convert_to_namespace(data):
+    """
+    Convert a dictionary to a namespace.
+
+    Args:
+        data (dict): The dictionary to convert.
+
+    Returns:
+        types.SimpleNamespace: The namespace.
+    """
     if isinstance(data, dict):
         for key, value in data.items():
             data[key] = convert_to_namespace(value)
@@ -96,6 +127,15 @@ def convert_to_namespace(data):
 
 
 def namespace_to_dict(obj):
+    """
+    Convert a namespace to a dictionary.
+
+    Args:
+        obj (types.SimpleNamespace): The namespace to convert.
+
+    Returns:
+        dict: The dictionary.
+    """
     if isinstance(obj, types.SimpleNamespace):
         obj = vars(obj)
     if isinstance(obj, dict):
@@ -107,11 +147,28 @@ def namespace_to_dict(obj):
 
 
 def save_config_to_yaml(config, filename):
+    """
+    Save the configuration to a YAML file.
+
+    Args:
+        config (types.SimpleNamespace): The configuration to save.
+        filename (str): The filename to save the configuration to.
+    """
     with open(filename, "w") as file:
         yaml.dump(config, file, default_flow_style=False, sort_keys=False)
 
 
 def load_configuration(file_path, testing=False):
+    """
+    Load the configuration from a YAML file.
+
+    Args:
+        file_path (str): The path to the configuration file.
+        testing (bool): Whether to load the testing configuration.
+
+    Returns:
+        types.SimpleNamespace: The configuration as a namespace.
+    """
     with open(file_path, "r") as file:
         user_config = yaml.safe_load(file)
 
@@ -126,6 +183,7 @@ def load_configuration(file_path, testing=False):
 
 
 def parse_args():
+    """Parse the arguments for the script."""
     parser = argparse.ArgumentParser(description="Train a modulated SIREN on MRI data.")
     parser.add_argument(
         "--config", type=str, required=True, help="Path to the configuration file"

@@ -1,3 +1,7 @@
+"""
+Modulated Siren network
+"""
+
 import math
 import torch
 from torch import nn
@@ -11,30 +15,74 @@ from src.networks.encoding.vgg import VGGAutoEncoder, get_configs, load_dict
 
 
 def cast_tuple(val, repeat=1):
+    """
+    Cast a value to a tuple.
+
+    Args:
+        val (Any): The value to cast.
+        repeat (int): The number of times to repeat the value.
+
+    Returns:
+        Tuple: The value as a tuple
+    """
     return val if isinstance(val, tuple) else ((val,) * repeat)
 
 
-# sin activation
 class Sine(nn.Module):
+    """Sine activation function."""
+
     def __init__(self, w0=1.0):
+        """
+        Initialize the Sine activation function.
+
+        Args:
+            w0 (float): The frequency of the sine function.
+        """
         super().__init__()
         self.w0 = w0
 
     def forward(self, x):
+        """
+        Forward pass of the Sine activation function.
+
+        Args:
+            x (torch.Tensor): The input tensor.
+
+        Returns:
+            torch.Tensor: The output tensor.
+        """
         return torch.sin(self.w0 * x)
-    
-# morlet activation
+
+
 class Morlet(nn.Module):
+    """Morlet activation function."""
+
     def __init__(self, w0=1.0):
+        """
+        Initialize the Morlet activation function.
+
+        Args:
+            w0 (float): The frequency of the Morlet function.
+        """
         super().__init__()
         self.w0 = w0
 
     def forward(self, x):
-        return torch.sin(self.w0 * x) * torch.exp(-0.5 * x ** 2)
+        """
+        Forward pass of the Morlet activation function.
+
+        Args:
+            x (torch.Tensor): The input tensor.
+
+        Returns:
+            torch.Tensor: The output tensor.
+        """
+        return torch.sin(self.w0 * x) * torch.exp(-0.5 * x**2)
 
 
-# one siren layer
 class Siren(nn.Module):
+    """SIREN layer."""
+
     def __init__(
         self,
         dim_in,
@@ -46,6 +94,19 @@ class Siren(nn.Module):
         activation=None,
         dropout=0.0,
     ):
+        """
+        Initialize a SIREN layer.
+
+        Args:
+            dim_in (int): The input dimension.
+            dim_out (int): The output dimension.
+            w0 (float): The frequency of the sine function.
+            c (float): The constant for initializing the weights.
+            is_first (bool): Whether this is the first layer.
+            use_bias (bool): Whether to use a bias term.
+            activation (nn.Module): The activation function to use.
+            dropout (float): The dropout rate.
+        """
         super().__init__()
         self.dim_in = dim_in
         self.is_first = is_first
@@ -56,10 +117,23 @@ class Siren(nn.Module):
 
         self.weight = nn.Parameter(weight)
         self.bias = nn.Parameter(bias) if use_bias else None
-        self.activation = Sine(w0) if activation is None else activation
+        self.activation = (
+            Sine(w0)
+            if activation == "siren"
+            else Morlet(w0) if activation == "morlet" else nn.ReLU()
+        )
         self.dropout = nn.Dropout(dropout)
 
     def init_(self, weight, bias, c, w0):
+        """
+        Initialize the weights and bias.
+
+        Args:
+            weight (torch.Tensor): The weight tensor.
+            bias (torch.Tensor): The bias tensor.
+            c (float): The constant for initializing the weights.
+            w0 (float): The frequency of the sine function.
+        """
         dim = self.dim_in
 
         w_std = (1 / dim) if self.is_first else (math.sqrt(c / dim) / w0)
@@ -69,6 +143,15 @@ class Siren(nn.Module):
             bias.uniform_(-w_std, w_std)
 
     def forward(self, x):
+        """
+        Forward pass of the SINE layer.
+
+        Args:
+            x (torch.Tensor): The input tensor.
+
+        Returns:
+            torch.Tensor: The output tensor.
+        """
         out = F.linear(x, self.weight, self.bias)
         out = self.activation(out)
         out = self.dropout(out)
@@ -99,8 +182,9 @@ class ResidualBlock(nn.Module):
         return x
 
 
-# siren network
 class SirenNet(nn.Module):
+    """SIREN network."""
+
     def __init__(
         self,
         dim_in,
@@ -112,7 +196,22 @@ class SirenNet(nn.Module):
         w0_initial,
         use_bias,
         dropout,
+        activation,
     ):
+        """
+        Initialize a SIREN network.
+
+        Args:
+            dim_in (int): The input dimension.
+            dim_hidden (int): The hidden dimension.
+            dim_out (int): The output dimension.
+            num_layers (int): The number of layers.
+            w0 (float): The frequency of the sine function.
+            w0_initial (float): The frequency of the sine function for the first layer.
+            use_bias (bool): Whether to use a bias term.
+            dropout (float): The dropout rate.
+            activation (str): The activation function to use.
+        """
         super().__init__()
         self.num_blocks = num_blocks
         self.dim_hidden = dim_hidden
@@ -146,7 +245,16 @@ class SirenNet(nn.Module):
         )
 
     def forward(self, x, mods=None):
-        mods = cast_tuple(mods, len(self.blocks))
+        """
+        Forward pass of the SIREN network.
+
+        Args:
+            x (torch.Tensor): The input tensor.
+
+        Returns:
+            torch.Tensor: The output tensor.
+        """
+        mods = cast_tuple(mods, self.num_blocks)
 
         x = self.first_layer(x)
 
@@ -158,9 +266,19 @@ class SirenNet(nn.Module):
         return self.last_layer(x)
 
 
-# encoder
 class Encoder(nn.Module):
+    """Encoder network."""
+
     def __init__(self, latent_dim, encoder_path, device, encoder_type="custom"):
+        """
+        Initialize an encoder network.
+
+        Args:
+            latent_dim (int): The latent dimension.
+            encoder_path (str): The path to the encoder.
+            device (torch.device): The device to use.
+            encoder_type (str): The type of encoder.
+        """
         super().__init__()
         self.latent_dim = latent_dim
         self.encoder_type = encoder_type
@@ -177,6 +295,16 @@ class Encoder(nn.Module):
             self.fc = nn.Linear(num_features, latent_dim)
 
     def load_vgg(self, encoder_path):
+        """
+        Load a vgg encoder
+
+        Args:
+            encoder_path (str): The path to the encoder.
+
+        Returns:
+            nn.Module: The encoder.
+            int: The number of features
+        """
         model = VGGAutoEncoder(get_configs("vgg16"))
         load_dict(encoder_path, model)
 
@@ -185,7 +313,15 @@ class Encoder(nn.Module):
         return model.encoder, num_features
 
     def forward(self, x):
+        """
+        Forward pass of the econder.
 
+        Args:
+            x (torch.Tensor): The input image patches.
+
+        Returns:
+            torch.Tensor: The latent code.
+        """
         if self.encoder_type == "custom":
             x = self.encoder(x)
         elif self.encoder_type == "vgg":
@@ -201,9 +337,18 @@ class Encoder(nn.Module):
         return x
 
 
-# modulatory feed forward network
 class Modulator(nn.Module):
+    """Modulator network."""
+
     def __init__(self, dim_in, dim_hidden, num_layers):
+        """
+        Initialize a modulator network.
+
+        Args:
+            dim_in (int): The input dimension.
+            dim_hidden (int): The hidden dimension.
+            num_layers (int): The number of layers.
+        """
         super().__init__()
         self.layers = nn.ModuleList([])
 
@@ -214,6 +359,15 @@ class Modulator(nn.Module):
             self.layers.append(nn.Sequential(nn.Linear(dim, dim_hidden), nn.ReLU()))
 
     def forward(self, z):
+        """
+        Forward pass of the Modulator network.
+
+        Args:
+            z (torch.Tensor): The input latent code.
+
+        Returns:
+            torch.Tensor: The modulations.
+        """
         x = z
         hiddens = []
 
@@ -225,8 +379,9 @@ class Modulator(nn.Module):
         return tuple(hiddens)
 
 
-# complete network
 class ModulatedSiren(nn.Module):
+    """Modulated SIREN network."""
+
     def __init__(
         self,
         dim_in,
@@ -246,7 +401,30 @@ class ModulatedSiren(nn.Module):
         inner_patch_size,
         siren_patch_size,
         device,
+        activation,
     ):
+        """
+        Initialize a modulated SIREN network.
+
+        Args:
+            dim_in (int): The input dimension.
+            dim_hidden (int): The hidden dimension.
+            dim_out (int): The output dimension.
+            num_layers (int): The number of layers.
+            latent_dim (int): The latent dimension.
+            w0 (float): The frequency of the sine function.
+            w0_initial (float): The frequency of the sine function for the first layer.
+            use_bias (bool): Whether to use a bias term.
+            dropout (float): The dropout rate.
+            modulate (bool): Whether to modulate the network.
+            encoder_type (str): The type of encoder.
+            encoder_path (str): The path to the encoder.
+            outer_patch_size (int): The size of the outer patch.
+            inner_patch_size (int): The size of the inner patch.
+            siren_patch_size (int): The size of the SIREN patch.
+            device (torch.device): The device to use.
+            activation (str): The activation function to use.
+        """
         super().__init__()
 
         self.dim_hidden = dim_hidden
@@ -259,6 +437,7 @@ class ModulatedSiren(nn.Module):
         self.outer_patch_size = outer_patch_size
         self.inner_patch_size = inner_patch_size
         self.siren_patch_size = siren_patch_size
+        self.activation = activation
 
         self.net = SirenNet(
             dim_in=dim_in,
@@ -270,6 +449,7 @@ class ModulatedSiren(nn.Module):
             w0_initial=w0_initial,
             use_bias=use_bias,
             dropout=dropout,
+            activation=activation,
         )
 
         self.modulator = Modulator(
@@ -292,6 +472,15 @@ class ModulatedSiren(nn.Module):
         self.register_buffer("grid", mgrid)
 
     def forward(self, tiles):
+        """
+        Forward pass of the modulated SIREN network.
+
+        Args:
+            tiles (torch.Tensor): The input image patches.
+
+        Returns:
+            torch.Tensor: The output tensor.
+        """
         batch_size = tiles.shape[0]
         mods = self.modulator(self.encoder(tiles))
 

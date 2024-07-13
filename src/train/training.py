@@ -1,3 +1,7 @@
+"""
+Training abstraction for the SIREN model.
+"""
+
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
@@ -10,13 +14,13 @@ import polars as pl
 from src.data.mri_dataset import MRIDataset
 from src.util.visualization import save_image_comparison
 import numpy as np
-from src.util.losses import PerceptualLoss
+from src.util.losses import PerceptualLoss, EdgeLoss
 import pathlib
 from src.util.tiling import (
     image_to_patches,
     patches_to_image_weighted_average,
     patches_to_image,
-    filter_and_remember_black_tiles,
+    filter_and_remember_black_patches,
     reintegrate_black_patches,
 )
 
@@ -25,6 +29,10 @@ amp_enabled = True
 
 
 class Trainer:
+    """
+    Trainer for the SIREN model.
+    """
+
     def __init__(
         self,
         model,
@@ -41,13 +49,35 @@ class Trainer:
         num_workers=4,
         save_interval=100,
         logging=False,
+        criterion="MSE",
     ):
+        """
+        Init
+
+        Args:
+            model (nn.Module): The model to train.
+            device (torch.device): The device to use for training.
+            train_dataset (MRIDataset): The dataset to use for training.
+            optimizer (torch.optim.Optimizer): The optimizer to use for training.
+            output_dir (str): The output directory.
+            outer_patch_size (int): The size of the outer patch.
+            inner_patch_size (int): The size of the inner patch.
+            siren_patch_size (int): The size of the SIREN patch.
+            val_dataset (MRIDataset, optional): The dataset to use for validation. Defaults to None.
+            batch_size (int, optional): The batch size. Defaults to 1.
+            output_name (str, optional): The output name. Defaults to "modulated_siren".
+            num_workers (int, optional): The number of workers. Defaults to 4.
+            save_interval (int, optional): The save interval. Defaults to 100.
+            logging (bool, optional): Whether to log. Defaults
+            criterion (str, optional): The criterion to use. Defaults to "MSE".
+        """
         self.model: nn.Module = model.to(device)
         self.device = device
         self.outer_patch_size = outer_patch_size
         self.inner_patch_size = inner_patch_size
         self.siren_patch_size = siren_patch_size
         self.num_workers = num_workers
+        self.criterion = criterion
         self.train_loader = DataLoader(
             train_dataset,
             batch_size=batch_size,
@@ -66,8 +96,23 @@ class Trainer:
         self.optimizer = optimizer
         self.output_name = output_name
         self.output_dir = output_dir
-        #self.criterion = nn.MSELoss()
-        self.criterion = PerceptualLoss(pathlib.Path(r"./output/custom_encoder/20240710-002727_autoencoder_v1_256_epoch_170.pth"), nn.MSELoss(), self.device)
+        if self.criterion == "MSE":
+            self.criterion = nn.MSELoss()
+        elif self.criterion == "Perceptual":
+            self.criterion = PerceptualLoss(
+                pathlib.Path(
+                    r"./output/custom_encoder/20240710-002727_autoencoder_v1_256_epoch_170.pth"
+                ),
+                nn.MSELoss(),
+                self.device,
+            )
+        elif self.criterion == "Edge":
+            self.criterion = EdgeLoss(
+                nn.MSELoss(),
+                self.device,
+            )
+        else:
+            raise ValueError("Unsupported criterion")
         self.writer = (
             SummaryWriter(log_dir=f"{output_dir}/{output_name}/tensorboard")
             if logging
@@ -96,6 +141,13 @@ class Trainer:
         self.scaler = torch.cuda.amp.GradScaler(enabled=True)
 
     def train(self, initial_epoch, num_epochs):
+        """
+        Training loop.
+
+        Args:
+            initial_epoch (int): The initial epoch.
+            num_epochs (int): The number of epochs.
+        """
         self.training_manager.set_epoch_counter(initial_epoch)
         for _ in range(initial_epoch, num_epochs):
             training_loss = self._train_epoch()
@@ -107,6 +159,12 @@ class Trainer:
             self.writer.close()
 
     def _train_epoch(self):
+        """
+        Training epoch.
+
+        Returns:
+            float: The training loss.
+        """
         self.model.train()
         training_loss = 0
         batches = 0
@@ -118,6 +176,16 @@ class Trainer:
         return training_loss / batches
 
     def _train_iteration(self, undersampled_batch, fully_sampled_batch):
+        """
+        Training iteration.
+
+        Args:
+            undersampled_batch (torch.Tensor): The undersampled batch.
+            fully_sampled_batch (torch.Tensor): The fully sampled batch.
+
+        Returns:
+            float: The loss.
+        """
         undersampled_batch = undersampled_batch.to(self.device).float()
 
         fully_sampled_batch = (
@@ -140,6 +208,12 @@ class Trainer:
         return loss_item
 
     def _validate_epoch(self):
+        """
+        Validation epoch.
+
+        Returns:
+            float: The validation loss.
+        """
         self.model.eval()
         validation_loss = 0
         batches = 0
@@ -152,6 +226,16 @@ class Trainer:
         return validation_loss / batches
 
     def _validate_iteration(self, undersampled_batch, fully_sampled_batch):
+        """
+        Validation iteration.
+
+        Args:
+            undersampled_batch (torch.Tensor): The undersampled batch.
+            fully_sampled_batch (torch.Tensor): The fully sampled batch.
+
+        Returns:
+            float: The loss.
+        """
         undersampled_batch = undersampled_batch.to(self.device).float()
         fully_sampled_batch = (
             extract_center_batch(
@@ -174,6 +258,7 @@ class Trainer:
             self.optimizer.load_state_dict(torch.load(optimizer_path))
 
     def get_initial_errors(self):
+        """Get the initial training and validation errors."""
         with torch.no_grad():
             training_loss = 0
             validation_loss = 0
@@ -208,6 +293,10 @@ class Trainer:
 
 
 class TrainingManager:
+    """
+    Manager handling training functionality
+    """
+
     def __init__(
         self,
         model,
@@ -228,6 +317,28 @@ class TrainingManager:
         save_interval=100,
         writer=None,
     ):
+        """
+        Init
+
+        Args:
+            model (nn.Module): The model to train.
+            optimizer (torch.optim.Optimizer): The optimizer to use for training.
+            output_dir (str): The output directory.
+            output_name (str): The output name.
+            train_loader (DataLoader): The training data loader.
+            train_dataset (MRIDataset): The training dataset.
+            val_loader (DataLoader): The validation data loader.
+            val_dataset (MRIDataset): The validation dataset.
+            initial_training_loss (float): The initial training loss.
+            initial_validation_loss (float): The initial validation loss.
+            device (torch.device): The device to use for training.
+            outer_patch_size (int): The size of the outer patch.
+            inner_patch_size (int): The size of the inner patch.
+            siren_patch_size (int): The size of the SIREN patch.
+            batch_size (int, optional): The batch size. Defaults to 1.
+            save_interval (int, optional): The save interval. Defaults to 100.
+            writer (SummaryWriter, optional): The tensorboard writer. Defaults to None.
+        """
         self.model = model
         self.optimizer = optimizer
         self.output_dir = output_dir
@@ -256,6 +367,13 @@ class TrainingManager:
         )
 
     def post_epoch_update(self, training_loss, validation_loss):
+        """
+        Update after each epoch
+
+        Args:
+            training_loss (float): The training loss.
+            validation_loss (float): The validation loss
+        """
         if self.epoch_counter % self.save_interval == 0:
             self.save_model()
             self.save_snapshot()
@@ -270,21 +388,38 @@ class TrainingManager:
             )
 
     def post_batch_update(self, loss):
+        """
+        Update after each batch
+
+        Args:
+            loss (float): The loss.
+        """
         self.batch_counter += 1
 
     def save_model(self, suffix=""):
+        """
+        Save the model and optimizer.
+
+        Args:
+            suffix (str, optional): The suffix. Defaults to "".
+        """
+        if suffix != "":
+            suffix = f"_{suffix}"
         if not os.path.exists(f"{self.output_dir}/{self.output_name}/models"):
             os.makedirs(f"{self.output_dir}/{self.output_name}/models")
         torch.save(
             self.model.state_dict(),
-            f"{self.output_dir}/{self.output_name}/models/{self.output_name}_model_epoch_{self.epoch_counter}_{suffix}.pth",
+            f"{self.output_dir}/{self.output_name}/models/{self.output_name}_model_epoch_{self.epoch_counter}{suffix}.pth",
         )
         torch.save(
             self.optimizer.state_dict(),
-            f"{self.output_dir}/{self.output_name}/models/{self.output_name}_optimizer_epoch_{self.epoch_counter}_{suffix}.pth",
+            f"{self.output_dir}/{self.output_name}/models/{self.output_name}_optimizer_epoch_{self.epoch_counter}{suffix}.pth",
         )
 
     def save_snapshot(self):
+        """
+        Save a snapshot of the current training state.
+        """
         output_dir = f"{self.output_dir}/{self.output_name}/snapshots"
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
@@ -303,7 +438,7 @@ class TrainingManager:
 
             with torch.no_grad():
                 undersampled_filtered, filter_information, original_shape = (
-                    filter_and_remember_black_tiles(undersampled)
+                    filter_and_remember_black_patches(undersampled)
                 )
                 output = self.model(undersampled_filtered)
                 output = reintegrate_black_patches(
@@ -347,7 +482,7 @@ class TrainingManager:
 
                 with torch.no_grad():
                     undersampled_filtered, filter_information, original_shape = (
-                        filter_and_remember_black_tiles(undersampled)
+                        filter_and_remember_black_patches(undersampled)
                     )
                     output = self.model(undersampled_filtered)
                     output = reintegrate_black_patches(
@@ -378,6 +513,13 @@ class TrainingManager:
                 )
 
     def update_progress_log(self, training_loss, validation_loss):
+        """
+        Update the progress log.
+
+        Args:
+            training_loss (float): The training loss.
+            validation_loss (float): The validation loss.
+        """
         current_time = time.time()
         current_log = {
             "epoch": self.epoch_counter,
@@ -390,6 +532,9 @@ class TrainingManager:
         self.progress_log = self.progress_log.extend(pl.from_dict(current_log))
 
     def update_human_readable_short_progress_log(self):
+        """
+        Update the human readable short progress log.
+        """
         output_dir = f"{self.output_dir}/{self.output_name}"
         os.makedirs(output_dir, exist_ok=True)
         """Create .txt file with human readable short progress log.

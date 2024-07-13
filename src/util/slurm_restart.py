@@ -1,8 +1,22 @@
+"""
+Utils function for restarting a training job from the latest checkpoint.
+"""
+
 import re
 import os
 
 
 def find_latest_folder(base_dir, base_name):
+    """
+    Find the latest directory with the base name in the base directory.
+
+    Args:
+        base_dir (str): The base directory to search in.
+        base_name (str): The base name of the directory to search for.
+
+    Returns:
+        str: The name of the latest directory with the base name.
+    """
     # List all directories in the base directory
     dirs = [
         d
@@ -14,12 +28,21 @@ def find_latest_folder(base_dir, base_name):
     if not dirs:
         raise FileNotFoundError("No directories found matching the base name.")
     latest_dir = sorted(dirs, key=lambda x: x.split("_")[-1], reverse=True)[0]
-    latest_dir_path = os.path.join(base_dir, latest_dir)
 
     return latest_dir
 
 
 def find_latest_checkpoint(output_dir, output_name):
+    """
+    Find the latest model and optimizer checkpoint files in the latest directory.
+
+    Args:
+        output_dir (str): The base directory to search in.
+        output_name (str): The base name of the directory to search for.
+
+    Returns:
+        Tuple[str, str, int]: The paths to the latest model and optimizer files and the epoch number.
+    """
     latest_dir_path = os.path.join(output_dir, output_name)
 
     # Check if the directory exists
