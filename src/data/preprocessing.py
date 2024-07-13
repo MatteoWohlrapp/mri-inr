@@ -57,6 +57,7 @@ def load_mri_scan(
     scan = mri_data
     return scan
 
+
 def get_mri_type(file: pathlib.Path) -> str:
     """
     Gets the MRI name from the filename

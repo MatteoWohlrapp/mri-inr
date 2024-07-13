@@ -99,6 +99,7 @@ There is a number of configuration parameters for both training and testing. The
   - `output_name`: Base name for output files.
   - `optimizer`: Type of optimizer to use (`Adam`, `SGD`, etc.).
   - `logging`: Specify if tensorboard should be turned on or off.
+  - `criterion`: Specify which criterion to use, options are `MSE`, `Perceptual`, and `Edge`.
   - `model`
     - `continue_training`: Boolean to indicate whether to continue training from a previous checkpoint.
     - `model_path`: Path to the model checkpoint for resuming training.

@@ -113,6 +113,7 @@ def train_mod_siren(config):
         save_interval=config.training.save_interval,
         num_workers=config.data.train.num_workers,
         logging=config.training.logging,
+        criterion=config.training.criterion,
     )
 
     initial_epoch = 0

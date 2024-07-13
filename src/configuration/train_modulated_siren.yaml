@@ -35,5 +35,6 @@ training:
   optimizer: "Adam"
   save_interval: 25
   logging: True
+  criterion: "MSE"
   model:
     continue_training: False

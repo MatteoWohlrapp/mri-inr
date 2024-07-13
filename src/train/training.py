@@ -14,7 +14,7 @@ import polars as pl
 from src.data.mri_dataset import MRIDataset
 from src.util.visualization import save_image_comparison
 import numpy as np
-from src.util.losses import PerceptualLoss
+from src.util.losses import PerceptualLoss, EdgeLoss
 import pathlib
 from src.util.tiling import (
     image_to_patches,
@@ -49,6 +49,7 @@ class Trainer:
         num_workers=4,
         save_interval=100,
         logging=False,
+        criterion="MSE",
     ):
         """
         Init
@@ -68,6 +69,7 @@ class Trainer:
             num_workers (int, optional): The number of workers. Defaults to 4.
             save_interval (int, optional): The save interval. Defaults to 100.
             logging (bool, optional): Whether to log. Defaults
+            criterion (str, optional): The criterion to use. Defaults to "MSE".
         """
         self.model: nn.Module = model.to(device)
         self.device = device
@@ -75,6 +77,7 @@ class Trainer:
         self.inner_patch_size = inner_patch_size
         self.siren_patch_size = siren_patch_size
         self.num_workers = num_workers
+        self.criterion = criterion
         self.train_loader = DataLoader(
             train_dataset,
             batch_size=batch_size,
@@ -93,14 +96,23 @@ class Trainer:
         self.optimizer = optimizer
         self.output_name = output_name
         self.output_dir = output_dir
-        # self.criterion = nn.MSELoss()
-        self.criterion = PerceptualLoss(
-            pathlib.Path(
-                r"./output/custom_encoder/20240710-002727_autoencoder_v1_256_epoch_170.pth"
-            ),
-            nn.MSELoss(),
-            self.device,
-        )
+        if self.criterion == "MSE":
+            self.criterion = nn.MSELoss()
+        elif self.criterion == "Perceptual":
+            self.criterion = PerceptualLoss(
+                pathlib.Path(
+                    r"./output/custom_encoder/20240710-002727_autoencoder_v1_256_epoch_170.pth"
+                ),
+                nn.MSELoss(),
+                self.device,
+            )
+        elif self.criterion == "Edge":
+            self.criterion = EdgeLoss(
+                nn.MSELoss(),
+                self.device,
+            )
+        else:
+            raise ValueError("Unsupported criterion")
         self.writer = (
             SummaryWriter(log_dir=f"{output_dir}/{output_name}/tensorboard")
             if logging

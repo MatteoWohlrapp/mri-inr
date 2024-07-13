@@ -7,6 +7,7 @@ import numpy as np
 import os
 import torch
 
+
 # UNUSED
 def show_image(image, cmap="gray"):
     """
@@ -88,6 +89,7 @@ def save_image_comparison(
     ax[3].axis("off")
     plt.savefig(path)
 
+
 # UNUSED
 def show_batch(batch, cmap="gray", ncols=2):
     """
@@ -104,6 +106,7 @@ def show_batch(batch, cmap="gray", ncols=2):
         ax[i // ncols, i % ncols].imshow(image.squeeze(), cmap=cmap, vmin=0, vmax=1)
         ax[i // ncols, i % ncols].axis("off")
     plt.show()
+
 
 def save_image(image, filename, output_dir, cmap="gray"):
     """
@@ -128,6 +131,7 @@ def save_image(image, filename, output_dir, cmap="gray"):
         dpi=1200,
     )
     plt.close()
+
 
 def normalize_scan(scan: torch.Tensor) -> torch.Tensor:
     """

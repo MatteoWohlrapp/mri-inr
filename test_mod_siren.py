@@ -137,13 +137,9 @@ def test_mod_siren(config):
         mod_siren.eval()
 
         for i in range(config.data.metric_samples):
-            print(
-                f"Processing metric sample {i + 1}/{config.data.metric_samples}..."
-            )
+            print(f"Processing metric sample {i + 1}/{config.data.metric_samples}...")
             # Load the image
-            fully_sampled_img, undersampled_img, filename = (
-                sampler.get_random_sample()
-            )
+            fully_sampled_img, undersampled_img, filename = sampler.get_random_sample()
 
             # unsqueeze image to add batch dimension
             fully_sampled_img = fully_sampled_img.unsqueeze(0).float().to(device)
