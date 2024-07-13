@@ -37,6 +37,7 @@ default_train_config = {
         "outer_patch_size": 32,
         "inner_patch_size": 16,
         "siren_patch_size": 24,
+        "activation": "sine",
     },
     "training": {
         "lr": 0.0001,

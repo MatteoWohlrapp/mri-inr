@@ -117,7 +117,11 @@ class Siren(nn.Module):
 
         self.weight = nn.Parameter(weight)
         self.bias = nn.Parameter(bias) if use_bias else None
-        self.activation = Sine(w0) if activation is None else activation
+        self.activation = (
+            Sine(w0)
+            if activation == "siren"
+            else Morlet(w0) if activation == "morlet" else nn.ReLU()
+        )
         self.dropout = nn.Dropout(dropout)
 
     def init_(self, weight, bias, c, w0):
@@ -158,7 +162,16 @@ class SirenNet(nn.Module):
     """SIREN network."""
 
     def __init__(
-        self, dim_in, dim_hidden, dim_out, num_layers, w0, w0_initial, use_bias, dropout
+        self,
+        dim_in,
+        dim_hidden,
+        dim_out,
+        num_layers,
+        w0,
+        w0_initial,
+        use_bias,
+        dropout,
+        activation,
     ):
         """
         Initialize a SIREN network.
@@ -172,6 +185,7 @@ class SirenNet(nn.Module):
             w0_initial (float): The frequency of the sine function for the first layer.
             use_bias (bool): Whether to use a bias term.
             dropout (float): The dropout rate.
+            activation (str): The activation function to use.
         """
         super().__init__()
         self.num_layers = num_layers
@@ -353,6 +367,7 @@ class ModulatedSiren(nn.Module):
         inner_patch_size,
         siren_patch_size,
         device,
+        activation,
     ):
         """
         Initialize a modulated SIREN network.
@@ -374,6 +389,7 @@ class ModulatedSiren(nn.Module):
             inner_patch_size (int): The size of the inner patch.
             siren_patch_size (int): The size of the SIREN patch.
             device (torch.device): The device to use.
+            activation (str): The activation function to use.
         """
         super().__init__()
 
@@ -386,6 +402,7 @@ class ModulatedSiren(nn.Module):
         self.outer_patch_size = outer_patch_size
         self.inner_patch_size = inner_patch_size
         self.siren_patch_size = siren_patch_size
+        self.activation = activation
 
         self.net = SirenNet(
             dim_in=dim_in,
@@ -396,6 +413,7 @@ class ModulatedSiren(nn.Module):
             w0_initial=w0_initial,
             use_bias=use_bias,
             dropout=dropout,
+            activation=activation,
         )
 
         self.modulator = Modulator(

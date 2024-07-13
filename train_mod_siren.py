@@ -86,6 +86,7 @@ def train_mod_siren(config):
         inner_patch_size=config.model.inner_patch_size,
         siren_patch_size=config.model.siren_patch_size,
         device=device,
+        activation=config.model.activation,
     )
     mod_siren.to(device)
 

@@ -78,6 +78,7 @@ There is a number of configuration parameters for both training and testing. The
   - `outer_patch_size`: Size of the outer patch in the input.
   - `inner_patch_size`: Size of the inner patch in the input.
   - `siren_patch_size`: Size of the patch the siren network is actually trained on.
+  - `activation`: The type of activation functions used. Options are `sine` and `morlet`. 
 
 ### Training Configuration
 

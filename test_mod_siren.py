@@ -68,6 +68,7 @@ def test_mod_siren(config):
         inner_patch_size=config.model.inner_patch_size,
         siren_patch_size=config.model.siren_patch_size,
         device=device,
+        activation=config.model.activation,
     )
 
     mod_siren.load_state_dict(torch.load(config.testing.model_path))
