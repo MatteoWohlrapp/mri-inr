@@ -26,7 +26,7 @@ def find_latest_folder(base_dir, base_name):
 
     # Sort directories by their timestamp to find the latest
     if not dirs:
-        raise FileNotFoundError("No directories found matching the base name.")
+        return None
     latest_dir = sorted(dirs, key=lambda x: x.split("_")[-1], reverse=True)[0]
 
     return latest_dir

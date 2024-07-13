@@ -23,12 +23,20 @@ def train_mod_siren(config):
     Args:
         config (argparse.Namespace): The configuration to use for training.
     """
+    continue_training = False
     # Checking if we want to continue training
     if config.training.model.continue_training and not config.training.model.model_path:
-        config.training.output_name = find_latest_folder(
+        output_name = find_latest_folder(
             config.training.output_dir, config.training.output_name
         )
-    else:
+
+        if output_name: 
+            config.training.output_name = output_name
+            continue_training = True
+    elif config.training.model.continue_training: 
+        continue_training = True
+
+    if not continue_training:
         current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         config.training.output_name = f"{config.training.output_name}_{current_time}"
 
@@ -120,7 +128,7 @@ def train_mod_siren(config):
     initial_epoch = 0
 
     # Check if we want to load an existing model
-    if config.training.model.continue_training:
+    if continue_training:
         if config.training.model.model_path:
             trainer.load_model(
                 model_path=config.training.model.model_path,
