@@ -108,7 +108,8 @@ There is a number of configuration parameters for both training and testing. The
 
 - **data**
   - `dataset`: Path to the testing dataset.
-  - `num_samples`: Number of samples to use from the testing dataset.
+  - `visual_samples`: Number of samples that are visualized. 
+  - `metric_samples`: Number of samples where metrics are calculated on.
   - `test_files`: Specific files to test within the dataset.
 
 - **testing**

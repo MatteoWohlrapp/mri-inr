@@ -64,3 +64,7 @@ class MRISampler:
         scan_undersampled = torch.from_numpy(scan_undersampled)
 
         return scan_fullysampled, scan_undersampled, filename
+
+    def __len__(self):
+        """Return the number of samples."""
+        return len(self.metadata)
