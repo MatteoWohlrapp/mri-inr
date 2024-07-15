@@ -1,9 +1,14 @@
+import datetime
+import pathlib
+import torch
+import types
+from src.data.mri_dataset import MRIDataset
+
 """
 This script trains the custom encoder on the fastMRI dataset.
 """
 
-import torch
-from src.data.mri_dataset import MRIDataset
+
 from src.networks.encoding.custom_mri_encoder import (
     Trainer,
     build_autoencoder,
@@ -11,9 +16,6 @@ from src.networks.encoding.custom_mri_encoder import (
     load_model,
     save_model,
 )
-import pathlib
-import types
-import datetime
 
 
 def train_encoder(args):
@@ -24,6 +26,7 @@ def train_encoder(args):
         args (argparse.Namespace): The arguments to use for training.
     """
     print("Training the encoder...", flush=True)
+
     # Load dataset
     train_dataset = MRIDataset(
         pathlib.Path(args.path_train_dataset),

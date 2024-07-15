@@ -8,7 +8,7 @@ import os
 import torch
 
 
-# UNUSED
+# TODO using for debugging purposes
 def show_image(image, cmap="gray"):
     """
     Display a single image using matplotlib.
@@ -21,32 +21,22 @@ def show_image(image, cmap="gray"):
     plt.axis("off")
     plt.show()
 
-
-# UNUSED
-def show_image_comparison(image, cmap="gray"):
+# TODO using for debugging purposes
+def show_batch(batch, cmap="gray", ncols=2):
     """
-    Show undersampled and fully sampled images side by side.
+    Show a batch of images.
 
     Args:
-        image (Tuple[torch.Tensor, torch.Tensor, torch.Tensor]): A tuple of undersampled, fully sampled, and reconstructed images.
+        batch (torch.Tensor): A batch of images as a 4D tensor (batch_size x channels x height x width).
         cmap (str): The colormap to use for displaying the image. Default is 'gray'.
+        ncols (int): The number of columns to use for displaying the images. Default
     """
-    fig, ax = plt.subplots(1, 4, figsize=(10, 5))
-    ax[0].imshow(image[0].squeeze(), cmap=cmap, vmin=0, vmax=1)
-    ax[0].set_title("Undersampled")
-    ax[0].axis("off")
-    ax[1].imshow(image[1].squeeze(), cmap=cmap, vmin=0, vmax=1)
-    ax[1].set_title("Fully Sampled")
-    ax[1].axis("off")
-    if len(image) > 2:
-        ax[2].imshow(image[2].squeeze(), cmap=cmap, vmin=0, vmax=1)
-        ax[2].set_title("Reconstruction")
-        ax[2].axis("off")
-        ax[3].imshow(1 - np.abs(image[2].squeeze() - image[1].squeeze()), cmap=cmap)
-        ax[3].set_title("Difference")
-        ax[3].axis("off")
+    nrows = (len(batch) + ncols - 1) // ncols
+    fig, ax = plt.subplots(nrows, ncols, figsize=(5, 10))
+    for i, image in enumerate(batch):
+        ax[i // ncols, i % ncols].imshow(image.squeeze(), cmap=cmap, vmin=0, vmax=1)
+        ax[i // ncols, i % ncols].axis("off")
     plt.show()
-
 
 def save_image_comparison(
     fully_sampled, undersampled, reconstructed, path, cmap="gray"
@@ -88,25 +78,6 @@ def save_image_comparison(
     ax[3].set_title("Difference")
     ax[3].axis("off")
     plt.savefig(path)
-
-
-# UNUSED
-def show_batch(batch, cmap="gray", ncols=2):
-    """
-    Show a batch of images.
-
-    Args:
-        batch (torch.Tensor): A batch of images as a 4D tensor (batch_size x channels x height x width).
-        cmap (str): The colormap to use for displaying the image. Default is 'gray'.
-        ncols (int): The number of columns to use for displaying the images. Default
-    """
-    nrows = (len(batch) + ncols - 1) // ncols
-    fig, ax = plt.subplots(nrows, ncols, figsize=(5, 10))
-    for i, image in enumerate(batch):
-        ax[i // ncols, i % ncols].imshow(image.squeeze(), cmap=cmap, vmin=0, vmax=1)
-        ax[i // ncols, i % ncols].axis("off")
-    plt.show()
-
 
 def save_image(image, filename, output_dir, cmap="gray"):
     """

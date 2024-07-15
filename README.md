@@ -34,8 +34,36 @@ Example configuration files are located in the `src/configuration` directory:
 - `train_modulated_siren.yml` for training setup.
 - `test_modulated_siren.yml` for testing setup.
 
-### Prepare Dataset 
-TODO @Jan
+## Dataset Preparation Guide 
+<!-- TODO still needs to be changed when the configuration file for this is added -->
+This section provides a comprehensive guide on preparing the dataset for both training and testing purposes. Follow the steps below to ensure your dataset is correctly set up and ready for use.
+
+### Step 1: Specify Dataset Location
+- Initially, the script is configured with a placeholder path for the dataset.
+- **Action Required:** Update the script with the actual path where your dataset is located. This ensures the script can access and process the dataset correctly.
+
+### Step 2: Configure Mask Parameters
+- The dataset preparation involves applying masks to the data. These masks are defined by a list of tuples, with each tuple containing two key parameters:
+  1. **Center Fraction:** Specifies the fraction of low-frequency k-space data to retain.
+  2. **Acceleration:** Determines the rate at which data is undersampled.
+- **Action Required:** Add the mask parameters to the script. Each tuple in the list specifies one mask configuration to be applied.
+
+### Step 3: Data Transformation and Storage
+- The script processes .h5 files in the dataset by iterating over each scan.
+- Each image within a scan is treated as a separate entity and is transformed from k-space to image space and normalized to [0,1].
+- The transformed images are saved in the specified location, ready for further processing or training.
+
+### Step 4: CSV File Generation
+- Upon completion of the data transformation process, a CSV file is generated.
+- This CSV file contains essential metadata about the created files, including file locations.
+- **Utility:** The CSV file serves as a directory, enabling efficient file location, filtering, and access during training or testing phases.
+
+### Final Notes
+- Ensure all the specified paths and parameters in the script are correctly set before running the dataset preparation process.
+- The prepared dataset, now in image space and accompanied by a comprehensive CSV file, is ready for use in your machine learning models for training and testing purposes.
+```bash
+python preprocessing_script.py 
+```
 
 ### Encoder 
 To train the encoder TODO @Jan

@@ -300,33 +300,3 @@ def extract_center_batch(batch, outer_patch_size, inner_patch_size) -> torch.Ten
         :, padding : padding + inner_patch_size, padding : padding + inner_patch_size
     ]
     return center
-
-
-# UNUSED
-def collate_fn(batch):
-    """
-    Collate function to combine tiles into a single tensor.
-
-    Args:
-        batch (List[Tuple[torch.Tensor, torch.Tensor]]): List of tuples containing fullysampled and undersampled tiles.
-
-    Returns:
-        Tuple[torch.Tensor, torch.Tensor]: Tuple containing fullysampled and undersampled tiles as a single tensor.
-    """
-    # Each element in batch is a tuple (tiles_fullysampled, tiles_undersampled)
-    # where tiles_fullysampled and tiles_undersampled are tensors of shape (num_tiles, tile_height, tile_width)
-
-    # Separate the fullysampled and undersampled tiles
-    tiles_fullysampled, tiles_undersampled = zip(*batch)
-
-    # Flatten the list of fullysampled tiles and stack them into a single tensor
-    tiles_fullysampled = torch.cat(
-        [tile.view(-1, *tile.shape[1:]) for tile in tiles_fullysampled]
-    )
-
-    # Flatten the list of undersampled tiles and stack them into a single tensor
-    tiles_undersampled = torch.cat(
-        [tile.view(-1, *tile.shape[1:]) for tile in tiles_undersampled]
-    )
-
-    return tiles_fullysampled, tiles_undersampled

@@ -61,45 +61,53 @@ class MRIDataset(Dataset):
         self.metadata: pl.LazyFrame = pl.scan_csv(data_root / "metadata.csv")
         self.fullysampled_tiles: torch.Tensor = torch.empty(0)
         self.undersampled_tiles: torch.Tensor = torch.empty(0)
+        self.fullysampled_column_index = None
+        self.undersampled_column_index = None
         self._prepare_metadata()
         self._create_tiles()
 
     def _prepare_metadata(self):
-        """Prepare the metadata for the dataset."""
-        self.metadata = self.metadata.filter(pl.col("slice_num") <= 10)
-        if self.mri_type:
-            self.metadata = self.metadata.filter(pl.col("mri_type") == self.mri_type)
-        if self.slice_ids:
-            self.metadata = self.metadata.filter(
-                pl.col("slice_id").is_in(self.slice_ids)
+            """Prepare the metadata for the dataset.
+
+            This is done by creating a DataFrame that contains the metadata and paths to the relevant files.
+
+            Returns:
+                None
+            """
+            self.metadata = self.metadata.filter(pl.col("slice_num") <= 10)
+            if self.mri_type:
+                self.metadata = self.metadata.filter(pl.col("mri_type") == self.mri_type)
+            if self.slice_ids:
+                self.metadata = self.metadata.filter(
+                    pl.col("slice_id").is_in(self.slice_ids)
+                )
+            if self.number_of_samples:
+                self.metadata = self.metadata.collect().sample(
+                    n=self.number_of_samples, seed=self.seed
+                )
+            else:
+                self.metadata = self.metadata.collect()
+            self.slice_ids = self.metadata.select(pl.col("slice_id")).to_numpy().flatten()
+
+            # Find the column index of the fullysampled and the specific undersampled files by looking at the columns list and checking at which index the column name is
+            columns = self.metadata.columns
+            self.fullysampled_column_index = columns.index("path_fullysampled")
+            self.undersampled_column_index = columns.index(
+                f"path_undersampled_{self.center_fraction}_{self.acceleration}"
             )
-        if self.number_of_samples:
-            self.metadata = self.metadata.collect().sample(
-                n=self.number_of_samples, seed=self.seed
+
+            # Print all files used for training
+            files = (
+                self.metadata.select(pl.col("stem").unique()).to_numpy().flatten().tolist()
             )
-        else:
-            self.metadata = self.metadata.collect()
-        self.slice_ids = self.metadata.select(pl.col("slice_id")).to_numpy().flatten()
 
-        # Find the column index of the fullysampled and the specific undersampled files by looking at the columns list and checking at which index the column name is
-        columns = self.metadata.columns
-        self.fullysampled_column_index = columns.index("path_fullysampled")
-        self.undersampled_column_index = columns.index(
-            f"path_undersampled_{self.center_fraction}_{self.acceleration}"
-        )
-
-        # Print all files used for training
-        files = (
-            self.metadata.select(pl.col("stem").unique()).to_numpy().flatten().tolist()
-        )
-
-        files = list(set(files))
-        output_dir = f"{self.output_dir}/{self.output_name}"
-        os.makedirs(output_dir, exist_ok=True)
-        with open(f"{output_dir}/processed_files.txt", "a", encoding="utf-8") as f:
-            print(f"Processing files from {self.data_root}", file=f)
-            for file in files:
-                print(file, file=f)
+            files = list(set(files))
+            output_dir = f"{self.output_dir}/{self.output_name}"
+            os.makedirs(output_dir, exist_ok=True)
+            with open(f"{output_dir}/processed_files.txt", "a", encoding="utf-8") as f:
+                print(f"Processing files from {self.data_root}", file=f)
+                for file in files:
+                    print(file, file=f)
 
     def _create_tiles(self):
         """Split the image into tiles."""
@@ -145,7 +153,7 @@ class MRIDataset(Dataset):
     def __getitems__(self, idxs: List[int]):
         return [self.__getitem__(idx) for idx in idxs]
 
-    # UNUSED
+    # TODO to be used for testing to pick a specific image for better comparison
     def get_image(self, image_slice_id: str):
         """ "
         Get a specific image from the dataset.
@@ -159,7 +167,6 @@ class MRIDataset(Dataset):
         idx = (
             self.metadata.filter(pl.col("slice_id") == image_slice_id)
             .collect()
-            .index[0]
         )
         file_fullysampled = self.metadata[idx, self.fullysampled_column_index]
         file_undersampled = self.metadata[idx, self.undersampled_column_index]
