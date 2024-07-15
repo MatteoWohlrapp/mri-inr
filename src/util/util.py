@@ -1,5 +1,6 @@
 import re
 import cProfile
+import torch
 
 
 def parse_filename(filename: str) -> str:
@@ -32,3 +33,11 @@ def time_function(func):
         return result
 
     return wrapper
+
+
+def nan_in_tensor(tensor: torch.Tensor, msg: str) -> None:
+    if torch.isnan(tensor).any():
+        if msg:
+            print(msg)
+        print(tensor, flush=True)
+        raise ValueError("NaNs in tensor")

@@ -10,8 +10,7 @@ def run_preprocessing(path: pathlib.Path, mask_params: list):
 
 if __name__ == "__main__":
     path  = pathlib.Path(r"../../dataset/fastmri/brain/singlecoil_val/processed_v2")
-    model_path = pathlib.Path(r"./output/custom_encoder/20240711-095147_autoencoder_v1_256_epoch_890.pth")
-    
+        
     test_config = {
     "data": {
         "dataset": r"../../dataset/fastmri/brain/singlecoil_val",
@@ -24,7 +23,7 @@ if __name__ == "__main__":
         "siren_patch_size": 32,
     },
     "testing": {
-        "model_path": r"./output/custom_encoder/20240711-095147_autoencoder_v1_256_epoch_890.pth",
+        "model_path": r"../models/20240530-170738_autoencoder_v1_256.pth",
         "output_dir": "output",
         "output_name": "test",
     },

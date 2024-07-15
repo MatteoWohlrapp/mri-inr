@@ -5,6 +5,8 @@ import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
 import datetime
 from src.util.tiling import collate_fn
+from src.util.util import nan_in_tensor
+from src.configuration.configuration import save_config_to_yaml
 
 tile_size = 32
 latent_dim = 256
@@ -105,13 +107,18 @@ class Autoencoder(nn.Module):
         self.config = config
 
     def forward(self, x):
+        nan_in_tensor(x,"input x in forward")
         batch_size = x.shape[0]
         height = x.shape[1]
         width = x.shape[2]
         x = x.view(-1, 1, tile_size, tile_size)
         x = self.encoder(x)
+        print(f'x{x}')
+        print(f'max{torch.max(x)}')
+        print(f'min{torch.min(x)}')
         x = self.decoder(x)
         x = x.view(batch_size, -1, tile_size, tile_size)
+        nan_in_tensor(x,"output x in forward")
         return x
 
 
@@ -159,8 +166,9 @@ def save_model(autoencoder, path, trainer):
 
 def load_model(path, device):
     checkpoint = torch.load(path, map_location=device)
-    config = checkpoint["config"]
+    #config = checkpoint["config"]
     autoencoder = build_autoencoder(config)
+    #autoencoder.load_state_dict(checkpoint["model_state_dict"])
     autoencoder.load_state_dict(checkpoint["state_dict"])
     return autoencoder
 
@@ -175,6 +183,7 @@ class Trainer:
         train_dataset,
         val_dataset,
         batch_size,
+        args,
     ):
         self.model = model.to(device)
         self.criterion = criterion
@@ -186,8 +195,10 @@ class Trainer:
         self.name = (
             f'{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}_{self.model.id}'
         )
+        self.dir = pathlib.Path(f"./output/custom_encoder/{self.name}")
+        self.dir.mkdir()
+        save_config_to_yaml(args, self.dir / "config.yaml")
         self.writer = SummaryWriter(log_dir=f"runs/tensorboard/{self.name}")
-        self.scaler = torch.cuda.amp.GradScaler(enabled=True)
 
     def process_batch(self, batch_fullysampled, batch_undersampled):
         batch_undersampled = batch_undersampled.to(self.device).float()
@@ -199,13 +210,11 @@ class Trainer:
         return output, loss
 
     def train_one_epoch(self, train_loader, epoch):
-        with torch.cuda.amp.autocast(enabled=True):
             self.model.train()
             for i, (batch_fullysampled, batch_undersampled) in enumerate(train_loader):
                 output, loss = self.process_batch(batch_fullysampled, batch_undersampled)
-                self.scaler.scale(loss).backward()
-                self.scaler.step(self.optimizer)
-                self.scaler.update()
+                loss.backward()
+                self.optimizer.step()
                 self.writer.add_scalar(
                     "training_loss", loss.item(), epoch * len(train_loader) + i
                 )
@@ -240,7 +249,8 @@ class Trainer:
             val_loss = self.validate_one_epoch(val_loader, epoch)
             print(f"Epoch {epoch}, Val Loss: {val_loss:.5f}", flush=True)
             if epoch % 10 == 0:
-                save_model(self.model, f"./output/custom_encoder/{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}/{self.name}_epoch_{epoch}.pth", self)
+                save_model(self.model, f"{str(self.dir)}/epoch_{epoch}.pth", self)
+        save_model(self.model, f"{str(self.dir)}/epoch_{num_epochs}.pth", self)
         self.writer.close()
 
 
@@ -264,9 +274,9 @@ from src.util.error import error_metrics
 import pathlib
 import os
 def test_autoencoder(test_config):
-    print("Testing the modulated SIREN...")
+    print("Testing the Autoencoder...")
     print(test_config)
-    output_dir = f"{test_config.testing.output_dir}/{test_config.testing.output_name}/test"
+    output_dir = f"{test_config.testing.output_dir}/{test_config.testing.output_name}/{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}"
 
     # Set the device
     if torch.cuda.is_available():

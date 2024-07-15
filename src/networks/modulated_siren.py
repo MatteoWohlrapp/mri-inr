@@ -56,7 +56,8 @@ class Siren(nn.Module):
 
         self.weight = nn.Parameter(weight)
         self.bias = nn.Parameter(bias) if use_bias else None
-        self.activation = Sine(w0) if activation is None else activation
+        #self.activation = Sine(w0) if activation is None else activation
+        self.activation = Morlet(w0) if activation is None else activation
         self.dropout = nn.Dropout(dropout)
 
     def init_(self, weight, bias, c, w0):

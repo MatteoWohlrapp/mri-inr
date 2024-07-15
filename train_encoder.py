@@ -49,7 +49,7 @@ def train_encoder(args):
 
     # Define the criterion and optimizer
     criterion = torch.nn.MSELoss()
-    optimizer = torch.optim.Adam(autoencoder.parameters(), lr=0.001)
+    optimizer = torch.optim.Adam(autoencoder.parameters(), lr=0.0001)
 
     # Define the trainer
     trainer = Trainer(
@@ -60,14 +60,11 @@ def train_encoder(args):
         train_dataset,
         val_dataset,
         args.batch_size,
+        args,
     )
 
     # Train the model
     trainer.train(args.epochs)
-
-    # Save the model TODO change path if not given
-    save_model(autoencoder, pathlib.Path(r"./output/custom_encoder/model1.pth"), trainer)
-
 
 if __name__ == "__main__":
     print("start training encoder")
@@ -77,7 +74,7 @@ if __name__ == "__main__":
         "num_samples_train": 0,
         "num_samples_val": 50,
         "device": "cuda",
-        "model_path": r"./output/custom_encoder/20240711-095147_autoencoder_v1_256_epoch_1140.pth",
+        "model_path": r"",
         "batch_size": 400,
         "epochs": 10000,
         "output_dir": "./models",

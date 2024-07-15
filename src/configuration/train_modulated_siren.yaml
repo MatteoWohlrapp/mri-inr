@@ -3,11 +3,12 @@ data:
     dataset: '../../dataset/fastmri/brain/singlecoil_train/processed_v2'
     mri_type: "FLAIR"
     num_workers: 4
+    tmp_info_str: cf0.05_acc6_morlet
   val:
     dataset: '../../dataset/fastmri/brain/singlecoil_val/processed_v2'
     mri_type: "FLAIR"
     num_workers: 4
-    num_samples: 10
+    num_samples: 50
 
 model:
   dim_in: 2
@@ -20,7 +21,7 @@ model:
   use_bias: True
   dropout: 0.1
   encoder_type: "custom"
-  encoder_path: './output/custom_encoder/20240711-095147_autoencoder_v1_256_epoch_1140.pth'
+  encoder_path: '/vol/aimspace/projects/practical_SoSe24/mri_inr/matteo/mri-inr/models/custom_encoder.pth'
   outer_patch_size: 32
   inner_patch_size: 16
   siren_patch_size: 24
