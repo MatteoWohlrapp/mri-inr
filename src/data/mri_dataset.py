@@ -6,16 +6,13 @@ import pathlib
 import polars as pl
 from src.util.tiling import (
     image_to_patches,
-    filter_black_tiles,
+    filter_black_patches,
 )
 import os
 
 
 class MRIDataset(Dataset):
-    """Improved version of the MRIDataset class
-    When initialized, it loads the images and creates the patches immediately to store them in memory.
-    This way, the dataset can be used with a DataLoader without having to load the images and create the patches every time.
-    """
+    """MRIDataset class."""
 
     def __init__(
         self,
@@ -30,8 +27,25 @@ class MRIDataset(Dataset):
         output_dir: str = "output",
         output_name: str = "modulated_siren",
         center_fraction: float = 0.05,
-        acceleration: int = 6
+        acceleration: int = 6,
     ):
+        """
+        Initialize the MRIDataset.
+
+        Args:
+            data_root (pathlib.Path): The path to the data directory.
+            transform (Optional[Callable]): The transform to apply to the data.
+            number_of_samples (Optional[int]): The number of samples to use.
+            mri_type (str): The type of MRI scan to use.
+            seed (Optional[int]): The seed for reproducibility.
+            specific_slice_ids (Optional[List[str]]): The specific slice IDs to use.
+            outer_patch_size (int): The size of the outer patch.
+            inner_patch_size (int): The size of the inner patch.
+            output_dir (str): The output directory.
+            output_name (str): The output name.
+            center_fraction (float): The center fraction for the mask.
+            acceleration (int): The acceleration for the mask.
+        """
         self.data_root: pathlib.Path = data_root
         self.transform = transform
         self.number_of_samples = number_of_samples
@@ -51,6 +65,7 @@ class MRIDataset(Dataset):
         self._create_tiles()
 
     def _prepare_metadata(self):
+        """Prepare the metadata for the dataset."""
         self.metadata = self.metadata.filter(pl.col("slice_num") <= 10)
         if self.mri_type:
             self.metadata = self.metadata.filter(pl.col("mri_type") == self.mri_type)
@@ -66,23 +81,28 @@ class MRIDataset(Dataset):
             self.metadata = self.metadata.collect()
         self.slice_ids = self.metadata.select(pl.col("slice_id")).to_numpy().flatten()
 
-        #Find the column index of the fullysampled and the specific undersampled files by looking at the columns list and checking at which index the column name is
+        # Find the column index of the fullysampled and the specific undersampled files by looking at the columns list and checking at which index the column name is
         columns = self.metadata.columns
         self.fullysampled_column_index = columns.index("path_fullysampled")
-        self.undersampled_column_index = columns.index(f"path_undersampled_{self.center_fraction}_{self.acceleration}")
+        self.undersampled_column_index = columns.index(
+            f"path_undersampled_{self.center_fraction}_{self.acceleration}"
+        )
 
         # Print all files used for training
-        files = self.metadata.select(pl.col("stem").unique()).to_numpy().flatten().tolist()
-        print(f"Files used for training: {files}", flush=True)
+        files = (
+            self.metadata.select(pl.col("stem").unique()).to_numpy().flatten().tolist()
+        )
 
         files = list(set(files))
         output_dir = f"{self.output_dir}/{self.output_name}"
         os.makedirs(output_dir, exist_ok=True)
-        with open(f"{output_dir}/processed_files.txt", "w", encoding="utf-8") as f:
+        with open(f"{output_dir}/processed_files.txt", "a", encoding="utf-8") as f:
+            print(f"Processing files from {self.data_root}", file=f)
             for file in files:
                 print(file, file=f)
 
     def _create_tiles(self):
+        """Split the image into tiles."""
         fullysampled_tiles = []
         undersampled_tiles = []
         for i in range(len(self.metadata)):
@@ -110,7 +130,7 @@ class MRIDataset(Dataset):
             )
             undersampled_tiles.append(patches)
 
-        self.undersampled_tiles, self.fullysampled_tiles = filter_black_tiles(
+        self.undersampled_tiles, self.fullysampled_tiles = filter_black_patches(
             self.undersampled_tiles, self.fullysampled_tiles
         )
         self.fullysampled_tiles = torch.cat(fullysampled_tiles, dim=0)
@@ -125,7 +145,17 @@ class MRIDataset(Dataset):
     def __getitems__(self, idxs: List[int]):
         return [self.__getitem__(idx) for idx in idxs]
 
+    # UNUSED
     def get_image(self, image_slice_id: str):
+        """ "
+        Get a specific image from the dataset.
+
+        Args:
+            image_slice_id (str): The slice ID of the image to get.
+
+        Returns:
+            tuple: The fullysampled and the undersampled image.
+        """
         idx = (
             self.metadata.filter(pl.col("slice_id") == image_slice_id)
             .collect()
@@ -143,6 +173,7 @@ class MRIDataset(Dataset):
         return scan_fullysampled, scan_undersampled
 
     def get_random_image(self):
+        """Get a random image from the dataset."""
         idx = np.random.randint(len(self.metadata))
         file_fullysampled = self.metadata[idx, self.fullysampled_column_index]
         file_undersampled = self.metadata[idx, self.undersampled_column_index]

@@ -1,9 +1,13 @@
+"""
+This script trains a modulated SIREN model on MRI data.
+"""
+
 import torch
 import pathlib
 from src.data.mri_dataset import MRIDataset
 from src.networks.modulated_siren import ModulatedSiren
 from src.train.training import Trainer
-from src.util.util import time_function
+from src.util.timing import time_function
 from src.configuration.configuration import load_configuration, parse_args
 import os
 from src.configuration.configuration import namespace_to_dict, save_config_to_yaml
@@ -13,13 +17,27 @@ import datetime
 
 @time_function
 def train_mod_siren(config):
+    """
+    Train the modulated SIREN model.
+
+    Args:
+        config (argparse.Namespace): The configuration to use for training.
+    """
+    continue_training = False
     # Checking if we want to continue training
     if config.training.model.continue_training and not config.training.model.model_path:
         print('Continue Training of modulated Siren.')
-        config.training.output_name = find_latest_folder(
+        output_name = find_latest_folder(
             config.training.output_dir, config.training.output_name
         )
-    else:
+
+        if output_name: 
+            config.training.output_name = output_name
+            continue_training = True
+    elif config.training.model.continue_training: 
+        continue_training = True
+
+    if not continue_training:
         current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         config.training.output_name = f"{config.training.output_name}_{current_time}"
 
@@ -77,6 +95,7 @@ def train_mod_siren(config):
         inner_patch_size=config.model.inner_patch_size,
         siren_patch_size=config.model.siren_patch_size,
         device=device,
+        activation=config.model.activation,
     )
     mod_siren.to(device)
 
@@ -104,13 +123,13 @@ def train_mod_siren(config):
         save_interval=config.training.save_interval,
         num_workers=config.data.train.num_workers,
         logging=config.training.logging,
+        criterion=config.training.criterion,
     )
 
     initial_epoch = 0
 
     # Check if we want to load an existing model
-    if config.training.model.continue_training:
-        print(f"Continue training")
+    if continue_training:
         if config.training.model.model_path:
             trainer.load_model(
                 model_path=config.training.model.model_path,

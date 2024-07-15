@@ -1,3 +1,7 @@
+"""
+This script trains the custom encoder on the fastMRI dataset.
+"""
+
 import torch
 from src.data.mri_dataset import MRIDataset
 from src.networks.encoding.custom_mri_encoder import (
@@ -7,17 +11,22 @@ from src.networks.encoding.custom_mri_encoder import (
     load_model,
     save_model,
 )
-from src.util.util import time_function
 import pathlib
-import torch.nn as nn
 import types
 import datetime
 
+
 def train_encoder(args):
+    """
+    Train the encoder.
+
+    Args:
+        args (argparse.Namespace): The arguments to use for training.
+    """
     print("Training the encoder...", flush=True)
     # Load dataset
     train_dataset = MRIDataset(
-        pathlib.Path(args.path_train_dataset), 
+        pathlib.Path(args.path_train_dataset),
         number_of_samples=args.num_samples_train,
         outer_patch_size=args.outer_patch_size,
         inner_patch_size=args.inner_patch_size,
@@ -25,7 +34,7 @@ def train_encoder(args):
         output_name=args.output_name,
     )
     val_dataset = MRIDataset(
-        pathlib.Path(args.path_val_dataset), 
+        pathlib.Path(args.path_val_dataset),
         number_of_samples=args.num_samples_val,
         outer_patch_size=args.outer_patch_size,
         inner_patch_size=args.inner_patch_size,
@@ -65,6 +74,12 @@ def train_encoder(args):
 
     # Train the model
     trainer.train(args.epochs)
+
+    # Save the model TODO change path if not given
+    save_model(
+        autoencoder, pathlib.Path(r"./output/custom_encoder/model1.pth"), trainer
+    )
+
 
 if __name__ == "__main__":
     print("start training encoder")

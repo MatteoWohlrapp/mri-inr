@@ -159,8 +159,12 @@ def build_autoencoder(config):
 def save_model(autoencoder, path, trainer):
     print(path)
     torch.save(
-        {"config": autoencoder.config, "state_dict": autoencoder.state_dict(), "optimizer_state_dict": trainer.optimizer.state_dict()},
-        path
+        {
+            "config": autoencoder.config,
+            "state_dict": autoencoder.state_dict(),
+            "optimizer_state_dict": trainer.optimizer.state_dict(),
+        },
+        path,
     )
 
 
