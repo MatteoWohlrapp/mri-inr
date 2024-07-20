@@ -118,7 +118,7 @@ def process_files(data_root: pathlib.Path, undersample_params: list):
     metadata_keys += [f"path_undersampled_{cf}_{acc}" for cf, acc in undersample_params]
     metadata = {key: [] for key in metadata_keys}
 
-    dest_dir = data_root / "processed_v2"
+    dest_dir = data_root / "processed_files"
     dest_dir.mkdir(exist_ok=True)
 
     for file in data_root.glob("*.h5"):

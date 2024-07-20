@@ -66,7 +66,7 @@ def save_image_comparison(
     ax[1].imshow(fully_sampled.squeeze(), cmap=cmap, vmin=0, vmax=1)
     ax[1].set_title("Fully Sampled")
     ax[1].axis("off")
-    ax[2].imshow(reconstructed.squeeze(), cmap=cmap, vmin=0, vmax=1)
+    ax[2].imshow(reconstructed.squeeze(), cmap=cmap)
     ax[2].set_title("Reconstruction")
     ax[2].axis("off")
     ax[3].imshow(

@@ -223,7 +223,26 @@ def filter_black_patches(
     return undersampled, fullysampled
 
 
-def filter_and_remember_black_patches(patches):
+def filter_black_patches_indices(undersampled: torch.tensor):
+    """
+    Filter out tiles that are classified as 0 or black.
+
+    Args:
+        undersampled (list[torch.Tensor]): List of undersampled tiles.
+
+    Returns:
+        list[torch.Tensor]: List of undersampled tiles with black tiles removed.
+    """
+    
+    non_black_indices = [
+        index
+        for index, u_tile in enumerate(undersampled[i])
+        if classify_patches(u_tile) != 0
+    ]
+    return non_black_indices
+
+
+def filter_and_remember_black_patches(patches): # TODO should work the same as filter_black_patches
     """
     Filters out black patches from a batch and remembers their positions.
 
