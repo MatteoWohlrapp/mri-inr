@@ -34,13 +34,7 @@ class MRISampler:
         self.mri_type = mri_type
         self.test_files = test_files
         random.seed(seed)  # Seed for reproducibility
-        self.metadata: pl.LazyFrame = pl.scan_csv(path / "metadata.csv")
-        self.metadata = pl.scan_csv(path / "metadata.csv").filter(
-            pl.col("mri_type") == self.mri_type
-        )
-        if self.test_files:
-            self.metadata = self.metadata.filter(pl.col("stem").is_in(self.test_files))
-        self.metadata = self.metadata.collect()
+        self._prepare_metadata()
         self.indices = list(range(len(self.metadata)))
         columns = self.metadata.columns
         self.fullysampled_column_index = columns.index("path_fullysampled")
@@ -48,6 +42,16 @@ class MRISampler:
             f"path_undersampled_{center_fraction}_{acceleration}"
         )
         self.slice_id_column_index = columns.index("slice_id")
+
+    def _prepare_metadata(self):
+        self.metadata: pl.LazyFrame = pl.scan_csv(self.path / "metadata.csv")
+        self.metadata = self.metadata.filter(pl.col("slice_num") <= 10)
+        self.metadata = pl.scan_csv(self.path / "metadata.csv").filter(
+            pl.col("mri_type") == self.mri_type
+        )
+        if self.test_files:
+            self.metadata = self.metadata.filter(pl.col("stem").is_in(self.test_files))
+        self.metadata = self.metadata.collect()
 
     def get_random_sample(self):
         """

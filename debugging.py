@@ -1,17 +1,19 @@
+# TODO remove from final version for submission
 import pathlib
 from src.data.preprocessing import process_files
 from src.util.visualization import metrics_density_plot, metrics_boxplot
 import numpy as np
+from src.data.mri_dataset import MRIDatasetLessRAM
 
 
-def test_plotting():
-    metrics = {
-        "metric1": np.random.standard_normal(1000),
-        "metric2": np.random.rand(1000),
-    }
-    output_dir = r"./output"
-    metrics_density_plot(metrics, output_dir)
-    metrics_boxplot(metrics, output_dir)
+def test_low_ram_dataset(path: pathlib.Path):
+    dataset = MRIDatasetLessRAM(path, number_of_samples=10)
+    for i in range(len(dataset)):
+        print(i)
+        sample = dataset[i]
+        print(sample)
 
 if __name__ == "__main__":
-    test_plotting()
+    path = pathlib.Path(r"C:\Users\jan\Documents\python_files\adlm\data\brain\singlecoil_train\processed_files")
+    test_low_ram_dataset(path)
+

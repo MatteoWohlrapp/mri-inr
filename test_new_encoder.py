@@ -1,3 +1,4 @@
+# TODO remove from final version for submission
 """Script to load an image run it through the new Autoencoder in tiles and then reconstruct the image from the tiles."""
 import torch
 import pathlib

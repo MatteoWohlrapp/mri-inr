@@ -224,7 +224,7 @@ def filter_black_patches(
 
 
 def filter_black_patches_indices(undersampled: torch.tensor):
-    """
+    """ 
     Filter out tiles that are classified as 0 or black.
 
     Args:
@@ -236,7 +236,7 @@ def filter_black_patches_indices(undersampled: torch.tensor):
     
     non_black_indices = [
         index
-        for index, u_tile in enumerate(undersampled[i])
+        for index, u_tile in enumerate(undersampled)
         if classify_patches(u_tile) != 0
     ]
     return non_black_indices
