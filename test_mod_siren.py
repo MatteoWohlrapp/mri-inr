@@ -13,6 +13,7 @@ from src.util.tiling import (
     image_to_patches,
 )
 from src.util.error import visual_error, metrics_error
+import numpy as np
 
 
 def save_args_to_file(args, output_dir):
@@ -32,6 +33,44 @@ def save_args_to_file(args, output_dir):
         for arg, value in vars(args).items():
             f.write(f"{arg}: {value}\n")
 
+def save_metrics_summary(psnr_values, ssim_values, nrmse_values, output_dir):
+    """
+    Save the summary of metrics to a text file.
+
+    Args:
+        psnr_values (list): List of PSNR values.
+        ssim_values (list): List of SSIM values.
+        nrmse_values (list): List of NRMSE values.
+        output_dir (str): The directory to save the summary in.
+    """
+    metrics_summary = {
+        "PSNR": {
+            "mean": np.mean(psnr_values),
+            "std": np.std(psnr_values),
+            "min": np.min(psnr_values),
+            "max": np.max(psnr_values),
+        },
+        "SSIM": {
+            "mean": np.mean(ssim_values),
+            "std": np.std(ssim_values),
+            "min": np.min(ssim_values),
+            "max": np.max(ssim_values),
+        },
+        "NRMSE": {
+            "mean": np.mean(nrmse_values),
+            "std": np.std(nrmse_values),
+            "min": np.min(nrmse_values),
+            "max": np.max(nrmse_values),
+        }
+    }
+
+    summary_path = os.path.join(output_dir, "metrics_summary.txt")
+    with open(summary_path, "w") as f:
+        for metric, values in metrics_summary.items():
+            f.write(f"{metric}:\n")
+            for stat, value in values.items():
+                f.write(f"  {stat}: {value}\n")
+            f.write("\n")
 
 def test_mod_siren(config):
     """
@@ -180,6 +219,8 @@ def test_mod_siren(config):
                 filenames, psnr_values, ssim_values, nrmse_values
             ):
                 f.write(f"{filename},{psnr_value},{ssim_value},{nrmse_value}\n")
+        
+        save_metrics_summary(psnr_values, ssim_values, nrmse_values, output_dir)
 
 
 if __name__ == "__main__":
