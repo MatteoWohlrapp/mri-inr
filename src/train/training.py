@@ -101,7 +101,7 @@ class Trainer:
         elif self.criterion == "Perceptual":
             self.criterion = PerceptualLoss(
                 pathlib.Path(
-                    r"./output/custom_encoder/20240710-002727_autoencoder_v1_256_epoch_170.pth"
+                    r"./output/perceptual_encoder/model_694.pth"
                 ),
                 nn.MSELoss(),
                 self.device,

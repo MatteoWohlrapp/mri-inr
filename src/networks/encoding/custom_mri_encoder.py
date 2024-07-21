@@ -10,7 +10,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from src.configuration.configuration import save_config_to_yaml
 from src.data.mri_sampler import MRISampler
-from src.util.error import error_metrics
+from src.util.error import visual_error
 from src.util.tiling import image_to_patches
 from src.util.util import nan_in_tensor
 
@@ -194,6 +194,8 @@ def build_autoencoder(config):
         nn.Sequential(*encoder_layers),
         nn.Sequential(*decoder_layers),
         config["id"],
+        256, # TODO
+        config, # TODO
     )
 
 def save_model(autoencoder, path, trainer):

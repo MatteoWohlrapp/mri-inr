@@ -87,8 +87,8 @@ def train_encoder(args):
 if __name__ == "__main__":
     print("start training encoder")
     args = {
-        "path_train_dataset": r"../../dataset/fastmri/brain/singlecoil_train/processed_v2",
-        "path_val_dataset": r"../../dataset/fastmri/brain/singlecoil_val/processed_v2",
+        "path_train_dataset": r"../../dataset/fastmri/brain/singlecoil_train/processed_files",
+        "path_val_dataset": r"../../dataset/fastmri/brain/singlecoil_val/processed_files",
         "num_samples_train": 0,
         "num_samples_val": 50,
         "device": "cuda",

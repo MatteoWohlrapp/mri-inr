@@ -1,11 +1,11 @@
 data:
   train:
-    dataset: '../../dataset/fastmri/brain/singlecoil_train/processed_v2'
+    dataset: '../../dataset/fastmri/brain/singlecoil_train/processed_files'
     mri_type: "FLAIR"
     num_workers: 4
-    tmp_info_str: cf0.05_acc6_morlet
+    num_samples: null
   val:
-    dataset: '../../dataset/fastmri/brain/singlecoil_val/processed_v2'
+    dataset: '../../dataset/fastmri/brain/singlecoil_val/processed_files'
     mri_type: "FLAIR"
     num_workers: 4
     num_samples: 50
@@ -21,7 +21,7 @@ model:
   use_bias: True
   dropout: 0.1
   encoder_type: "custom"
-  encoder_path: './models/custom_encoder.pth'
+  encoder_path: '/vol/aimspace/projects/practical_SoSe24/mri_inr/matteo/mri-inr/models/custom_encoder.pth'
   outer_patch_size: 32
   inner_patch_size: 16
   siren_patch_size: 24
@@ -32,10 +32,10 @@ training:
   batch_size: 400
   epochs: 10000
   output_dir: "./output"
-  output_name: "Standard"
+  output_name: "Percep_sine_cf0.05_acc6"
   optimizer: "Adam"
   save_interval: 25
   logging: True
-  criterion: "MSE"
+  criterion: "Perceptual"
   model:
     continue_training: False

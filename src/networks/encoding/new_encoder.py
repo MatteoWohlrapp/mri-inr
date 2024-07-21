@@ -289,7 +289,10 @@ class Trainer:
 
             if (epoch + 1) % 5 == 0:
                 self.save_model(epoch)
-                print(f"Epoch {epoch + 1}: Loss {loss:.4f}")
+                val_loss = self.validate()
+                print(
+                    f"Epoch {epoch+1}/{num_epochs} Loss: {loss:.6f} Val Loss: {val_loss:.6f}"
+                )
 
     def train_epoch(self):
         loss = 0
@@ -307,6 +310,15 @@ class Trainer:
                 loss += loss.item()
         return loss
 
+    def validate(self):
+        self.model.eval()
+        with torch.no_grad():
+            for images, _ in self.val_loader:
+                images = images.to(self.device).float()
+                outputs = self.model(images)
+                loss = self.criterion(outputs, images)
+        return loss.item()
+
     def save_model(self, epoch):
         """
         Save the model.
@@ -318,3 +330,72 @@ class Trainer:
         torch.save(self.model.state_dict(), model_path)
         torch.save(self.optimizer.state_dict(), pathlib.Path(self.output_dir) / f"optimizer_{epoch}.pth")
 
+def load_autoencoder_v1(device, model_path):
+    """Load the autoencoder model."""
+    model = Autoencoder_v1()
+    model.load_state_dict(torch.load(model_path, map_location=device))
+    model.to(device)
+    return model
+
+def load_autoencoder_v2(device, model_path):
+    """Load the autoencoder model."""
+    model = Autoencoder_v2()
+    model.load_state_dict(torch.load(model_path, map_location=device))
+    model.to(device)
+    return model
+
+class Encoder_v1(nn.Module):
+    """Encoder for perceptual loss. Load the weights from the autoencoder."""
+        
+    def __init__(self, model_path, device, in_channels=1, out_channels=1, img_size=24):
+        """
+        Args:
+            in_channels (int): The number of input channels.
+            out_channels (int): The number of output channels.
+            img_size (int): The size of the input image.
+        """
+        super(Encoder_v1, self).__init__()
+        autoencoder = load_autoencoder_v1(device, model_path)
+        self.encoder = autoencoder.encoder
+
+    def forward(self, x):
+        """
+        Forward pass of the encoder.
+
+        Args:
+            x (torch.Tensor): The input tensor.
+
+        Returns:
+            torch.Tensor: The output tensor.
+        """
+        x = x.unsqueeze(1)
+        x = self.encoder(x)
+        return x
+    
+class Encoder_v2(nn.Module):
+    """Encoder for perceptual loss. Load the weights from the autoencoder."""
+        
+    def __init__(self, model_path, device, in_channels=1, out_channels=1, img_size=24):
+        """
+        Args:
+            in_channels (int): The number of input channels.
+            out_channels (int): The number of output channels.
+            img_size (int): The size of the input image.
+        """
+        super(Encoder_v2, self).__init__()
+        autoencoder = load_autoencoder_v2(device, model_path)
+        self.encoder = autoencoder.encoder
+
+    def forward(self, x):
+        """
+        Forward pass of the encoder.
+
+        Args:
+            x (torch.Tensor): The input tensor.
+
+        Returns:
+            torch.Tensor: The output tensor.
+        """
+        x = x.unsqueeze(1)
+        x = self.encoder(x)
+        return x
