@@ -18,6 +18,8 @@ class MRISampler:
         seed=42,
         mri_type="Flair",
         test_files=None,
+        center_fraction: float = 0.05,
+        acceleration: int = 6,
     ):
         """
         Initialize the MRISampler.
@@ -40,6 +42,12 @@ class MRISampler:
             self.metadata = self.metadata.filter(pl.col("stem").is_in(self.test_files))
         self.metadata = self.metadata.collect()
         self.indices = list(range(len(self.metadata)))
+        columns = self.metadata.columns
+        self.fullysampled_column_index = columns.index("path_fullysampled")
+        self.undersampled_column_index = columns.index(
+            f"path_undersampled_{center_fraction}_{acceleration}"
+        )
+        self.slice_id_column_index = columns.index("slice_id")
 
     def get_random_sample(self):
         """
@@ -53,9 +61,9 @@ class MRISampler:
 
         # Randomly select an index
         idx = random.choice(self.indices)
-        file_fullysampled = self.metadata[idx, 0]
-        file_undersampled = self.metadata[idx, 8]
-        filename = self.metadata[idx, 2]
+        file_fullysampled = self.metadata[idx, self.fullysampled_column_index]
+        file_undersampled = self.metadata[idx, self.undersampled_column_index]
+        filename = self.metadata[idx, self.slice_id_column_index]
 
         # Load images
         scan_fullysampled = np.load(file_fullysampled)

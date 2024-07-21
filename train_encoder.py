@@ -35,6 +35,8 @@ def train_encoder(args):
         inner_patch_size=args.inner_patch_size,
         output_dir=args.output_dir,
         output_name=args.output_name,
+        acceleration=args.data.acceleration,
+        center_fraction=args.data.center_fraction,
     )
     val_dataset = MRIDataset(
         pathlib.Path(args.path_val_dataset),
@@ -43,6 +45,8 @@ def train_encoder(args):
         inner_patch_size=args.inner_patch_size,
         output_dir=args.output_dir,
         output_name=args.output_name,
+        acceleration=args.data.acceleration,
+        center_fraction=args.data.center_fraction,
     )
 
     # Set the device

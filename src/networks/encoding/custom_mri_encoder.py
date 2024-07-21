@@ -454,7 +454,7 @@ def test_autoencoder(test_config):
             if not os.path.exists(output_dir_temp):
                 os.makedirs(output_dir_temp)
 
-            error_metrics(
+            visual_error(
                 model,
                 output_dir_temp,
                 filename,

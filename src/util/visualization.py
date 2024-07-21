@@ -3,9 +3,11 @@ Util functions for visualizing images.
 """
 
 import matplotlib.pyplot as plt
+import seaborn as sns
 import numpy as np
 import os
 import torch
+import pathlib
 
 
 # TODO using for debugging purposes
@@ -118,3 +120,39 @@ def normalize_scan(scan: torch.Tensor) -> torch.Tensor:
     scan_max = scan.max()
     normalized_scan = (scan - scan_min) / (scan_max - scan_min)
     return normalized_scan
+
+def metrics_boxplot(metrics, output_dir):
+    """
+    Create a boxplot of the metrics.
+
+    Args:
+        metrics (dict): The metrics to plot.
+        output_dir (str): The directory to save the plot in.
+    """
+    output_dir = pathlib.Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    fig, ax = plt.subplots()
+    ax.boxplot(metrics.values())
+    ax.set_xticklabels(metrics.keys())
+    plt.xticks(rotation=45)
+    plt.savefig(f"{output_dir}/metrics_boxplot.png")
+    plt.close()
+
+def metrics_density_plot(metrics, output_dir):
+    """
+    Create a density plot of the metrics.
+
+    Args:
+        metrics (dict): The metrics to plot.
+        output_dir (str): The directory to save the plot in.
+    """
+    output_dir = pathlib.Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    fig, ax = plt.subplots()
+    for key, value in metrics.items():
+        ax = sns.kdeplot(value, label=key)
+    plt.legend()
+    plt.savefig(f"{output_dir}/metrics_density_plot.png")
+    plt.close()

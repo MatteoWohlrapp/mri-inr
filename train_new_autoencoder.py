@@ -33,7 +33,8 @@ def train_autoencoder(args):
         outer_patch_size=args.model.outer_patch_size,
         inner_patch_size=args.model.inner_patch_size,
         output_dir=args.training.output_dir,
-
+        acceleration=args.data.acceleration,
+        center_fraction=args.data.center_fraction,
     )
     print(len(train_dataset))
     val_dataset = MRIDataset(
@@ -42,6 +43,8 @@ def train_autoencoder(args):
         outer_patch_size=args.model.outer_patch_size,
         inner_patch_size=args.model.inner_patch_size,
         output_dir=args.training.output_dir,
+        acceleration=args.data.acceleration,
+        center_fraction=args.data.center_fraction,
     )
 
     # Set the device

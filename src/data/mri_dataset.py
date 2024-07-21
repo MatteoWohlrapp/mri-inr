@@ -197,7 +197,7 @@ class MRIDataset(Dataset):
 
 
 class MRIDatasetLessRAM(Dataset):
-    """MRIDataset class that does not load all images into memory."""
+    """MRIDataset class that does not load all images into memory. Use only if you have limited RAM."""
 
     def __init__(
         self,
@@ -250,7 +250,7 @@ class MRIDatasetLessRAM(Dataset):
         self.fullysampled_column_index = None
         self.undersampled_column_index = None
         self._prepare_metadata()
-        self._create_tiles()
+        self._prepare_tiles()
 
     def _prepare_metadata(self):
             """Prepare the metadata for the dataset.
@@ -332,3 +332,6 @@ class MRIDatasetLessRAM(Dataset):
                 patches = self.path_to_patches(path)
                 return patches[index]
         return None
+    
+    def __getitems__(self, idxs: List[int]):
+        return [self.__getitem__(idx) for idx in idxs]

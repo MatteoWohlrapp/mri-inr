@@ -1,16 +1,17 @@
 import pathlib
 from src.data.preprocessing import process_files
+from src.util.visualization import metrics_density_plot, metrics_boxplot
+import numpy as np
 
 
-def run_preprocessing(path: pathlib.Path, mask_params: list):
-    # Call the process_file function from the preprocessing module
-    process_files(path, mask_params)
-
+def test_plotting():
+    metrics = {
+        "metric1": np.random.standard_normal(1000),
+        "metric2": np.random.rand(1000),
+    }
+    output_dir = r"./output"
+    metrics_density_plot(metrics, output_dir)
+    metrics_boxplot(metrics, output_dir)
 
 if __name__ == "__main__":
-    #path = pathlib.Path(r"../../dataset/fastmri/brain/singlecoil_val/")
-    path = pathlib.Path(r"C:\Users\jan\Documents\python_files\adlm\data\brain\singlecoil_train")
-    mask_params = [(0.05, 6), (0.1, 6)]
-
-    # Call the run_preprocessing function with the provided path
-    run_preprocessing(path, mask_params)
+    test_plotting()
