@@ -95,8 +95,10 @@ def save_image(image, filename, output_dir, cmap="gray"):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    plt.imshow(image.squeeze(), cmap=cmap, vmin=0, vmax=1)
+    im = plt.imshow(image.squeeze(), cmap=cmap, vmin=0, vmax=1)
     plt.axis("off")
+    cbar = plt.colorbar(im, fraction=0.046, pad=0.04)
+    cbar.ax.tick_params(labelsize=8)
     plt.savefig(
         f"{output_dir}/{filename}.png",
         bbox_inches="tight",
