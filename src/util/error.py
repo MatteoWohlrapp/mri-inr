@@ -166,7 +166,7 @@ def visual_error(
     save_image(fully_sampled_img, f"{filename}_fully_sampled", output_dir)
     save_image(
         calculate_difference(
-            undersampled_img.squeeze().numpy(), reconstructed_img.squeeze().numpy()
+            fully_sampled_img.squeeze().numpy(), reconstructed_img.squeeze().numpy()
         ),
         f"{filename}_difference",
         output_dir,

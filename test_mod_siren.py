@@ -239,4 +239,5 @@ if __name__ == "__main__":
     args = parse_args()
     config_path = pathlib.Path(args.config)
     config = load_configuration(config_path, testing=True)
+    print(config)
     test_mod_siren(config)
