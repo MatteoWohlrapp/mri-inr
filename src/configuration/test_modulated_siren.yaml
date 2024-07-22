@@ -2,7 +2,16 @@ data:
   dataset: '../../dataset/fastmri/brain/singlecoil_val/'
   metric_samples: 5
   visual_samples: 2
-
+  test_files:
+  - file_brain_AXFLAIR_200_6002447_3
+  - file_brain_AXFLAIR_200_6002562_5
+  - file_brain_AXFLAIR_201_6002872_3
+  - file_brain_AXFLAIR_201_6002899_0
+  - file_brain_AXFLAIR_201_6002985_1
+  - file_brain_AXFLAIR_202_6000418_0
+  - file_brain_AXFLAIR_210_6001553_8
+  - file_brain_AXFLAIR_210_6001910_6
+  - file_brain_AXFLAIR_210_6001917_5
 model:
   dim_in: 2
   dim_hidden: 256
@@ -24,14 +33,3 @@ testing:
   output_dir: "./output"
   output_name: "refactored_2024-07-06_12-29-02"
   model_path: "output/refactored_2024-07-06_12-29-02/models/refactored_2024-07-06_12-29-02_model_epoch_3_final.pth"
-
-possible_images:
-  - file_brain_AXFLAIR_200_6002447_3
-  - file_brain_AXFLAIR_200_6002562_5
-  - file_brain_AXFLAIR_201_6002872_3
-  - file_brain_AXFLAIR_201_6002899_0
-  - file_brain_AXFLAIR_201_6002985_1
-  - file_brain_AXFLAIR_202_6000418_0
-  - file_brain_AXFLAIR_210_6001553_8
-  - file_brain_AXFLAIR_210_6001910_6
-  - file_brain_AXFLAIR_210_6001917_5
