@@ -134,12 +134,13 @@ def metrics_boxplot(metrics, output_dir):
     output_dir = pathlib.Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    fig, ax = plt.subplots()
-    ax.boxplot(metrics.values())
-    ax.set_xticklabels(metrics.keys())
-    plt.xticks(rotation=45)
-    plt.savefig(f"{output_dir}/metrics_boxplot.png")
-    plt.close()
+    for key, value in metrics.items():
+        fig, ax = plt.subplots()
+        ax.boxplot(value)
+        ax.set_xticklabels([key])
+        ax.set_title(key)
+        plt.savefig(f"{output_dir}/{key}_metrics_boxplot.png")
+        plt.close()
 
 def metrics_density_plot(metrics, output_dir):
     """
@@ -152,9 +153,9 @@ def metrics_density_plot(metrics, output_dir):
     output_dir = pathlib.Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    fig, ax = plt.subplots()
     for key, value in metrics.items():
-        ax = sns.kdeplot(value, label=key)
-    plt.legend()
-    plt.savefig(f"{output_dir}/metrics_density_plot.png")
-    plt.close()
+        fig, ax = plt.subplots()
+        ax = sns.kdeplot(value)
+        ax.set_title(key)
+        plt.savefig(f"{output_dir}/{key}_density_plot.png")
+        plt.close()
