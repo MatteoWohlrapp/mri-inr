@@ -179,6 +179,23 @@ def load_configuration(file_path, testing=False):
 
     return types_namespace
 
+def load_configuration_no_defaults(file_path):
+    """
+    Load the configuration from a YAML file without merging with defaults.
+
+    Args:
+        file_path (str): The path to the configuration file.
+
+    Returns:
+        types.SimpleNamespace: The configuration as a namespace.
+    """
+    with open(file_path, "r") as file:
+        user_config = yaml.safe_load(file)
+
+    types_namespace = convert_to_namespace(user_config)
+
+    return types_namespace
+
 
 def parse_args():
     """Parse the arguments for the script."""

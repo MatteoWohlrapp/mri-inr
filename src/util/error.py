@@ -5,7 +5,7 @@ Functions to calculate error metrics between two images used during evaluation.
 from skimage.metrics import peak_signal_noise_ratio as psnr
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import normalized_root_mse as nrmse
-from src.util.visualization import save_image
+from src.util.visualization import save_image, save_image_comparison
 import numpy as np
 from src.util.tiling import (
     patches_to_image_weighted_average,
@@ -15,6 +15,7 @@ from src.util.tiling import (
 )
 import os
 import torch
+import pathlib
 
 
 def calculate_data_range(original, predicted):
@@ -130,7 +131,7 @@ def visual_error(
     undersampled_filtered, filter_information, original_shape = (
         filter_and_remember_black_patches(undersampled)
     )
-    undersampled_filtered = undersampled_filtered.to(device)
+    undersampled_filtered = undersampled_filtered.cpu()
 
     reconstructed_patches = model(undersampled_filtered)
 
@@ -138,6 +139,7 @@ def visual_error(
     reconstructed_patches = reintegrate_black_patches(
         reconstructed_patches, filter_information, original_shape
     )
+    reconstructed_patches = reconstructed_patches.to(device)
 
     reconstructed_img = patches_to_image_weighted_average(
         reconstructed_patches,
@@ -162,12 +164,13 @@ def visual_error(
     save_image(fully_sampled_img, f"{filename}_fully_sampled", output_dir)
     save_image(
         calculate_difference(
-            fully_sampled_img.squeeze().numpy(), reconstructed_img.squeeze().numpy()
+            undersampled_img.squeeze().numpy(), reconstructed_img.squeeze().numpy()
         ),
         f"{filename}_difference",
         output_dir,
         cmap="viridis",
     )
+    save_image_comparison(fully_sampled_img,undersampled_img,reconstructed_img, pathlib.Path(output_dir) / 'comparison.png')
 
     # Calculate the error metrics
     psnr_value = calculate_psnr(

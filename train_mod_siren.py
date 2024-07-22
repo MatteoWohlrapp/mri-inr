@@ -26,6 +26,7 @@ def train_mod_siren(config):
     continue_training = False
     # Checking if we want to continue training
     if config.training.model.continue_training and not config.training.model.model_path:
+        print('Continue Training of modulated Siren.')
         output_name = find_latest_folder(
             config.training.output_dir, config.training.output_name
         )
@@ -55,6 +56,8 @@ def train_mod_siren(config):
         inner_patch_size=config.model.inner_patch_size,
         output_dir=config.training.output_dir,
         output_name=config.training.output_name,
+        acceleration=config.data.acceleration,
+        center_fraction=config.data.center_fraction,
     )
 
     val_dataset = (
@@ -65,6 +68,8 @@ def train_mod_siren(config):
             inner_patch_size=config.model.inner_patch_size,
             output_dir=config.training.output_dir,
             output_name=config.training.output_name,
+            acceleration=config.data.acceleration,
+            center_fraction=config.data.center_fraction,
         )
         if config.data.val.dataset
         else None

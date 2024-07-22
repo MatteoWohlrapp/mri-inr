@@ -101,7 +101,7 @@ class Trainer:
         elif self.criterion == "Perceptual":
             self.criterion = PerceptualLoss(
                 pathlib.Path(
-                    r"./output/custom_encoder/20240710-002727_autoencoder_v1_256_epoch_170.pth"
+                    r"./output/perceptual_encoder/model_694.pth"
                 ),
                 nn.MSELoss(),
                 self.device,
@@ -359,7 +359,7 @@ class TrainingManager:
         self.starting_time = time.time()
         self.progress_log: pl.DataFrame = pl.from_dict(
             {
-                "epoch": [-1],
+                "epoch": [0],
                 "training_loss": [float(initial_training_loss)],
                 "validation_loss": [float(initial_validation_loss)],
                 "time_since_start": [float(0.0)],

@@ -9,7 +9,6 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=16   # number of processor cores (i.e. tasks)
 #SBATCH --gres=gpu:1  # replace 0 with 1 if gpu needed
-#SBATCH --qos=master-queuesave
 
 # load python module
 . "/opt/anaconda3/etc/profile.d/conda.sh"
@@ -21,4 +20,4 @@ conda activate jrdev
 cd "/vol/aimspace/projects/practical_SoSe24/mri_inr/rogalka/mri-inr"
 
 #python3 train_mod_siren.py --config src/configuration/train_modulated_siren.yaml
-python3 debugging.py
+python3 train_new_autoencoder.py
