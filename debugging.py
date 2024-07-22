@@ -5,9 +5,9 @@ from src.data.mri_sampler import MRISampler
 import numpy as np
 
 
-def plot_images(n = 10):
+def plot_images(n = 500):
     # Just create plots of n fully sampled images.
-    input_dir = pathlib.Path(r"C:\Users\jan\Documents\python_files\adlm\data\brain\singlecoil_train\processed_files")
+    input_dir = pathlib.Path(r"../../dataset/fastmri/brain/singlecoil_val/processed_files")
     output_dir = pathlib.Path(r"./output/images")
     output_dir.mkdir(parents=True, exist_ok=True)
     sampler = MRISampler(input_dir)
