@@ -4,7 +4,6 @@ from src.util.visualization import metrics_density_plot, metrics_boxplot, save_i
 from src.data.mri_sampler import MRISampler
 import numpy as np
 
-
 def plot_images(n = 500):
     # Just create plots of n fully sampled images.
     input_dir = pathlib.Path(r"../../dataset/fastmri/brain/singlecoil_val/processed_files")
@@ -16,8 +15,6 @@ def plot_images(n = 500):
         image ,_ , slice_id =  sampler.get_random_sample()
         print(slice_id)
         save_image(image, slice_id, output_dir)
-
-    
 
 def test_plotting():
     metrics = {

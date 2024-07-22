@@ -8,3 +8,4 @@ einops
 pyyaml
 scikit-image
 polars
+seaborn

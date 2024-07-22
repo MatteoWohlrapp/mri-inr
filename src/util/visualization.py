@@ -2,12 +2,13 @@
 Util functions for visualizing images.
 """
 
-import matplotlib.pyplot as plt
-import seaborn as sns
-import numpy as np
 import os
-import torch
 import pathlib
+
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+import torch
 
 
 # TODO using for debugging purposes
@@ -22,6 +23,7 @@ def show_image(image, cmap="gray"):
     plt.imshow(image.squeeze(), cmap=cmap, vmin=0, vmax=1)
     plt.axis("off")
     plt.show()
+
 
 # TODO using for debugging purposes
 def show_batch(batch, cmap="gray", ncols=2):
@@ -39,6 +41,7 @@ def show_batch(batch, cmap="gray", ncols=2):
         ax[i // ncols, i % ncols].imshow(image.squeeze(), cmap=cmap, vmin=0, vmax=1)
         ax[i // ncols, i % ncols].axis("off")
     plt.show()
+
 
 def save_image_comparison(
     fully_sampled, undersampled, reconstructed, path, cmap="gray"
@@ -80,6 +83,7 @@ def save_image_comparison(
     ax[3].set_title("Difference")
     ax[3].axis("off")
     plt.savefig(path)
+
 
 def save_image(image, filename, output_dir, cmap="gray"):
     """
@@ -123,7 +127,8 @@ def normalize_scan(scan: torch.Tensor) -> torch.Tensor:
     normalized_scan = (scan - scan_min) / (scan_max - scan_min)
     return normalized_scan
 
-def metrics_boxplot(metrics, output_dir):
+
+def metrics_boxplot(metrics, output_dir, suffix):
     """
     Create a boxplot of the metrics.
 
@@ -142,7 +147,8 @@ def metrics_boxplot(metrics, output_dir):
         plt.savefig(f"{output_dir}/{key}_metrics_boxplot.png")
         plt.close()
 
-def metrics_density_plot(metrics, output_dir):
+
+def metrics_density_plot(metrics, output_dir, suffix):
     """
     Create a density plot of the metrics.
 

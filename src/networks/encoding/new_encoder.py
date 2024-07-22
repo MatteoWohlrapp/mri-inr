@@ -2,27 +2,28 @@ import datetime
 import os
 import pathlib
 
-import tqdm
 import torch
 import torch.nn as nn
+import tqdm
 from torch.utils.data import DataLoader
 
 
 class Inspection(nn.Module):
     """Simple module to print the shape of the tensor for debugging."""
-    
-    def __init__(self, text:str = ""):
+
+    def __init__(self, text: str = ""):
         super(Inspection, self).__init__()
         self.text = text
 
     def forward(self, x):
         print(self.text)
-        print(x.shape, flush = True)
+        print(x.shape, flush=True)
         return x
+
 
 class EncoderBlock(nn.Module):
     """VGG inspired encoder block with batch normalization."""
-    
+
     def __init__(self, in_channels, out_channels):
         """
         Args:
@@ -52,10 +53,11 @@ class EncoderBlock(nn.Module):
             torch.Tensor: The output tensor.
         """
         return self.encoder_block(x)
-    
+
+
 class ConvBlock(nn.Module):
     """VGG inspired encoder block with batch normalization."""
-    
+
     def __init__(self, in_channels, out_channels):
         """
         Args:
@@ -84,10 +86,11 @@ class ConvBlock(nn.Module):
             torch.Tensor: The output tensor.
         """
         return self.encoder_block(x)
-    
+
+
 class DecoderBlock(nn.Module):
     """VGG inspired decoder block with batch normalization using deconvolutions."""
-        
+
     def __init__(self, in_channels, out_channels):
         """
         Args:
@@ -117,10 +120,11 @@ class DecoderBlock(nn.Module):
             torch.Tensor: The output tensor.
         """
         return self.decoder_block(x)
-    
+
+
 class FullyConnectedBlock(nn.Module):
     """Fully connected block with batch normalization."""
-    
+
     def __init__(self, in_features, out_features):
         """
         Args:
@@ -147,9 +151,10 @@ class FullyConnectedBlock(nn.Module):
         """
         return self.fc_block(x)
 
+
 class Autoencoder_v1(nn.Module):
     """Autoencoder for perceptual loss. Inout size is 24x24."""
-    
+
     def __init__(self, in_channels=1, out_channels=1, img_size=24):
         """
         Args:
@@ -159,24 +164,24 @@ class Autoencoder_v1(nn.Module):
         """
         super(Autoencoder_v1, self).__init__()
 
-        min_kernel_size = img_size // 2 //2 //2 
+        min_kernel_size = img_size // 2 // 2 // 2
 
         self.encoder = nn.Sequential(
-            EncoderBlock(in_channels, 64), #out 12x12
-            EncoderBlock(64, 128), # out 6x6
-            EncoderBlock(128, 256), # out 3x3
+            EncoderBlock(in_channels, 64),  # out 12x12
+            EncoderBlock(64, 128),  # out 6x6
+            EncoderBlock(128, 256),  # out 3x3
             nn.Flatten(),
-            FullyConnectedBlock(256*min_kernel_size*min_kernel_size, 512),
+            FullyConnectedBlock(256 * min_kernel_size * min_kernel_size, 512),
             FullyConnectedBlock(512, 256),
         )
 
         self.decoder = nn.Sequential(
             FullyConnectedBlock(256, 512),
-            FullyConnectedBlock(512, 256*min_kernel_size*min_kernel_size),
+            FullyConnectedBlock(512, 256 * min_kernel_size * min_kernel_size),
             nn.Unflatten(1, (256, 3, 3)),
-            DecoderBlock(256, 128), # out 6x6
-            DecoderBlock(128, 64), # out 12x12
-            DecoderBlock(64, out_channels), # out 24x24
+            DecoderBlock(256, 128),  # out 6x6
+            DecoderBlock(128, 64),  # out 12x12
+            DecoderBlock(64, out_channels),  # out 24x24
             nn.Sigmoid(),
         )
 
@@ -195,11 +200,11 @@ class Autoencoder_v1(nn.Module):
         x = self.decoder(x)
         x = x.squeeze(1)
         return x
-    
+
 
 class Autoencoder_v2(nn.Module):
     """Simpler Autoencoder for perceptual loss. Inout size is 24x24."""
-    
+
     def __init__(self, in_channels=1, out_channels=1, img_size=24):
         """
         Args:
@@ -209,20 +214,20 @@ class Autoencoder_v2(nn.Module):
         """
         super(Autoencoder_v2, self).__init__()
 
-        min_kernel_size = img_size // 2 //2
+        min_kernel_size = img_size // 2 // 2
 
         self.encoder = nn.Sequential(
-            EncoderBlock(in_channels, 64), #out 12x12
-            EncoderBlock(64, 128), # out 6x6
+            EncoderBlock(in_channels, 64),  # out 12x12
+            EncoderBlock(64, 128),  # out 6x6
             nn.Flatten(),
-            FullyConnectedBlock(128*min_kernel_size*min_kernel_size, 256),
+            FullyConnectedBlock(128 * min_kernel_size * min_kernel_size, 256),
         )
 
         self.decoder = nn.Sequential(
-            FullyConnectedBlock(256, 128*min_kernel_size*min_kernel_size),
+            FullyConnectedBlock(256, 128 * min_kernel_size * min_kernel_size),
             nn.Unflatten(1, (128, min_kernel_size, min_kernel_size)),
-            DecoderBlock(128, 64), # out 12x12
-            DecoderBlock(64, out_channels), # out 24x24
+            DecoderBlock(128, 64),  # out 12x12
+            DecoderBlock(64, out_channels),  # out 24x24
             nn.Sigmoid(),
         )
 
@@ -241,12 +246,21 @@ class Autoencoder_v2(nn.Module):
         x = self.decoder(x)
         x = x.squeeze(1)
         return x
-    
+
 
 class Trainer:
     """Trainer class to train the autoencoder."""
-    
-    def __init__(self, model, criterion, optimizer, device, train_dataset, val_dataset, output_dir):
+
+    def __init__(
+        self,
+        model,
+        criterion,
+        optimizer,
+        device,
+        train_dataset,
+        val_dataset,
+        output_dir,
+    ):
         """
         Args:
             model (torch.nn.Module): The model to train.
@@ -328,7 +342,11 @@ class Trainer:
         """
         model_path = pathlib.Path(self.output_dir) / f"model_{epoch}.pth"
         torch.save(self.model.state_dict(), model_path)
-        torch.save(self.optimizer.state_dict(), pathlib.Path(self.output_dir) / f"optimizer_{epoch}.pth")
+        torch.save(
+            self.optimizer.state_dict(),
+            pathlib.Path(self.output_dir) / f"optimizer_{epoch}.pth",
+        )
+
 
 def load_autoencoder_v1(device, model_path):
     """Load the autoencoder model."""
@@ -337,6 +355,7 @@ def load_autoencoder_v1(device, model_path):
     model.to(device)
     return model
 
+
 def load_autoencoder_v2(device, model_path):
     """Load the autoencoder model."""
     model = Autoencoder_v2()
@@ -344,9 +363,10 @@ def load_autoencoder_v2(device, model_path):
     model.to(device)
     return model
 
+
 class Encoder_v1(nn.Module):
     """Encoder for perceptual loss. Load the weights from the autoencoder."""
-        
+
     def __init__(self, model_path, device, in_channels=1, out_channels=1, img_size=24):
         """
         Args:
@@ -371,10 +391,11 @@ class Encoder_v1(nn.Module):
         x = x.unsqueeze(1)
         x = self.encoder(x)
         return x
-    
+
+
 class Encoder_v2(nn.Module):
     """Encoder for perceptual loss. Load the weights from the autoencoder."""
-        
+
     def __init__(self, model_path, device, in_channels=1, out_channels=1, img_size=24):
         """
         Args:

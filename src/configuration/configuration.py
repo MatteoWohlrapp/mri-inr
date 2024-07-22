@@ -2,9 +2,10 @@
 Configuration module for the modulated SIREN model.
 """
 
-import types
-import yaml
 import argparse
+import types
+
+import yaml
 
 # Define the default configuration for training and testing
 default_train_config = {
@@ -178,6 +179,7 @@ def load_configuration(file_path, testing=False):
     types_namespace = convert_to_namespace(full_config)
 
     return types_namespace
+
 
 def load_configuration_no_defaults(file_path):
     """

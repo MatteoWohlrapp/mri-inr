@@ -1,7 +1,9 @@
 import datetime
 import pathlib
-import torch
 import types
+
+import torch
+
 from src.data.mri_dataset import MRIDataset
 
 """

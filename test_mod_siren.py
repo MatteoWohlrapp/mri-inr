@@ -2,18 +2,19 @@
 Script to test the modulated SIREN model.
 """
 
-import torch
-import pathlib
-from src.networks.modulated_siren import ModulatedSiren
-from src.data.mri_sampler import MRISampler
-from src.data.mri_dataset import MRIDataset
 import os
-from src.configuration.configuration import load_configuration, parse_args
-from src.util.tiling import (
-    image_to_patches,
-)
-from src.util.error import visual_error, metrics_error
+import pathlib
+
 import numpy as np
+import torch
+
+from src.configuration.configuration import load_configuration, parse_args
+from src.data.mri_dataset import MRIDataset
+from src.data.mri_sampler import MRISampler
+from src.networks.modulated_siren import ModulatedSiren
+from src.util.error import metrics_error, visual_error
+from src.util.tiling import image_to_patches
+from src.util.visualization import metrics_boxplot, metrics_density_plot
 
 
 def save_args_to_file(args, output_dir):
@@ -32,6 +33,7 @@ def save_args_to_file(args, output_dir):
     with open(config_path, "w") as f:
         for arg, value in vars(args).items():
             f.write(f"{arg}: {value}\n")
+
 
 def save_metrics_summary(psnr_values, ssim_values, nrmse_values, output_dir):
     """
@@ -61,7 +63,7 @@ def save_metrics_summary(psnr_values, ssim_values, nrmse_values, output_dir):
             "std": np.std(nrmse_values),
             "min": np.min(nrmse_values),
             "max": np.max(nrmse_values),
-        }
+        },
     }
 
     summary_path = os.path.join(output_dir, "metrics_summary.txt")
@@ -71,6 +73,7 @@ def save_metrics_summary(psnr_values, ssim_values, nrmse_values, output_dir):
             for stat, value in values.items():
                 f.write(f"  {stat}: {value}\n")
             f.write("\n")
+
 
 def test_mod_siren(config):
     """
@@ -219,8 +222,17 @@ def test_mod_siren(config):
                 filenames, psnr_values, ssim_values, nrmse_values
             ):
                 f.write(f"{filename},{psnr_value},{ssim_value},{nrmse_value}\n")
-        
+
         save_metrics_summary(psnr_values, ssim_values, nrmse_values, output_dir)
+
+        # Visualize the metrics
+        metrics_boxplot(
+            {"PSNR": psnr_values, "SSIM": ssim_value, "NRMSE": nrmse_value}, output_dir
+        )
+
+        metrics_density_plot(
+            {"PSNR": psnr_values, "SSIM": ssim_value, "NRMSE": nrmse_value}, output_dir
+        )
 
 
 if __name__ == "__main__":
