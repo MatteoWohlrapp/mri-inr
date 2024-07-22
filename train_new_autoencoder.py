@@ -1,4 +1,3 @@
-
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -9,8 +8,9 @@ import pathlib
 from src.networks.encoding.new_encoder import Autoencoder_v1, Autoencoder_v2, Trainer
 from src.data.mri_dataset import MRIDataset
 from src.configuration.configuration import load_configuration_no_defaults
-    
+
 config = load_configuration_no_defaults(r"./src/configuration/train_autoencoder.yaml")
+
 
 def train_autoencoder(args):
     """
@@ -83,5 +83,6 @@ def train_autoencoder(args):
     trainer.save_model(args.training.epochs)
     print("Finished training the autoencoder.", flush=True)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     train_autoencoder(config)

@@ -26,15 +26,15 @@ def train_mod_siren(config):
     continue_training = False
     # Checking if we want to continue training
     if config.training.model.continue_training and not config.training.model.model_path:
-        print('Continue Training of modulated Siren.')
+        print("Continue Training of modulated Siren.")
         output_name = find_latest_folder(
             config.training.output_dir, config.training.output_name
         )
 
-        if output_name: 
+        if output_name:
             config.training.output_name = output_name
             continue_training = True
-    elif config.training.model.continue_training: 
+    elif config.training.model.continue_training:
         continue_training = True
 
     if not continue_training:

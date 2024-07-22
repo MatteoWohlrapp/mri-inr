@@ -179,6 +179,7 @@ def load_configuration(file_path, testing=False):
 
     return types_namespace
 
+
 def load_configuration_no_defaults(file_path):
     """
     Load the configuration from a YAML file without merging with defaults.

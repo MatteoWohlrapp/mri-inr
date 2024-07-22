@@ -13,7 +13,9 @@ def test_low_ram_dataset(path: pathlib.Path):
         sample = dataset[i]
         print(sample)
 
-if __name__ == "__main__":
-    path = pathlib.Path(r"C:\Users\jan\Documents\python_files\adlm\data\brain\singlecoil_train\processed_files")
-    test_low_ram_dataset(path)
 
+if __name__ == "__main__":
+    path = pathlib.Path(
+        r"C:\Users\jan\Documents\python_files\adlm\data\brain\singlecoil_train\processed_files"
+    )
+    test_low_ram_dataset(path)

@@ -69,47 +69,47 @@ class MRIDataset(Dataset):
         self._create_tiles()
 
     def _prepare_metadata(self):
-            """Prepare the metadata for the dataset.
+        """Prepare the metadata for the dataset.
 
-            This is done by creating a DataFrame that contains the metadata and paths to the relevant files.
+        This is done by creating a DataFrame that contains the metadata and paths to the relevant files.
 
-            Returns:
-                None
-            """
-            self.metadata = self.metadata.filter(pl.col("slice_num") <= 10)
-            if self.mri_type:
-                self.metadata = self.metadata.filter(pl.col("mri_type") == self.mri_type)
-            if self.slice_ids:
-                self.metadata = self.metadata.filter(
-                    pl.col("slice_id").is_in(self.slice_ids)
-                )
-            if self.number_of_samples:
-                self.metadata = self.metadata.collect().sample(
-                    n=self.number_of_samples, seed=self.seed
-                )
-            else:
-                self.metadata = self.metadata.collect()
-            self.slice_ids = self.metadata.select(pl.col("slice_id")).to_numpy().flatten()
-
-            # Find the column index of the fullysampled and the specific undersampled files by looking at the columns list and checking at which index the column name is
-            columns = self.metadata.columns
-            self.fullysampled_column_index = columns.index("path_fullysampled")
-            self.undersampled_column_index = columns.index(
-                f"path_undersampled_{self.center_fraction}_{self.acceleration}"
+        Returns:
+            None
+        """
+        self.metadata = self.metadata.filter(pl.col("slice_num") <= 10)
+        if self.mri_type:
+            self.metadata = self.metadata.filter(pl.col("mri_type") == self.mri_type)
+        if self.slice_ids:
+            self.metadata = self.metadata.filter(
+                pl.col("slice_id").is_in(self.slice_ids)
             )
-
-            # Print all files used for training
-            files = (
-                self.metadata.select(pl.col("stem").unique()).to_numpy().flatten().tolist()
+        if self.number_of_samples:
+            self.metadata = self.metadata.collect().sample(
+                n=self.number_of_samples, seed=self.seed
             )
+        else:
+            self.metadata = self.metadata.collect()
+        self.slice_ids = self.metadata.select(pl.col("slice_id")).to_numpy().flatten()
 
-            files = list(set(files))
-            output_dir = f"{self.output_dir}/{self.output_name}"
-            os.makedirs(output_dir, exist_ok=True)
-            with open(f"{output_dir}/processed_files.txt", "a", encoding="utf-8") as f:
-                print(f"Processing files from {self.data_root}", file=f)
-                for file in files:
-                    print(file, file=f)
+        # Find the column index of the fullysampled and the specific undersampled files by looking at the columns list and checking at which index the column name is
+        columns = self.metadata.columns
+        self.fullysampled_column_index = columns.index("path_fullysampled")
+        self.undersampled_column_index = columns.index(
+            f"path_undersampled_{self.center_fraction}_{self.acceleration}"
+        )
+
+        # Print all files used for training
+        files = (
+            self.metadata.select(pl.col("stem").unique()).to_numpy().flatten().tolist()
+        )
+
+        files = list(set(files))
+        output_dir = f"{self.output_dir}/{self.output_name}"
+        os.makedirs(output_dir, exist_ok=True)
+        with open(f"{output_dir}/processed_files.txt", "a", encoding="utf-8") as f:
+            print(f"Processing files from {self.data_root}", file=f)
+            for file in files:
+                print(file, file=f)
 
     def _create_tiles(self):
         """Split the image into tiles."""
@@ -166,10 +166,7 @@ class MRIDataset(Dataset):
         Returns:
             tuple: The fullysampled and the undersampled image.
         """
-        idx = (
-            self.metadata.filter(pl.col("slice_id") == image_slice_id)
-            .collect()
-        )
+        idx = self.metadata.filter(pl.col("slice_id") == image_slice_id).collect()
         file_fullysampled = self.metadata[idx, self.fullysampled_column_index]
         file_undersampled = self.metadata[idx, self.undersampled_column_index]
         scan_fullysampled = np.load(file_fullysampled)
@@ -253,47 +250,47 @@ class MRIDatasetLessRAM(Dataset):
         self._prepare_tiles()
 
     def _prepare_metadata(self):
-            """Prepare the metadata for the dataset.
+        """Prepare the metadata for the dataset.
 
-            This is done by creating a DataFrame that contains the metadata and paths to the relevant files.
+        This is done by creating a DataFrame that contains the metadata and paths to the relevant files.
 
-            Returns:
-                None
-            """
-            self.metadata = self.metadata.filter(pl.col("slice_num") <= 10)
-            if self.mri_type:
-                self.metadata = self.metadata.filter(pl.col("mri_type") == self.mri_type)
-            if self.slice_ids:
-                self.metadata = self.metadata.filter(
-                    pl.col("slice_id").is_in(self.slice_ids)
-                )
-            if self.number_of_samples:
-                self.metadata = self.metadata.collect().sample(
-                    n=self.number_of_samples, seed=self.seed
-                )
-            else:
-                self.metadata = self.metadata.collect()
-            self.slice_ids = self.metadata.select(pl.col("slice_id")).to_numpy().flatten()
-
-            # Find the column index of the fullysampled and the specific undersampled files by looking at the columns list and checking at which index the column name is
-            columns = self.metadata.columns
-            self.fullysampled_column_index = columns.index("path_fullysampled")
-            self.undersampled_column_index = columns.index(
-                f"path_undersampled_{self.center_fraction}_{self.acceleration}"
+        Returns:
+            None
+        """
+        self.metadata = self.metadata.filter(pl.col("slice_num") <= 10)
+        if self.mri_type:
+            self.metadata = self.metadata.filter(pl.col("mri_type") == self.mri_type)
+        if self.slice_ids:
+            self.metadata = self.metadata.filter(
+                pl.col("slice_id").is_in(self.slice_ids)
             )
-
-            # Print all files used for training
-            files = (
-                self.metadata.select(pl.col("stem").unique()).to_numpy().flatten().tolist()
+        if self.number_of_samples:
+            self.metadata = self.metadata.collect().sample(
+                n=self.number_of_samples, seed=self.seed
             )
+        else:
+            self.metadata = self.metadata.collect()
+        self.slice_ids = self.metadata.select(pl.col("slice_id")).to_numpy().flatten()
 
-            files = list(set(files))
-            output_dir = f"{self.output_dir}/{self.output_name}"
-            os.makedirs(output_dir, exist_ok=True)
-            with open(f"{output_dir}/processed_files.txt", "a", encoding="utf-8") as f:
-                print(f"Processing files from {self.data_root}", file=f)
-                for file in files:
-                    print(file, file=f)
+        # Find the column index of the fullysampled and the specific undersampled files by looking at the columns list and checking at which index the column name is
+        columns = self.metadata.columns
+        self.fullysampled_column_index = columns.index("path_fullysampled")
+        self.undersampled_column_index = columns.index(
+            f"path_undersampled_{self.center_fraction}_{self.acceleration}"
+        )
+
+        # Print all files used for training
+        files = (
+            self.metadata.select(pl.col("stem").unique()).to_numpy().flatten().tolist()
+        )
+
+        files = list(set(files))
+        output_dir = f"{self.output_dir}/{self.output_name}"
+        os.makedirs(output_dir, exist_ok=True)
+        with open(f"{output_dir}/processed_files.txt", "a", encoding="utf-8") as f:
+            print(f"Processing files from {self.data_root}", file=f)
+            for file in files:
+                print(file, file=f)
 
     def path_to_patches(self, path: str):
         scan = np.load(path)
@@ -316,22 +313,30 @@ class MRIDatasetLessRAM(Dataset):
             patches = self.path_to_patches(file_undersampled)
             indices = filter_black_patches_indices(patches)
             tiles_counter += len(indices)
-            self.undersampled_tiles.append({'path': file_undersampled, 'indices': indices, 'counter': tiles_counter})
+            self.undersampled_tiles.append(
+                {
+                    "path": file_undersampled,
+                    "indices": indices,
+                    "counter": tiles_counter,
+                }
+            )
 
     def __len__(self):
-        return self.undersampled_tiles[-1]['counter']
-    
+        return self.undersampled_tiles[-1]["counter"]
+
     def __getitem__(self, idx: int):
         for i in range(len(self.undersampled_tiles)):
-            if idx < self.undersampled_tiles[i]['counter']:
-                path = self.undersampled_tiles[i]['path']
+            if idx < self.undersampled_tiles[i]["counter"]:
+                path = self.undersampled_tiles[i]["path"]
                 if i == 0:
-                    index = self.undersampled_tiles[i]['indices'][idx]
+                    index = self.undersampled_tiles[i]["indices"][idx]
                 else:
-                    index = self.undersampled_tiles[i]['indices'][idx - self.undersampled_tiles[i-1]['counter']]
+                    index = self.undersampled_tiles[i]["indices"][
+                        idx - self.undersampled_tiles[i - 1]["counter"]
+                    ]
                 patches = self.path_to_patches(path)
                 return patches[index]
         return None
-    
+
     def __getitems__(self, idxs: List[int]):
         return [self.__getitem__(idx) for idx in idxs]

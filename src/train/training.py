@@ -100,9 +100,7 @@ class Trainer:
             self.criterion = nn.MSELoss()
         elif self.criterion == "Perceptual":
             self.criterion = PerceptualLoss(
-                pathlib.Path(
-                    r"./output/perceptual_encoder/model_694.pth"
-                ),
+                pathlib.Path(r"./output/perceptual_encoder/model_694.pth"),
                 nn.MSELoss(),
                 self.device,
             )

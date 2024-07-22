@@ -170,7 +170,12 @@ def visual_error(
         output_dir,
         cmap="viridis",
     )
-    save_image_comparison(fully_sampled_img,undersampled_img,reconstructed_img, pathlib.Path(output_dir) / 'comparison.png')
+    save_image_comparison(
+        fully_sampled_img,
+        undersampled_img,
+        reconstructed_img,
+        pathlib.Path(output_dir) / "comparison.png",
+    )
 
     # Calculate the error metrics
     psnr_value = calculate_psnr(

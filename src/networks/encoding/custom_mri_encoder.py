@@ -88,15 +88,20 @@ config = {
     ],
 }
 
+
 class Flatten(nn.Module):
     """Custom Flatten layer to transform a tensor to a 2D matrix"""
+
     def forward(self, input):
         return input.view(input.size(0), -1)
 
+
 class Unflatten(nn.Module):
     """Custom Unflatten layer to transform a 2D matrix back to a tensor"""
+
     def forward(self, input):
         return input.view(-1, 64, 1, 1)
+
 
 class Autoencoder(nn.Module):
     """Autoencoder model consisting of an encoder and a decoder
@@ -142,6 +147,7 @@ class Autoencoder(nn.Module):
         nan_in_tensor(x, "output x in forward")
         return x
 
+
 def build_layers(layer_configs):
     """
     Helper function to build encoder and decoder layers from the configuration.
@@ -177,6 +183,7 @@ def build_layers(layer_configs):
             raise ValueError(f"Unsupported layer type: {layer_type}")
     return layers
 
+
 def build_autoencoder(config):
     """
     Builds the full autoencoder model from the configuration.
@@ -194,9 +201,10 @@ def build_autoencoder(config):
         nn.Sequential(*encoder_layers),
         nn.Sequential(*decoder_layers),
         config["id"],
-        256, # TODO
-        config, # TODO
+        256,  # TODO
+        config,  # TODO
     )
+
 
 def save_model(autoencoder, path, trainer):
     """
@@ -219,6 +227,7 @@ def save_model(autoencoder, path, trainer):
         path,
     )
 
+
 def load_model(path, device):
     """
     Loads the model from a checkpoint.
@@ -238,8 +247,10 @@ def load_model(path, device):
         autoencoder.load_state_dict(checkpoint["model_state_dict"])
     return autoencoder
 
+
 class Trainer:
     """Class to manage the training and validation logic"""
+
     def __init__(
         self,
         model: nn.Module,
@@ -281,23 +292,23 @@ class Trainer:
         self.writer = SummaryWriter(log_dir=f"runs/tensorboard/{self.name}")
 
     def process_batch(self, batch_fullysampled, batch_undersampled):
-            """
-            Processes a single batch through the model and computes the loss.
+        """
+        Processes a single batch through the model and computes the loss.
 
-            Args:
-                batch_fullysampled (torch.Tensor): The fully sampled batch.
-                batch_undersampled (torch.Tensor): The undersampled batch.
+        Args:
+            batch_fullysampled (torch.Tensor): The fully sampled batch.
+            batch_undersampled (torch.Tensor): The undersampled batch.
 
-            Returns:
-                torch.Tensor: The output of the model.
-                torch.Tensor: The computed loss.
-            """
-            batch_undersampled = batch_undersampled.to(self.device).float()
-            batch_fullysampled = batch_fullysampled.to(self.device).float()
-            self.optimizer.zero_grad()
-            output = self.model(batch_undersampled).squeeze(1)
-            loss = self.criterion(output, batch_fullysampled)
-            return output, loss
+        Returns:
+            torch.Tensor: The output of the model.
+            torch.Tensor: The computed loss.
+        """
+        batch_undersampled = batch_undersampled.to(self.device).float()
+        batch_fullysampled = batch_fullysampled.to(self.device).float()
+        self.optimizer.zero_grad()
+        output = self.model(batch_undersampled).squeeze(1)
+        loss = self.criterion(output, batch_fullysampled)
+        return output, loss
 
     def train_one_epoch(self, train_loader, epoch):
         """
@@ -341,35 +352,36 @@ class Trainer:
         return val_loss
 
     def train(self, num_epochs):
-            """
-            Trains the model for a specified number of epochs.
+        """
+        Trains the model for a specified number of epochs.
 
-            Args:
-                num_epochs (int): The number of epochs to train the model.
+        Args:
+            num_epochs (int): The number of epochs to train the model.
 
-            Returns:
-                None
-            """
-            train_loader = torch.utils.data.DataLoader(
-                self.train_dataset,
-                batch_size=self.batch_size,
-                shuffle=True,
-                num_workers=0,
-            )
-            val_loader = torch.utils.data.DataLoader(
-                self.val_dataset,
-                batch_size=self.batch_size,
-                shuffle=True,
-                num_workers=0,
-            )
-            for epoch in range(num_epochs):
-                self.train_one_epoch(train_loader, epoch)
-                val_loss = self.validate_one_epoch(val_loader, epoch)
-                print(f"Epoch {epoch}, Val Loss: {val_loss:.5f}", flush=True)
-                if epoch % 10 == 0:
-                    save_model(self.model, f"{str(self.dir)}/epoch_{epoch}.pth", self)
-            save_model(self.model, f"{str(self.dir)}/epoch_{num_epochs}.pth", self)
-            self.writer.close()
+        Returns:
+            None
+        """
+        train_loader = torch.utils.data.DataLoader(
+            self.train_dataset,
+            batch_size=self.batch_size,
+            shuffle=True,
+            num_workers=0,
+        )
+        val_loader = torch.utils.data.DataLoader(
+            self.val_dataset,
+            batch_size=self.batch_size,
+            shuffle=True,
+            num_workers=0,
+        )
+        for epoch in range(num_epochs):
+            self.train_one_epoch(train_loader, epoch)
+            val_loss = self.validate_one_epoch(val_loader, epoch)
+            print(f"Epoch {epoch}, Val Loss: {val_loss:.5f}", flush=True)
+            if epoch % 10 == 0:
+                save_model(self.model, f"{str(self.dir)}/epoch_{epoch}.pth", self)
+        save_model(self.model, f"{str(self.dir)}/epoch_{num_epochs}.pth", self)
+        self.writer.close()
+
 
 class CustomEncoder(nn.Module):
     """Encoder model extracted from the autoencoder model
@@ -404,6 +416,7 @@ class CustomEncoder(nn.Module):
         x = self.encoder(x)
         return x
 
+
 def test_autoencoder(test_config):
     """
     Function to test the autoencoder.
@@ -422,7 +435,9 @@ def test_autoencoder(test_config):
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
     # Load dataset
-    sampler = MRISampler(pathlib.Path(test_config.data.dataset), test_config.data.test_files)
+    sampler = MRISampler(
+        pathlib.Path(test_config.data.dataset), test_config.data.test_files
+    )
 
     # Load the model
     model = load_model(pathlib.Path(test_config.testing.model_path), device)
