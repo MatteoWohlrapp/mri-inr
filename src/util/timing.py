@@ -3,8 +3,8 @@ Util functions for timing code.
 """
 
 import cProfile
-import pstats
 import io
+import pstats
 
 
 def time_function(func):

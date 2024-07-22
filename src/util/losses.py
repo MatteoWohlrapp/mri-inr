@@ -2,11 +2,12 @@
 Loss functions for training the MRI reconstruction model.
 """
 
-import torch.nn as nn
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
 from src.networks.encoding.custom_mri_encoder import CustomEncoder
 from src.networks.encoding.new_encoder import Encoder_v2
-import torch.nn.functional as F
 
 
 # perceptual loss function using a pretrained custom mri encoder

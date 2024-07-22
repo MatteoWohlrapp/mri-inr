@@ -2,8 +2,8 @@
 Utils function for restarting a training job from the latest checkpoint.
 """
 
-import re
 import os
+import re
 
 
 def find_latest_folder(base_dir, base_name):

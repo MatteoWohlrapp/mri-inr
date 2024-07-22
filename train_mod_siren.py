@@ -2,17 +2,23 @@
 This script trains a modulated SIREN model on MRI data.
 """
 
-import torch
+import datetime
+import os
 import pathlib
+
+import torch
+
+from src.configuration.configuration import (
+    load_configuration,
+    namespace_to_dict,
+    parse_args,
+    save_config_to_yaml,
+)
 from src.data.mri_dataset import MRIDataset
 from src.networks.modulated_siren import ModulatedSiren
 from src.train.training import Trainer
-from src.util.timing import time_function
-from src.configuration.configuration import load_configuration, parse_args
-import os
-from src.configuration.configuration import namespace_to_dict, save_config_to_yaml
 from src.util.slurm_restart import find_latest_checkpoint, find_latest_folder
-import datetime
+from src.util.timing import time_function
 
 
 @time_function

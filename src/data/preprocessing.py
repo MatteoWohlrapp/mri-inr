@@ -3,13 +3,15 @@ Preprocess the data
 """
 
 import pathlib
+
+import fastmri
 import h5py
 import numpy as np
-import torch
 import polars as pl
-import fastmri
+import torch
 from fastmri.data import transforms as T
 from fastmri.data.subsample import RandomMaskFunc
+
 from src.util.visualization import normalize_scan
 
 

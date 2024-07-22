@@ -2,12 +2,13 @@
 Util functions for visualizing images.
 """
 
-import matplotlib.pyplot as plt
-import seaborn as sns
-import numpy as np
 import os
-import torch
 import pathlib
+
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+import torch
 
 
 # TODO using for debugging purposes

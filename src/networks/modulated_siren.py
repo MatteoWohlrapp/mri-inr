@@ -3,14 +3,14 @@ Modulated Siren network
 """
 
 import math
+import pathlib
+
 import torch
-from torch import nn
 import torch.nn.functional as F
 from einops import rearrange
-from src.networks.encoding.custom_mri_encoder import (
-    CustomEncoder,
-)
-import pathlib
+from torch import nn
+
+from src.networks.encoding.custom_mri_encoder import CustomEncoder
 from src.networks.encoding.vgg import VGGAutoEncoder, get_configs, load_dict
 
 

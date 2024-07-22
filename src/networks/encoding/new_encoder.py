@@ -2,9 +2,9 @@ import datetime
 import os
 import pathlib
 
-import tqdm
 import torch
 import torch.nn as nn
+import tqdm
 from torch.utils.data import DataLoader
 
 

@@ -1,17 +1,19 @@
 # TODO remove from final version for submission
 """Script to load an image run it through the new Autoencoder in tiles and then reconstruct the image from the tiles."""
-import torch
 import pathlib
+
+import torch
+
 from src.data.mri_dataset import MRIDataset
 from src.networks.encoding.new_encoder import Autoencoder_v1, Autoencoder_v2
+from src.util.error import visual_error
 from src.util.tiling import (
     filter_black_patches,
-    reintegrate_black_patches,
     image_to_patches,
     patches_to_image,
+    reintegrate_black_patches,
 )
 from src.util.visualization import save_image
-from src.util.error import visual_error
 
 
 def main():

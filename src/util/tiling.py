@@ -2,10 +2,9 @@
 Util functions for tiling.
 """
 
-import torch
-import torch.nn.functional as F
 import numpy as np
 import torch
+import torch.nn.functional as F
 
 
 def image_to_patches(tensor, outer_patch_size, inner_patch_size):

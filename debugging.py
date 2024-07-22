@@ -1,9 +1,11 @@
 # TODO remove from final version for submission
 import pathlib
-from src.data.preprocessing import process_files
-from src.util.visualization import metrics_density_plot, metrics_boxplot
+
 import numpy as np
+
 from src.data.mri_dataset import MRIDatasetLessRAM
+from src.data.preprocessing import process_files
+from src.util.visualization import metrics_boxplot, metrics_density_plot
 
 
 def test_low_ram_dataset(path: pathlib.Path):

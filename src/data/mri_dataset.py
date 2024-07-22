@@ -1,15 +1,17 @@
+import os
+import pathlib
+from typing import Callable, List, Optional
+
 import numpy as np
+import polars as pl
 import torch
 from torch.utils.data import Dataset
-from typing import List, Optional, Callable
-import pathlib
-import polars as pl
+
 from src.util.tiling import (
-    image_to_patches,
     filter_black_patches,
     filter_black_patches_indices,
+    image_to_patches,
 )
-import os
 
 
 class MRIDataset(Dataset):

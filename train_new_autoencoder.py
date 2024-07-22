@@ -1,13 +1,15 @@
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import numpy as np
 import datetime
 import os
 import pathlib
-from src.networks.encoding.new_encoder import Autoencoder_v1, Autoencoder_v2, Trainer
-from src.data.mri_dataset import MRIDataset
+
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
 from src.configuration.configuration import load_configuration_no_defaults
+from src.data.mri_dataset import MRIDataset
+from src.networks.encoding.new_encoder import Autoencoder_v1, Autoencoder_v2, Trainer
 
 config = load_configuration_no_defaults(r"./src/configuration/train_autoencoder.yaml")
 
