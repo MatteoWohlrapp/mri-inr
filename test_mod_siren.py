@@ -119,7 +119,7 @@ def test_mod_siren(config):
 
     if config.data.visual_samples:
         print("Evaluating visual samples ...")
-        sampler = MRISampler(pathlib.Path(config.data.dataset), config.data.test_files)
+        sampler = MRISampler(pathlib.Path(config.data.dataset), test_files=config.data.test_files)
 
         with torch.no_grad():
             mod_siren.eval()
@@ -166,7 +166,7 @@ def test_mod_siren(config):
                 )
 
     print("Evaluating metric samples ...")
-    sampler = MRISampler(pathlib.Path(config.data.dataset), config.data.test_files)
+    sampler = MRISampler(pathlib.Path(config.data.dataset), test_files=config.data.test_files)
 
     if not config.data.metric_samples:
         config.data.metric_samples = len(sampler)
@@ -226,6 +226,9 @@ def test_mod_siren(config):
         save_metrics_summary(psnr_values, ssim_values, nrmse_values, output_dir)
 
         # Visualize the metrics
+        print(f'psnr:{psnr_values}')
+        print(f'SSIM:{ssim_value}')
+        print(f'NRMSE:{nrmse_value}')
         metrics_boxplot(
             {"PSNR": psnr_values, "SSIM": ssim_value, "NRMSE": nrmse_value}, output_dir
         )
@@ -239,5 +242,4 @@ if __name__ == "__main__":
     args = parse_args()
     config_path = pathlib.Path(args.config)
     config = load_configuration(config_path, testing=True)
-    print(config)
     test_mod_siren(config)

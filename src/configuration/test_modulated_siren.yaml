@@ -1,7 +1,7 @@
 data:
-  dataset: '../../dataset/fastmri/brain/singlecoil_val/'
-  metric_samples: 5
-  visual_samples: 2
+  dataset: '../../dataset/fastmri/brain/singlecoil_val/processed_files'
+  metric_samples: 9
+  visual_samples: 9
   test_files:
   - file_brain_AXFLAIR_200_6002447_3
   - file_brain_AXFLAIR_200_6002562_5
@@ -23,7 +23,7 @@ model:
   use_bias: True
   dropout: 0.1
   encoder_type: "custom"
-  encoder_path: './models/custom_encoder.pth'
+  encoder_path: '/vol/aimspace/projects/practical_SoSe24/mri_inr/matteo/mri-inr/models/custom_encoder.pth'
   outer_patch_size: 32
   inner_patch_size: 16
   siren_patch_size: 24
@@ -31,5 +31,5 @@ model:
   
 testing: 
   output_dir: "./output"
-  output_name: "refactored_2024-07-06_12-29-02"
-  model_path: "output/refactored_2024-07-06_12-29-02/models/refactored_2024-07-06_12-29-02_model_epoch_3_final.pth"
+  output_name: "Sine_cf0.05_acc6_2024-07-14_07-26-53"
+  model_path: "./output/Sine_cf0.05_acc6_2024-07-14_07-26-53/models/Standard_2024-07-14_07-26-53_model_epoch_1150_.pth"

@@ -56,6 +56,7 @@ def save_image_comparison(
         path (str): The path to save the image.
         cmap (str): The colormap to use for displaying the image. Default is
     """
+    plt.clf()
     fully_sampled = fully_sampled.cpu()
     undersampled = undersampled.cpu()
     reconstructed = reconstructed.cpu()
@@ -76,9 +77,7 @@ def save_image_comparison(
     ax[2].axis("off")
     ax[3].imshow(
         1 - np.abs(reconstructed.squeeze() - fully_sampled.squeeze()),
-        cmap=cmap,
-        vmin=0,
-        vmax=1,
+        cmap='viridis',
     )
     ax[3].set_title("Difference")
     ax[3].axis("off")
@@ -94,6 +93,7 @@ def save_image(image, filename, output_dir, cmap="gray"):
         filename (str): The filename to save the image as.
         output_dir (str): The directory to save the image in.
     """
+    plt.clf()
     image = normalize_scan(image)
 
     if not os.path.exists(output_dir):
@@ -128,7 +128,7 @@ def normalize_scan(scan: torch.Tensor) -> torch.Tensor:
     return normalized_scan
 
 
-def metrics_boxplot(metrics, output_dir, suffix):
+def metrics_boxplot(metrics, output_dir, suffix=None):
     """
     Create a boxplot of the metrics.
 
@@ -148,7 +148,7 @@ def metrics_boxplot(metrics, output_dir, suffix):
         plt.close()
 
 
-def metrics_density_plot(metrics, output_dir, suffix):
+def metrics_density_plot(metrics, output_dir, suffix=None):
     """
     Create a density plot of the metrics.
 
