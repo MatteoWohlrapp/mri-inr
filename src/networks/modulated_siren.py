@@ -203,7 +203,7 @@ class SirenNet(nn.Module):
                 use_bias=use_bias,
                 is_first=is_first,
                 dropout=dropout,
-                activation=activation
+                activation=activation,
             )
 
             self.layers.append(layer)

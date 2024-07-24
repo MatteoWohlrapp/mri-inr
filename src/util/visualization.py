@@ -75,7 +75,7 @@ def save_image_comparison(
     ax[2].axis("off")
     ax[3].imshow(
         1 - np.abs(reconstructed.squeeze() - fully_sampled.squeeze()),
-        cmap='viridis',
+        cmap="viridis",
     )
     ax[3].set_title("Difference")
     ax[3].axis("off")

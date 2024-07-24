@@ -337,8 +337,6 @@ if __name__ == "__main__":
 
     output = model(input)
 
-    print(output.shape)
-
 
 def load_dict(resume_path, model):
     if os.path.isfile(resume_path):

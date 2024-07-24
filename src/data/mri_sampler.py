@@ -11,6 +11,7 @@ from fastmri.data import transforms as T
 
 pl.Config.set_tbl_rows(50)
 
+
 class MRISampler:
     """Sampler for MRI data used during testing."""
 
@@ -50,8 +51,10 @@ class MRISampler:
         self.metadata = self.metadata.filter(pl.col("slice_num") <= 10)
         self.metadata = self.metadata.filter(pl.col("mri_type") == self.mri_type)
         if self.test_files:
-            self.metadata = self.metadata.filter(pl.col("slice_id").is_in(self.test_files))
-        
+            self.metadata = self.metadata.filter(
+                pl.col("slice_id").is_in(self.test_files)
+            )
+
         self.metadata: pl.DataFrame = self.metadata.collect()
         self.metadata = self.metadata.sample(fraction=1, seed=self.seed, shuffle=True)
 
@@ -66,7 +69,9 @@ class MRISampler:
             raise ValueError("No samples available to select from.")
 
         # Randomly select an index
-        idx = self.index_counter % self.metadata.shape[0] # to avoid index out of bounds
+        idx = (
+            self.index_counter % self.metadata.shape[0]
+        )  # to avoid index out of bounds
         file_fullysampled = self.metadata[idx, self.fullysampled_column_index]
         file_undersampled = self.metadata[idx, self.undersampled_column_index]
         filename = self.metadata[idx, self.slice_id_column_index]

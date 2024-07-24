@@ -113,13 +113,20 @@ def test_mod_siren(config):
         activation=config.model.activation,
     )
 
-    mod_siren.load_state_dict(torch.load(config.testing.model_path, map_location=device))
+    mod_siren.load_state_dict(
+        torch.load(config.testing.model_path, map_location=device)
+    )
 
     mod_siren.to(device)
 
     if config.data.visual_samples > 0:
         print("Evaluating visual samples ...")
-        sampler = MRISampler(pathlib.Path(config.data.dataset), test_files=config.data.test_files)
+        sampler = MRISampler(
+            pathlib.Path(config.data.dataset),
+            test_files=config.data.test_files,
+            acceleration=config.data.acceleration,
+            center_fraction=config.data.center_fraction,
+        )
 
         with torch.no_grad():
             mod_siren.eval()
@@ -165,15 +172,19 @@ def test_mod_siren(config):
                     config.model.siren_patch_size,
                 )
 
-    sampler = MRISampler(pathlib.Path(config.data.dataset))
+    sampler = MRISampler(
+        pathlib.Path(config.data.dataset),
+        acceleration=config.data.acceleration,
+        center_fraction=config.data.center_fraction,
+    )
 
     if not config.data.metric_samples:
         config.data.metric_samples = len(sampler)
 
-    if config.data.metric_samples > 0: 
+    if config.data.metric_samples > 0:
 
         print("Evaluating metric samples ...")
-        
+
         psnr_values = []
         ssim_values = []
         nrmse_values = []
@@ -183,9 +194,13 @@ def test_mod_siren(config):
             mod_siren.eval()
 
             for i in range(config.data.metric_samples):
-                print(f"Processing metric sample {i + 1}/{config.data.metric_samples}...")
+                print(
+                    f"Processing metric sample {i + 1}/{config.data.metric_samples}..."
+                )
                 # Load the image
-                fully_sampled_img, undersampled_img, filename = sampler.get_random_sample()
+                fully_sampled_img, undersampled_img, filename = (
+                    sampler.get_random_sample()
+                )
 
                 # unsqueeze image to add batch dimension
                 fully_sampled_img = fully_sampled_img.unsqueeze(0).float().to(device)
@@ -230,11 +245,13 @@ def test_mod_siren(config):
 
             # Visualize the metrics
             metrics_boxplot(
-                {"PSNR": psnr_values, "SSIM": ssim_values, "NRMSE": nrmse_values}, output_dir
+                {"PSNR": psnr_values, "SSIM": ssim_values, "NRMSE": nrmse_values},
+                output_dir,
             )
 
             metrics_density_plot(
-                {"PSNR": psnr_values, "SSIM": ssim_values, "NRMSE": nrmse_values}, output_dir
+                {"PSNR": psnr_values, "SSIM": ssim_values, "NRMSE": nrmse_values},
+                output_dir,
             )
 
 

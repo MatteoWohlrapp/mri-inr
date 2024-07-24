@@ -243,7 +243,7 @@ def filter_black_patches_indices(undersampled: torch.tensor):
 
 def filter_and_remember_black_patches(
     patches,
-): 
+):
     """
     Filters out black patches from a batch and remembers their positions.
 
@@ -260,7 +260,7 @@ def filter_and_remember_black_patches(
     black_indices = []
 
     for index, patch in enumerate(patches):
-        if classify_patches(patch) == 1: 
+        if classify_patches(patch) == 1:
             non_black_indices.append(index)
         else:
             black_indices.append(index)

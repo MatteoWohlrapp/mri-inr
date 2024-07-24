@@ -176,7 +176,7 @@ def visual_error(
         fully_sampled_img,
         undersampled_img,
         reconstructed_img,
-        pathlib.Path(output_dir) / "comparison.png",
+        pathlib.Path(output_dir) / f"{filename}_comparison",
     )
 
     # Calculate the error metrics
@@ -219,8 +219,8 @@ def metrics_error(
         outer_patch_size (int): The size of the outer patch.
         inner_patch_size (int): The size of the inner patch.
         siren_patch_size (int): The size of the SIREN patch.
-    
-    Returns: 
+
+    Returns:
         psnr, ssim, nrmse
     """
 

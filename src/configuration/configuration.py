@@ -22,6 +22,8 @@ default_train_config = {
             "mri_type": "FLAIR",
             "num_workers": 4,
         },
+        "acceleration": 6,
+        "center_fraction": 0.05,
     },
     "model": {
         "dim_in": 2,
@@ -64,6 +66,8 @@ default_test_config = {
         "test_files": None,
         "metric_samples": None,
         "visual_samples": 0,
+        "acceleration": 6,
+        "center_fraction": 0.05,
     },
     "model": {
         "dim_in": 2,

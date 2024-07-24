@@ -61,7 +61,6 @@ class MRIDataset(Dataset):
         self.output_name = output_name
         self.center_fraction = center_fraction
         self.acceleration = acceleration
-        print(data_root / "metadata.csv")
         self.metadata: pl.LazyFrame = pl.scan_csv(data_root / "metadata.csv")
         self.fullysampled_tiles: torch.Tensor = torch.empty(0)
         self.undersampled_tiles: torch.Tensor = torch.empty(0)
@@ -194,7 +193,7 @@ class MRIDataset(Dataset):
         return scan_fullysampled, scan_undersampled
 
 
-class MRIDatasetLessRAM(Dataset):
+class MRIDatasetLowMemory(Dataset):
     """MRIDataset class that does not load all images into memory. Use only if you have limited RAM."""
 
     def __init__(

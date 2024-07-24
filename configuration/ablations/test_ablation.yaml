@@ -11,6 +11,8 @@ data:
     - file_brain_AXFLAIR_210_6001553_8
     - file_brain_AXFLAIR_210_6001910_6
     - file_brain_AXFLAIR_210_6001917_5
+  acceleration: <acceleration>
+  center_fraction: <center_fraction>
 model:
   dim_in: 2
   dim_hidden: 256
