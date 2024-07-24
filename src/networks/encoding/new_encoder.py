@@ -507,6 +507,6 @@ class HardcodedEncoder(nn.Module):
         Returns:
             torch.Tensor: The output tensor.
         """
-        #x = x.unsqueeze(1)
+        x = x.unsqueeze(1)
         x = self.encoder(x)
         return x
