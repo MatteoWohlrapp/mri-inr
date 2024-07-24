@@ -5,7 +5,7 @@ data:
     dataset: '../../dataset/fastmri/brain/singlecoil_train/processed_files'
     mri_type: "FLAIR"
     num_workers: 4
-    num_samples: null
+    num_samples: 50
   val:
     dataset: '../../dataset/fastmri/brain/singlecoil_val/processed_files'
     mri_type: "FLAIR"
@@ -22,8 +22,8 @@ model:
   w0_initial: 30.0
   use_bias: True
   dropout: 0.1
-  encoder_type: "custom"
-  encoder_path: './models/custom_encoder.pth'
+  encoder_type: "hardcoded"
+  encoder_path: '/vol/aimspace/projects/practical_SoSe24/mri_inr/matteo/mri-inr/models/custom_encoder.pth'
   outer_patch_size: 32
   inner_patch_size: 16
   siren_patch_size: 24
@@ -34,7 +34,7 @@ training:
   batch_size: 400
   epochs: 10000
   output_dir: "./output"
-  output_name: "modulated_siren"
+  output_name: "test1"
   optimizer: "Adam"
   save_interval: 25
   logging: True

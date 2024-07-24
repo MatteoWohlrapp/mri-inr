@@ -11,6 +11,7 @@ from einops import rearrange
 from torch import nn
 
 from src.networks.encoding.custom_mri_encoder import CustomEncoder
+from src.networks.encoding.new_encoder import HardcodedEncoder
 from src.networks.encoding.vgg import VGGAutoEncoder, get_configs, load_dict
 
 
@@ -260,6 +261,10 @@ class Encoder(nn.Module):
             )
             self.adaptive_pool = nn.AdaptiveAvgPool2d((7, 7))
             self.fc = nn.Linear(num_features, latent_dim)
+        elif encoder_type == "hardcoded":
+            self.encoder = HardcodedEncoder(pathlib.Path(encoder_path), device)
+            self.encoder.train()
+            self.fc = nn.Identity()	
 
     def load_vgg(self, encoder_path):
         """
@@ -296,6 +301,8 @@ class Encoder(nn.Module):
             x = self.encoder(x)
             x = self.adaptive_pool(x)
             x = torch.flatten(x, 1)
+        elif self.encoder_type == "hardcoded":
+            x = self.encoder(x)
 
         x = self.fc(x)
         return x
