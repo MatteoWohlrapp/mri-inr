@@ -230,11 +230,11 @@ def test_mod_siren(config):
 
             # Visualize the metrics
             metrics_boxplot(
-                {"PSNR": psnr_values, "SSIM": ssim_value, "NRMSE": nrmse_value}, output_dir
+                {"PSNR": psnr_values, "SSIM": ssim_values, "NRMSE": nrmse_values}, output_dir
             )
 
             metrics_density_plot(
-                {"PSNR": psnr_values, "SSIM": ssim_value, "NRMSE": nrmse_value}, output_dir
+                {"PSNR": psnr_values, "SSIM": ssim_values, "NRMSE": nrmse_values}, output_dir
             )
 
 
@@ -242,5 +242,4 @@ if __name__ == "__main__":
     args = parse_args()
     config_path = pathlib.Path(args.config)
     config = load_configuration(config_path, testing=True)
-    print(config)
     test_mod_siren(config)

@@ -133,7 +133,7 @@ def visual_error(
     undersampled_filtered, filter_information, original_shape = (
         filter_and_remember_black_patches(undersampled)
     )
-    undersampled_filtered = undersampled_filtered.cpu()
+    undersampled_filtered = undersampled_filtered.to(device)
 
     reconstructed_patches = model(undersampled_filtered)
 

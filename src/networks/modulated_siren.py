@@ -117,11 +117,15 @@ class Siren(nn.Module):
 
         self.weight = nn.Parameter(weight)
         self.bias = nn.Parameter(bias) if use_bias else None
-        self.activation = (
-            Sine(w0)
-            if activation == "siren"
-            else Morlet(w0) if activation == "morlet" else nn.ReLU()
-        )
+        if activation == "siren":
+            print('Got siren using sine')
+            self.activation = Sine(w0)
+        elif activation == "morlet":
+            print('Got morlet')
+            self.activation = Morlet(w0)
+        else:
+            print('Got nothing using sine')
+            self.activation = Sine(w0)
         self.dropout = nn.Dropout(dropout)
 
     def init_(self, weight, bias, c, w0):
@@ -292,13 +296,10 @@ class Encoder(nn.Module):
         if self.encoder_type == "custom":
             x = self.encoder(x)
         elif self.encoder_type == "vgg":
-            print(x.shape)
             x = x.unsqueeze(1)
-            print(x.shape)
             x = self.encoder(x)
             x = self.adaptive_pool(x)
             x = torch.flatten(x, 1)
-            print(x.shape)
 
         x = self.fc(x)
         return x

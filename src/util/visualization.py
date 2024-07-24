@@ -77,9 +77,7 @@ def save_image_comparison(
     ax[2].axis("off")
     ax[3].imshow(
         1 - np.abs(reconstructed.squeeze() - fully_sampled.squeeze()),
-        cmap=cmap,
-        vmin=0,
-        vmax=1,
+        cmap='viridis',
     )
     ax[3].set_title("Difference")
     ax[3].axis("off")
@@ -130,7 +128,7 @@ def normalize_scan(scan: torch.Tensor) -> torch.Tensor:
     return normalized_scan
 
 
-def metrics_boxplot(metrics, output_dir, suffix):
+def metrics_boxplot(metrics, output_dir, suffix=None):
     """
     Create a boxplot of the metrics.
 
@@ -150,7 +148,7 @@ def metrics_boxplot(metrics, output_dir, suffix):
         plt.close()
 
 
-def metrics_density_plot(metrics, output_dir, suffix):
+def metrics_density_plot(metrics, output_dir, suffix=None):
     """
     Create a density plot of the metrics.
 
