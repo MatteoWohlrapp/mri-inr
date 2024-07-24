@@ -63,7 +63,7 @@ default_test_config = {
         "dataset": "",
         "test_files": None,
         "metric_samples": None,
-        "visual_samples": None,
+        "visual_samples": 0,
     },
     "model": {
         "dim_in": 2,

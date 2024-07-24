@@ -1,0 +1,25 @@
+data:
+  dataset: '../../dataset/fastmri/brain/singlecoil_train/processed_v2'
+  visual_samples: 9
+  metric_samples: 5
+model:
+  dim_in: 2
+  dim_hidden: 256
+  dim_out: 1
+  latent_dim: 256
+  num_layers: 5
+  w0: 1.0
+  w0_initial: 30.0
+  use_bias: True
+  dropout: 0.1
+  encoder_type: "vgg"
+  encoder_path: './models/imagenet-vgg16.pth'
+  outer_patch_size: 32
+  inner_patch_size: 16
+  siren_patch_size: 24
+  activation: "siren"
+  
+testing: 
+  output_dir: "./output"
+  output_name: "vgg_2024-07-10_21-29-18"
+  model_path: "output/vgg_2024-07-10_21-29-18/models/vgg_2024-07-10_21-29-18_model_epoch_250_.pth"

@@ -208,7 +208,7 @@ def metrics_error(
     siren_patch_size,
 ):
     """
-    Calculate all the error metrics between the fully sampled and reconstructed images and save them in a csv file.
+    Calculate all the error metrics between the fully sampled and reconstructed images.
 
     Args:
         model (torch.nn.Module): The model to use for reconstruction.
@@ -219,6 +219,9 @@ def metrics_error(
         outer_patch_size (int): The size of the outer patch.
         inner_patch_size (int): The size of the inner patch.
         siren_patch_size (int): The size of the SIREN patch.
+    
+    Returns: 
+        psnr, ssim, nrmse
     """
 
     # Loop through the complete dataset
