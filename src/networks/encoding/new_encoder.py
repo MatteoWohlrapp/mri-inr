@@ -301,7 +301,7 @@ class Trainer:
         for epoch in tqdm.tqdm(range(num_epochs)):
             loss = self.train_epoch()
 
-            if (epoch + 1) % 5 == 0:
+            if (epoch + 1) % 1 == 0:
                 self.save_model(epoch)
                 val_loss = self.validate()
                 print(
