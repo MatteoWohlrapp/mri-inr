@@ -9,7 +9,7 @@ data:
     dataset: '../../dataset/fastmri/brain/singlecoil_val/processed_files'
     mri_type: "FLAIR"
     num_workers: 4
-    num_samples: 50
+    num_samples: 5
 
 model:
   dim_in: 2
@@ -38,5 +38,3 @@ training:
   save_interval: 25
   logging: True
   criterion: "MSE"
-  model:
-    continue_training: False

@@ -296,6 +296,8 @@ class Encoder(nn.Module):
             x = self.encoder(x)
             x = self.adaptive_pool(x)
             x = torch.flatten(x, 1)
+        elif self.encoder_type == "hardcoded":
+            x = self.encoder(x)
 
         x = self.fc(x)
         return x
