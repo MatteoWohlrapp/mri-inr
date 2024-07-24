@@ -215,8 +215,7 @@ class SirenNet(nn.Module):
         self.num_blocks = num_blocks
         self.dim_hidden = dim_hidden
 
-
-        layer = Siren(
+        self.first_layer = Siren(
             dim_in=dim_in,
             dim_out=dim_hidden,
             w0=w0_initial,

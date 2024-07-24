@@ -15,10 +15,11 @@ data:
   center_fraction: <center_fraction>
 model:
   dim_in: 2
-  dim_hidden: 256
+  dim_hidden: 128
   dim_out: 1
   latent_dim: 256
-  num_layers: 5
+  num_blocks: 4
+  block_depth: 2
   w0: 1.0
   w0_initial: 30.0
   use_bias: True
