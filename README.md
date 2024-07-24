@@ -7,8 +7,6 @@ Group Members:
 - Jan Rogalka 
 - Matteo Wohlrapp
 
-
-
 ## Project Overview
 This project implements implicit neural representations for MRI images using modulated SIREN (Sinusoidal Representation Networks). It is designed to reconstruct high-quality MRI images from undersampled k-space data. The network is based on work from 
 Mehta et al. [1], and existing implementations [2].

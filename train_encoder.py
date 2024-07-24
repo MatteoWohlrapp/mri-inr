@@ -1,52 +1,55 @@
 import datetime
+import os
 import pathlib
-import types
 
+import numpy as np
 import torch
+import torch.nn as nn
+import torch.optim as optim
 
+from src.configuration.configuration import load_configuration_no_defaults
 from src.data.mri_dataset import MRIDataset
-
-"""
-This script trains the custom encoder on the fastMRI dataset.
-"""
-
-
-from src.networks.encoding.custom_mri_encoder import (
+from src.networks.encoding.perceptual_encoder import (
+    Autoencoder_v1,
+    Autoencoder_v2,
     Trainer,
-    build_autoencoder,
-    config,
-    load_model,
-    save_model,
 )
+from src.networks.encoding.siren_encoder import FixedAutoencoder
+
+config = load_configuration_no_defaults(r"./configuration/train_autoencoder.yaml")
 
 
-def train_encoder(args):
+def train_autoencoder(args):
     """
-    Train the encoder.
+    Train the autoencoder.
 
     Args:
         args (argparse.Namespace): The arguments to use for training.
     """
-    print("Training the encoder...", flush=True)
+    print("Training the autoencoder...", flush=True)
+    print(config)
+
+    current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    output_dir = pathlib.Path(args.training.output_dir) / current_time
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     # Load dataset
     train_dataset = MRIDataset(
-        pathlib.Path(args.path_train_dataset),
-        number_of_samples=args.num_samples_train,
-        outer_patch_size=args.outer_patch_size,
-        inner_patch_size=args.inner_patch_size,
-        output_dir=args.output_dir,
-        output_name=args.output_name,
+        pathlib.Path(args.data.train.dataset),
+        number_of_samples=args.data.train.num_samples,
+        outer_patch_size=args.model.outer_patch_size,
+        inner_patch_size=args.model.inner_patch_size,
+        output_dir=args.training.output_dir,
         acceleration=args.data.acceleration,
         center_fraction=args.data.center_fraction,
     )
+    print(len(train_dataset))
     val_dataset = MRIDataset(
-        pathlib.Path(args.path_val_dataset),
-        number_of_samples=args.num_samples_val,
-        outer_patch_size=args.outer_patch_size,
-        inner_patch_size=args.inner_patch_size,
-        output_dir=args.output_dir,
-        output_name=args.output_name,
+        pathlib.Path(args.data.val.dataset),
+        number_of_samples=args.data.val.num_samples,
+        outer_patch_size=args.model.outer_patch_size,
+        inner_patch_size=args.model.inner_patch_size,
+        output_dir=args.training.output_dir,
         acceleration=args.data.acceleration,
         center_fraction=args.data.center_fraction,
     )
@@ -59,15 +62,12 @@ def train_encoder(args):
         device = torch.device("cpu")
 
     # Load the model
-    if args.model_path == "":
-        autoencoder = build_autoencoder(config)
-    else:
-        print(args.model_path)
-        autoencoder = load_model(pathlib.Path(args.model_path), device)
+    autoencoder = FixedAutoencoder()
+    autoencoder.to(device)
 
     # Define the criterion and optimizer
     criterion = torch.nn.MSELoss()
-    optimizer = torch.optim.Adam(autoencoder.parameters(), lr=0.0001)
+    optimizer = torch.optim.Adam(autoencoder.parameters(), lr=args.training.lr)
 
     # Define the trainer
     trainer = Trainer(
@@ -77,34 +77,19 @@ def train_encoder(args):
         device,
         train_dataset,
         val_dataset,
-        args.batch_size,
-        args,
+        pathlib.Path(args.training.output_dir),
     )
 
-    # Train the model
-    trainer.train(args.epochs)
-
-    save_model(
-        autoencoder, pathlib.Path(r"./output/custom_encoder/encoder.pth"), trainer
+    # Train the autoencoder
+    trainer.train(
+        num_epochs=args.training.epochs,
+        batch_size=args.training.batch_size,
     )
+
+    # Save the model
+    trainer.save_model(args.training.epochs)
+    print("Finished training the autoencoder.", flush=True)
 
 
 if __name__ == "__main__":
-    print("start training encoder")
-    args = {
-        "path_train_dataset": r"../../dataset/fastmri/brain/singlecoil_train/processed_files",
-        "path_val_dataset": r"../../dataset/fastmri/brain/singlecoil_val/processed_files",
-        "num_samples_train": 0,
-        "num_samples_val": 50,
-        "device": "cuda",
-        "model_path": r"",
-        "batch_size": 400,
-        "epochs": 10000,
-        "output_dir": "./models",
-        "output_name": "encoder_v2" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"),
-        "outer_patch_size": 32,
-        "inner_patch_size": 32,
-    }
-    args = types.SimpleNamespace(**args)
-    train_encoder(args)
-    print("Done training encoder")
+    train_autoencoder(config)
