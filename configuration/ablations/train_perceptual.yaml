@@ -33,10 +33,10 @@ training:
   batch_size: 400
   epochs: 10000
   output_dir: "./output"
-  output_name: "Perceptual"
+  output_name: "perceptual"
   optimizer: "Adam"
   save_interval: 25
   logging: True
-  criterion: "perceptual"
+  criterion: "Perceptual"
   model:
     continue_training: False
