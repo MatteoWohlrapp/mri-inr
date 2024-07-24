@@ -56,6 +56,7 @@ def save_image_comparison(
         path (str): The path to save the image.
         cmap (str): The colormap to use for displaying the image. Default is
     """
+    plt.clf()
     fully_sampled = fully_sampled.cpu()
     undersampled = undersampled.cpu()
     reconstructed = reconstructed.cpu()
@@ -94,6 +95,7 @@ def save_image(image, filename, output_dir, cmap="gray"):
         filename (str): The filename to save the image as.
         output_dir (str): The directory to save the image in.
     """
+    plt.clf()
     image = normalize_scan(image)
 
     if not os.path.exists(output_dir):
