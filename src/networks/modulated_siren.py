@@ -117,14 +117,9 @@ class Siren(nn.Module):
 
         self.weight = nn.Parameter(weight)
         self.bias = nn.Parameter(bias) if use_bias else None
-        if activation == "siren":
-            print('Got siren using sine')
-            self.activation = Sine(w0)
-        elif activation == "morlet":
-            print('Got morlet')
+        if activation == "morlet":
             self.activation = Morlet(w0)
         else:
-            print('Got nothing using sine')
             self.activation = Sine(w0)
         self.dropout = nn.Dropout(dropout)
 
@@ -208,6 +203,7 @@ class SirenNet(nn.Module):
                 use_bias=use_bias,
                 is_first=is_first,
                 dropout=dropout,
+                activation=activation
             )
 
             self.layers.append(layer)
