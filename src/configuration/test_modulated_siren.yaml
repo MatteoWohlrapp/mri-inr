@@ -1,17 +1,17 @@
 data:
-  dataset: '../../dataset/fastmri/brain/singlecoil_val/processed_files'
+  dataset: '../../dataset/fastmri/brain/singlecoil_train/processed_files'
   metric_samples: 9
   visual_samples: 9
-  test_files:
-  - file_brain_AXFLAIR_200_6002447_3
-  - file_brain_AXFLAIR_200_6002562_5
-  - file_brain_AXFLAIR_201_6002872_3
-  - file_brain_AXFLAIR_201_6002899_0
-  - file_brain_AXFLAIR_201_6002985_1
-  - file_brain_AXFLAIR_202_6000418_0
-  - file_brain_AXFLAIR_210_6001553_8
-  - file_brain_AXFLAIR_210_6001910_6
-  - file_brain_AXFLAIR_210_6001917_5
+#  test_files:
+#  - file_brain_AXFLAIR_200_6002447_3
+#  - file_brain_AXFLAIR_200_6002562_5
+#  - file_brain_AXFLAIR_201_6002872_3
+#  - file_brain_AXFLAIR_201_6002899_0
+#  - file_brain_AXFLAIR_201_6002985_1
+#  - file_brain_AXFLAIR_202_6000418_0
+#  - file_brain_AXFLAIR_210_6001553_8
+#  - file_brain_AXFLAIR_210_6001910_6
+#  - file_brain_AXFLAIR_210_6001917_5
 model:
   dim_in: 2
   dim_hidden: 256
@@ -27,9 +27,9 @@ model:
   outer_patch_size: 32
   inner_patch_size: 16
   siren_patch_size: 24
-  activation: "sine"
+  activation: "morlet"
   
 testing: 
   output_dir: "./output"
-  output_name: "Sine_cf0.05_acc6_2024-07-14_07-26-53"
-  model_path: "./output/Sine_cf0.05_acc6_2024-07-14_07-26-53/models/Standard_2024-07-14_07-26-53_model_epoch_1150_.pth"
+  output_name: "Morlet_cf0.05_acc6_2024-07-14_13-43-22"
+  model_path: "./output/Morlet_cf0.05_acc6_2024-07-14_13-43-22/models/Standard_2024-07-14_13-43-22_model_epoch_950_.pth"

@@ -112,8 +112,17 @@ def test_mod_siren(config):
         device=device,
         activation=config.model.activation,
     )
-
-    mod_siren.load_state_dict(torch.load(config.testing.model_path))
+    print(0)
+    for key, value in mod_siren.state_dict().items():
+        if 'encoder' in key:
+            print(key, flush=True)
+            print(value)
+    print(1)
+    mod_siren.load_state_dict(torch.load(config.testing.model_path, map_location = device))
+    for key, value in mod_siren.state_dict().items():
+        if 'encoder' in key:
+            print(key, flush=True)
+            print(value)
 
     mod_siren.to(device)
 
@@ -230,11 +239,11 @@ def test_mod_siren(config):
         print(f'SSIM:{ssim_value}')
         print(f'NRMSE:{nrmse_value}')
         metrics_boxplot(
-            {"PSNR": psnr_values, "SSIM": ssim_value, "NRMSE": nrmse_value}, output_dir
+            {"PSNR": psnr_values, "SSIM": ssim_values, "NRMSE": nrmse_values}, output_dir
         )
 
         metrics_density_plot(
-            {"PSNR": psnr_values, "SSIM": ssim_value, "NRMSE": nrmse_value}, output_dir
+            {"PSNR": psnr_values, "SSIM": ssim_values, "NRMSE": nrmse_values}, output_dir
         )
 
 
