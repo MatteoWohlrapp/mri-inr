@@ -28,7 +28,7 @@ In total, six different ablations were tested:
 - Perceptual: Using a perceptual loss based on a VGG encoder. The encoder for the perceptual loss can be downloaded [here](https://drive.google.com/drive/folders/1EtIOmlIY6Ts-GZ9rHm28EGMkKKuOzT1G?usp=share_link). Make sure you put it under a `model` folder in the root directory. 
 - Residual: Adding residual connections to the MLP layers and increasing the depth of the network while reducing the latent dimension
 
-The configuration for each specific experiment can be found under `configuration/ablations`. To run the residual connections, you will need to check out to the `residual-connections` branch. The trained models can be downloaded from [here](https://drive.google.com/drive/folders/1xa68eJXUBpLyakrB4nkHdmRmEen8fbkm?usp=sharing).
+The configuration for each specific experiment can be found under `configuration/ablations`. To run and test the residual connections, you will need to check out to the `residual-connections` branch. The trained models can be downloaded from [here](https://drive.google.com/drive/folders/1xa68eJXUBpLyakrB4nkHdmRmEen8fbkm?usp=sharing).
 
 
 #### Quantitative Results
