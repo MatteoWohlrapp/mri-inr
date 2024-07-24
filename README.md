@@ -7,8 +7,6 @@ Group Members:
 - Jan Rogalka 
 - Matteo Wohlrapp
 
-
-
 ## Project Overview
 This project implements implicit neural representations for MRI images using modulated SIREN (Sinusoidal Representation Networks). It is designed to reconstruct high-quality MRI images from undersampled k-space data. The network is based on work from 
 Mehta et al. [1], and existing implementations [2].
@@ -28,7 +26,7 @@ In total, six different ablations were tested:
 - Perceptual: Using a perceptual loss based on a VGG encoder. The encoder for the perceptual loss can be downloaded [here](https://drive.google.com/drive/folders/1EtIOmlIY6Ts-GZ9rHm28EGMkKKuOzT1G?usp=share_link). Make sure you put it under a `model` folder in the root directory. 
 - Residual: Adding residual connections to the MLP layers and increasing the depth of the network while reducing the latent dimension
 
-The configuration for each specific experiment can be found under `configuration/ablations`. To run the residual connections, you will need to check out to the `residual-connections` branch. The trained models can be downloaded from [here](https://drive.google.com/drive/folders/1xa68eJXUBpLyakrB4nkHdmRmEen8fbkm?usp=sharing).
+The configuration for each specific experiment can be found under `configuration/ablations`. To run and test the residual connections, you will need to check out to the `residual-connections` branch. The trained models can be downloaded from [here](https://drive.google.com/drive/folders/1xa68eJXUBpLyakrB4nkHdmRmEen8fbkm?usp=sharing).
 
 
 #### Quantitative Results
@@ -91,7 +89,6 @@ Example configuration files are located in the `/configuration` directory:
 - `test_modulated_siren.yml` for testing setup.
 
 ## Dataset Preparation Guide 
-<!-- TODO still needs to be changed when the configuration file for this is added -->
 This section provides a comprehensive guide on preparing the dataset for both training and testing purposes. This is only necessary before running for the first time. Follow the steps below to ensure your dataset is correctly set up and ready for use.
 
 ### Step 1: Specify Dataset Location
@@ -207,7 +204,7 @@ There is a number of configuration parameters for both training and testing. The
   - `model_path`: Path to the model file for testing.
 
 ## Output
-All output files, including saved models and reconstructed images, are stored in a subdirectory withing the `output_name` directory specified by the `output_dir` argument within the configuration file. This allows for easy organization and retrieval of results from different runs. In there, you can find a folder for model checkpoints, snapshots of the current training and validation results, your tensorboard logs, a copy of the configuration file, information which files you trained the model on, and a progress overview. When testing, you will get an additional `test` folder which then includes visual samples, as well as a csv file and a summary of the results. 
+All output files, including saved models and reconstructed images, are stored in a subdirectory within the `output_name` directory specified by the `output_dir` argument within the configuration file. This allows for easy organization and retrieval of results from different runs. You can find a folder for model checkpoints, snapshots of the current training and validation results, tensorboard logs, a copy of the configuration file, information on which files you trained the model on, and a progress overview. When testing, you will get an additional `test` folder, which then includes visual samples, a CSV file, and a summary of the results. 
 
 
 ## Sources

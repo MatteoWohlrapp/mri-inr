@@ -10,7 +10,7 @@ import torch.nn.functional as F
 from einops import rearrange
 from torch import nn
 
-from src.networks.encoding.custom_mri_encoder import CustomEncoder
+from src.networks.encoding.siren_encoder import CustomEncoder, FixedEncoder
 from src.networks.encoding.vgg import VGGAutoEncoder, get_configs, load_dict
 
 
@@ -282,7 +282,7 @@ class Encoder(nn.Module):
         self.latent_dim = latent_dim
         self.encoder_type = encoder_type
         if encoder_type == "custom":
-            self.encoder = CustomEncoder(pathlib.Path(encoder_path), device)
+            self.encoder = FixedEncoder(pathlib.Path(encoder_path), device)
             self.encoder.train()
             self.fc = nn.Identity()
         elif encoder_type == "vgg":
@@ -328,8 +328,6 @@ class Encoder(nn.Module):
             x = self.encoder(x)
             x = self.adaptive_pool(x)
             x = torch.flatten(x, 1)
-        elif self.encoder_type == "hardcoded":
-            x = self.encoder(x)
 
         x = self.fc(x)
         return x
