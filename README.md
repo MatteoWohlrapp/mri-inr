@@ -207,7 +207,7 @@ There is a number of configuration parameters for both training and testing. The
   - `model_path`: Path to the model file for testing.
 
 ## Output
-All output files, including saved models and reconstructed images, are stored in a subdirectory withing the `output_name` directory specified by the `output_dir` argument within the configuration file. This allows for easy organization and retrieval of results from different runs. In there, you can find a folder for model checkpoints, snapshots of the current training and validation results, your tensorboard logs, a copy of the configuration file, information which files you trained the model on, and a progress overview. When testing, you will get an additional `test` folder which then includes visual samples, as well as a csv file and a summary of the results. 
+All output files, including saved models and reconstructed images, are stored in a subdirectory within the `output_name` directory specified by the `output_dir` argument within the configuration file. This allows for easy organization and retrieval of results from different runs. You can find a folder for model checkpoints, snapshots of the current training and validation results, tensorboard logs, a copy of the configuration file, information on which files you trained the model on, and a progress overview. When testing, you will get an additional `test` folder, which then includes visual samples, a CSV file, and a summary of the results. 
 
 
 ## Sources
