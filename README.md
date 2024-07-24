@@ -91,7 +91,6 @@ Example configuration files are located in the `/configuration` directory:
 - `test_modulated_siren.yml` for testing setup.
 
 ## Dataset Preparation Guide 
-<!-- TODO still needs to be changed when the configuration file for this is added -->
 This section provides a comprehensive guide on preparing the dataset for both training and testing purposes. This is only necessary before running for the first time. Follow the steps below to ensure your dataset is correctly set up and ready for use.
 
 ### Step 1: Specify Dataset Location
