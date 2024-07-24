@@ -1,16 +1,17 @@
 data:
   acceleration: 6
   center_fraction: 0.05
+  
   train:
     dataset: '../../dataset/fastmri/brain/singlecoil_train/processed_files'
     mri_type: "FLAIR"
     num_workers: 4
-
+    num_samples: null
   val:
     dataset: '../../dataset/fastmri/brain/singlecoil_val/processed_files'
     mri_type: "FLAIR"
     num_workers: 4
-    num_samples: 10
+    num_samples: 5
 
 model:
   dim_in: 2
@@ -23,7 +24,7 @@ model:
   use_bias: True
   dropout: 0.1
   encoder_type: "custom"
-  encoder_path: '/vol/aimspace/projects/practical_SoSe24/mri_inr/matteo/mri-inr/models/custom_encoder.pth'
+  encoder_path: './models/custom_encoder.pth'
   outer_patch_size: 32
   inner_patch_size: 16
   siren_patch_size: 24
@@ -34,10 +35,10 @@ training:
   batch_size: 400
   epochs: 10000
   output_dir: "./output"
-  output_name: "edge-new"
+  output_name: "baseline"
   optimizer: "Adam"
   save_interval: 25
   logging: True
-  criterion: "Edge"
+  criterion: "MSE"
   model:
     continue_training: False

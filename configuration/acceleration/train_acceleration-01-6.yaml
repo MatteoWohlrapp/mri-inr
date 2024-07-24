@@ -1,6 +1,6 @@
 data:
-  acceleration: 8
-  center_fraction: 0.05
+  acceleration: 6
+  center_fraction: 0.1
   train:
     dataset: '../../dataset/fastmri/brain/singlecoil_train/processed_files'
     mri_type: "FLAIR"
@@ -23,7 +23,7 @@ model:
   use_bias: True
   dropout: 0.1
   encoder_type: "custom"
-  encoder_path: '/vol/aimspace/projects/practical_SoSe24/mri_inr/matteo/mri-inr/models/custom_encoder.pth'
+  encoder_path: './models/custom_encoder.pth'
   outer_patch_size: 32
   inner_patch_size: 16
   siren_patch_size: 24
@@ -34,7 +34,7 @@ training:
   batch_size: 400
   epochs: 10000
   output_dir: "./output"
-  output_name: "acceleration-005-8-new"
+  output_name: "acceleration-01-6"
   optimizer: "Adam"
   save_interval: 25
   logging: True

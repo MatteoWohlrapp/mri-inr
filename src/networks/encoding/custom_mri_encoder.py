@@ -201,8 +201,8 @@ def build_autoencoder(config):
         nn.Sequential(*encoder_layers),
         nn.Sequential(*decoder_layers),
         config["id"],
-        256,  # TODO
-        config,  # TODO
+        256, 
+        config, 
     )
 
 

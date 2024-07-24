@@ -157,7 +157,6 @@ class MRIDataset(Dataset):
     def __getitems__(self, idxs: List[int]):
         return [self.__getitem__(idx) for idx in idxs]
 
-    # TODO to be used for testing to pick a specific image for better comparison
     def get_image(self, image_slice_id: str):
         """ "
         Get a specific image from the dataset.

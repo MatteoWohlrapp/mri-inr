@@ -11,7 +11,6 @@ import seaborn as sns
 import torch
 
 
-# TODO using for debugging purposes
 def show_image(image, cmap="gray"):
     """
     Display a single image using matplotlib.
@@ -25,7 +24,6 @@ def show_image(image, cmap="gray"):
     plt.show()
 
 
-# TODO using for debugging purposes
 def show_batch(batch, cmap="gray", ncols=2):
     """
     Show a batch of images.

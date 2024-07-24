@@ -84,9 +84,8 @@ def train_encoder(args):
     # Train the model
     trainer.train(args.epochs)
 
-    # Save the model TODO change path if not given
     save_model(
-        autoencoder, pathlib.Path(r"./output/custom_encoder/model1.pth"), trainer
+        autoencoder, pathlib.Path(r"./output/custom_encoder/encoder.pth"), trainer
     )
 
 

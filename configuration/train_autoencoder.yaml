@@ -3,12 +3,12 @@ data:
     dataset: '../../dataset/fastmri/brain/singlecoil_train/processed_files'
     mri_type: "FLAIR"
     num_workers: 4
-    num_samples: null
+
   val:
     dataset: '../../dataset/fastmri/brain/singlecoil_val/processed_files'
     mri_type: "FLAIR"
     num_workers: 4
-    num_samples: 50
+    num_samples: 5
 
 training:
   criterion: "MSE"
@@ -16,8 +16,8 @@ training:
   lr: 0.0001
   batch_size: 2048
   epochs: 10000
-  output_dir: "./output/perceptual_encoder"
-  output_name: "Standard"
+  output_dir: "./models/perceptual_encoder"
+  output_name: "autoencoder"
   save_interval: 25
 
 model:
