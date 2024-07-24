@@ -115,7 +115,7 @@ class EdgeLoss(nn.Module):
             groups=batch_size,
         )
 
-        return 0.5 * self.criterion(x, y) + 0.5 * (
+        return self.criterion(x, y) + 0.5 * (
             self.criterion(sobel_output_x_x, sobel_output_x_y)
             + self.criterion(sobel_output_y_x, sobel_output_y_y)
         )
