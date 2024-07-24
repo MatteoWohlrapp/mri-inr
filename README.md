@@ -64,8 +64,8 @@ This section provides a comprehensive guide on preparing the dataset for both tr
 python preprocessing_script.py 
 ```
 
-### Encoder 
-To train the encoder TODO @Jan
+## Encoder 
+To train a custom autoencoder you the train_encoder.py script. The basic configuration is already set up in the `train_encoder.yml` file. You can adjust the parameters in the file. The parameters are like the ones used for training the SIREN network.
 
 If you don't want to train your own encoder, or use the VGG encoder, you can download the used encoders from [here](https://drive.google.com/drive/folders/1pJXmrPyM-sMoYMpeX0dgH1sxZj2EhTcD?usp=sharing).
 
