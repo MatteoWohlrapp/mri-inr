@@ -2,19 +2,22 @@
 Functions to calculate error metrics between two images used during evaluation.
 """
 
+import os
+import pathlib
+
+import numpy as np
+import torch
+from skimage.metrics import normalized_root_mse as nrmse
 from skimage.metrics import peak_signal_noise_ratio as psnr
 from skimage.metrics import structural_similarity as ssim
-from skimage.metrics import normalized_root_mse as nrmse
-from src.util.visualization import save_image
-import numpy as np
+
 from src.util.tiling import (
-    patches_to_image_weighted_average,
-    patches_to_image,
     filter_and_remember_black_patches,
+    patches_to_image,
+    patches_to_image_weighted_average,
     reintegrate_black_patches,
 )
-import os
-import torch
+from src.util.visualization import save_image, save_image_comparison
 
 
 def calculate_data_range(original, predicted):
@@ -138,6 +141,7 @@ def visual_error(
     reconstructed_patches = reintegrate_black_patches(
         reconstructed_patches, filter_information, original_shape
     )
+    reconstructed_patches = reconstructed_patches.to(device)
 
     reconstructed_img = patches_to_image_weighted_average(
         reconstructed_patches,
@@ -167,6 +171,12 @@ def visual_error(
         f"{filename}_difference",
         output_dir,
         cmap="viridis",
+    )
+    save_image_comparison(
+        fully_sampled_img,
+        undersampled_img,
+        reconstructed_img,
+        pathlib.Path(output_dir) / f"{filename}_comparison",
     )
 
     # Calculate the error metrics
@@ -198,7 +208,7 @@ def metrics_error(
     siren_patch_size,
 ):
     """
-    Calculate all the error metrics between the fully sampled and reconstructed images and save them in a csv file.
+    Calculate all the error metrics between the fully sampled and reconstructed images.
 
     Args:
         model (torch.nn.Module): The model to use for reconstruction.
@@ -209,6 +219,9 @@ def metrics_error(
         outer_patch_size (int): The size of the outer patch.
         inner_patch_size (int): The size of the inner patch.
         siren_patch_size (int): The size of the SIREN patch.
+
+    Returns:
+        psnr, ssim, nrmse
     """
 
     # Loop through the complete dataset

@@ -2,17 +2,23 @@
 This script trains a modulated SIREN model on MRI data.
 """
 
-import torch
+import datetime
+import os
 import pathlib
+
+import torch
+
+from src.configuration.configuration import (
+    load_configuration,
+    namespace_to_dict,
+    parse_args,
+    save_config_to_yaml,
+)
 from src.data.mri_dataset import MRIDataset
 from src.networks.modulated_siren import ModulatedSiren
 from src.train.training import Trainer
-from src.util.timing import time_function
-from src.configuration.configuration import load_configuration, parse_args
-import os
-from src.configuration.configuration import namespace_to_dict, save_config_to_yaml
 from src.util.slurm_restart import find_latest_checkpoint, find_latest_folder
-import datetime
+from src.util.timing import time_function
 
 
 @time_function
@@ -23,12 +29,21 @@ def train_mod_siren(config):
     Args:
         config (argparse.Namespace): The configuration to use for training.
     """
+    continue_training = False
     # Checking if we want to continue training
     if config.training.model.continue_training and not config.training.model.model_path:
-        config.training.output_name = find_latest_folder(
+        print("Continue Training of modulated Siren.")
+        output_name = find_latest_folder(
             config.training.output_dir, config.training.output_name
         )
-    else:
+
+        if output_name:
+            config.training.output_name = output_name
+            continue_training = True
+    elif config.training.model.continue_training:
+        continue_training = True
+
+    if not continue_training:
         current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         config.training.output_name = f"{config.training.output_name}_{current_time}"
 
@@ -47,6 +62,8 @@ def train_mod_siren(config):
         inner_patch_size=config.model.inner_patch_size,
         output_dir=config.training.output_dir,
         output_name=config.training.output_name,
+        acceleration=config.data.acceleration,
+        center_fraction=config.data.center_fraction,
     )
 
     val_dataset = (
@@ -57,6 +74,8 @@ def train_mod_siren(config):
             inner_patch_size=config.model.inner_patch_size,
             output_dir=config.training.output_dir,
             output_name=config.training.output_name,
+            acceleration=config.data.acceleration,
+            center_fraction=config.data.center_fraction,
         )
         if config.data.val.dataset
         else None
@@ -121,7 +140,7 @@ def train_mod_siren(config):
     initial_epoch = 0
 
     # Check if we want to load an existing model
-    if config.training.model.continue_training:
+    if continue_training:
         if config.training.model.model_path:
             trainer.load_model(
                 model_path=config.training.model.model_path,

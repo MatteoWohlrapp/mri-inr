@@ -1,0 +1,37 @@
+data:
+  dataset: '../../dataset/fastmri/brain/singlecoil_val/processed_files'
+  metric_samples: 9
+  visual_samples: 9
+  test_files:
+    - file_brain_AXFLAIR_200_6002447_3
+    - file_brain_AXFLAIR_200_6002562_5
+    - file_brain_AXFLAIR_201_6002872_3
+    - file_brain_AXFLAIR_201_6002899_0
+    - file_brain_AXFLAIR_201_6002985_1
+    - file_brain_AXFLAIR_202_6000418_0
+    - file_brain_AXFLAIR_210_6001553_8
+    - file_brain_AXFLAIR_210_6001910_6
+    - file_brain_AXFLAIR_210_6001917_5
+  acceleration: 6
+  center_fraction: 0.05
+model:
+  dim_in: 2
+  dim_hidden: 256
+  dim_out: 1
+  latent_dim: 256
+  num_layers: 5
+  w0: 1.0
+  w0_initial: 30.0
+  use_bias: True
+  dropout: 0.1
+  encoder_type: "custom"
+  encoder_path: './models/custom_encoder.pth'
+  outer_patch_size: 32
+  inner_patch_size: 16
+  siren_patch_size: 24
+  activation: "sine"
+  
+testing: 
+  output_dir: "./output"
+  output_name: "modulated_sired"
+  model_path: "./output/modulated_siren/modulated_siren.pth"

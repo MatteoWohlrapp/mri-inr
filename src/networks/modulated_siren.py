@@ -3,14 +3,14 @@ Modulated Siren network
 """
 
 import math
+import pathlib
+
 import torch
-from torch import nn
 import torch.nn.functional as F
 from einops import rearrange
-from src.networks.encoding.custom_mri_encoder import (
-    CustomEncoder,
-)
-import pathlib
+from torch import nn
+
+from src.networks.encoding.custom_mri_encoder import CustomEncoder
 from src.networks.encoding.vgg import VGGAutoEncoder, get_configs, load_dict
 
 
@@ -117,11 +117,10 @@ class Siren(nn.Module):
 
         self.weight = nn.Parameter(weight)
         self.bias = nn.Parameter(bias) if use_bias else None
-        self.activation = (
-            Sine(w0)
-            if activation == "siren"
-            else Morlet(w0) if activation == "morlet" else nn.ReLU()
-        )
+        if activation == "morlet":
+            self.activation = Morlet(w0)
+        else:
+            self.activation = Sine(w0)
         self.dropout = nn.Dropout(dropout)
 
     def init_(self, weight, bias, c, w0):
@@ -217,13 +216,14 @@ class SirenNet(nn.Module):
         self.dim_hidden = dim_hidden
 
 
-        self.first_layer = Siren(
+        layer = Siren(
             dim_in=dim_in,
             dim_out=dim_hidden,
             w0=w0_initial,
             use_bias=use_bias,
             is_first=True,
             dropout=dropout,
+            activation=activation,
         )
 
         self.blocks = nn.ModuleList(
@@ -325,13 +325,12 @@ class Encoder(nn.Module):
         if self.encoder_type == "custom":
             x = self.encoder(x)
         elif self.encoder_type == "vgg":
-            print(x.shape)
             x = x.unsqueeze(1)
-            print(x.shape)
             x = self.encoder(x)
             x = self.adaptive_pool(x)
             x = torch.flatten(x, 1)
-            print(x.shape)
+        elif self.encoder_type == "hardcoded":
+            x = self.encoder(x)
 
         x = self.fc(x)
         return x

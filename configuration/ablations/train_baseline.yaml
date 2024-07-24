@@ -1,22 +1,24 @@
 data:
+  acceleration: 6
+  center_fraction: 0.05
+  
   train:
-    dataset: '../../dataset/fastmri/brain/singlecoil_train/processed_v2'
+    dataset: '../../dataset/fastmri/brain/singlecoil_train/processed_files'
     mri_type: "FLAIR"
     num_workers: 4
-    num_samples: 10
+    num_samples: null
   val:
-    dataset: '../../dataset/fastmri/brain/singlecoil_train/processed_v2'
+    dataset: '../../dataset/fastmri/brain/singlecoil_val/processed_files'
     mri_type: "FLAIR"
     num_workers: 4
-    num_samples: 10
+    num_samples: 5
 
 model:
   dim_in: 2
-  dim_hidden: 128
+  dim_hidden: 256
   dim_out: 1
   latent_dim: 256
-  num_blocks: 4
-  block_depth: 2
+  num_layers: 5
   w0: 1.0
   w0_initial: 30.0
   use_bias: True
@@ -33,9 +35,9 @@ training:
   batch_size: 400
   epochs: 10000
   output_dir: "./output"
-  output_name: "residual"
+  output_name: "baseline"
   optimizer: "Adam"
-  save_interval: 10
+  save_interval: 25
   logging: True
   criterion: "MSE"
   model:

@@ -2,9 +2,10 @@
 Configuration module for the modulated SIREN model.
 """
 
-import types
-import yaml
 import argparse
+import types
+
+import yaml
 
 # Define the default configuration for training and testing
 default_train_config = {
@@ -21,6 +22,8 @@ default_train_config = {
             "mri_type": "FLAIR",
             "num_workers": 4,
         },
+        "acceleration": 6,
+        "center_fraction": 0.05,
     },
     "model": {
         "dim_in": 2,
@@ -63,7 +66,9 @@ default_test_config = {
         "dataset": "",
         "test_files": None,
         "metric_samples": None,
-        "visual_samples": None,
+        "visual_samples": 0,
+        "acceleration": 6,
+        "center_fraction": 0.05,
     },
     "model": {
         "dim_in": 2,
@@ -178,6 +183,24 @@ def load_configuration(file_path, testing=False):
         full_config = merge_configs(default_train_config, user_config)
 
     types_namespace = convert_to_namespace(full_config)
+
+    return types_namespace
+
+
+def load_configuration_no_defaults(file_path):
+    """
+    Load the configuration from a YAML file without merging with defaults.
+
+    Args:
+        file_path (str): The path to the configuration file.
+
+    Returns:
+        types.SimpleNamespace: The configuration as a namespace.
+    """
+    with open(file_path, "r") as file:
+        user_config = yaml.safe_load(file)
+
+    types_namespace = convert_to_namespace(user_config)
 
     return types_namespace
 

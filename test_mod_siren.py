@@ -2,17 +2,19 @@
 Script to test the modulated SIREN model.
 """
 
-import torch
-import pathlib
-from src.networks.modulated_siren import ModulatedSiren
-from src.data.mri_sampler import MRISampler
-from src.data.mri_dataset import MRIDataset
 import os
+import pathlib
+
+import numpy as np
+import torch
+
 from src.configuration.configuration import load_configuration, parse_args
-from src.util.tiling import (
-    image_to_patches,
-)
-from src.util.error import visual_error, metrics_error
+from src.data.mri_dataset import MRIDataset
+from src.data.mri_sampler import MRISampler
+from src.networks.modulated_siren import ModulatedSiren
+from src.util.error import metrics_error, visual_error
+from src.util.tiling import image_to_patches
+from src.util.visualization import metrics_boxplot, metrics_density_plot
 
 
 def save_args_to_file(args, output_dir):
@@ -31,6 +33,46 @@ def save_args_to_file(args, output_dir):
     with open(config_path, "w") as f:
         for arg, value in vars(args).items():
             f.write(f"{arg}: {value}\n")
+
+
+def save_metrics_summary(psnr_values, ssim_values, nrmse_values, output_dir):
+    """
+    Save the summary of metrics to a text file.
+
+    Args:
+        psnr_values (list): List of PSNR values.
+        ssim_values (list): List of SSIM values.
+        nrmse_values (list): List of NRMSE values.
+        output_dir (str): The directory to save the summary in.
+    """
+    metrics_summary = {
+        "PSNR": {
+            "mean": np.mean(psnr_values),
+            "std": np.std(psnr_values),
+            "min": np.min(psnr_values),
+            "max": np.max(psnr_values),
+        },
+        "SSIM": {
+            "mean": np.mean(ssim_values),
+            "std": np.std(ssim_values),
+            "min": np.min(ssim_values),
+            "max": np.max(ssim_values),
+        },
+        "NRMSE": {
+            "mean": np.mean(nrmse_values),
+            "std": np.std(nrmse_values),
+            "min": np.min(nrmse_values),
+            "max": np.max(nrmse_values),
+        },
+    }
+
+    summary_path = os.path.join(output_dir, "metrics_summary.txt")
+    with open(summary_path, "w") as f:
+        for metric, values in metrics_summary.items():
+            f.write(f"{metric}:\n")
+            for stat, value in values.items():
+                f.write(f"  {stat}: {value}\n")
+            f.write("\n")
 
 
 def test_mod_siren(config):
@@ -72,13 +114,20 @@ def test_mod_siren(config):
         activation=config.model.activation,
     )
 
-    mod_siren.load_state_dict(torch.load(config.testing.model_path))
+    mod_siren.load_state_dict(
+        torch.load(config.testing.model_path, map_location=device)
+    )
 
     mod_siren.to(device)
 
-    if config.data.visual_samples:
+    if config.data.visual_samples > 0:
         print("Evaluating visual samples ...")
-        sampler = MRISampler(pathlib.Path(config.data.dataset), config.data.test_files)
+        sampler = MRISampler(
+            pathlib.Path(config.data.dataset),
+            test_files=config.data.test_files,
+            acceleration=config.data.acceleration,
+            center_fraction=config.data.center_fraction,
+        )
 
         with torch.no_grad():
             mod_siren.eval()
@@ -124,63 +173,87 @@ def test_mod_siren(config):
                     config.model.siren_patch_size,
                 )
 
-    print("Evaluating metric samples ...")
-    sampler = MRISampler(pathlib.Path(config.data.dataset), config.data.test_files)
+    sampler = MRISampler(
+        pathlib.Path(config.data.dataset),
+        acceleration=config.data.acceleration,
+        center_fraction=config.data.center_fraction,
+    )
 
     if not config.data.metric_samples:
         config.data.metric_samples = len(sampler)
 
-    psnr_values = []
-    ssim_values = []
-    nrmse_values = []
-    filenames = []
+    if config.data.metric_samples > 0:
 
-    with torch.no_grad():
-        mod_siren.eval()
+        print("Evaluating metric samples ...")
 
-        for i in range(config.data.metric_samples):
-            print(f"Processing metric sample {i + 1}/{config.data.metric_samples}...")
-            # Load the image
-            fully_sampled_img, undersampled_img, filename = sampler.get_random_sample()
+        psnr_values = []
+        ssim_values = []
+        nrmse_values = []
+        filenames = []
 
-            # unsqueeze image to add batch dimension
-            fully_sampled_img = fully_sampled_img.unsqueeze(0).float().to(device)
-            undersampled_img = undersampled_img.unsqueeze(0).float().to(device)
+        with torch.no_grad():
+            mod_siren.eval()
 
-            fully_sampled_patch, _ = image_to_patches(
-                fully_sampled_img,
-                config.model.outer_patch_size,
-                config.model.inner_patch_size,
+            for i in range(config.data.metric_samples):
+                print(
+                    f"Processing metric sample {i + 1}/{config.data.metric_samples}..."
+                )
+                # Load the image
+                fully_sampled_img, undersampled_img, filename = (
+                    sampler.get_random_sample()
+                )
+
+                # unsqueeze image to add batch dimension
+                fully_sampled_img = fully_sampled_img.unsqueeze(0).float().to(device)
+                undersampled_img = undersampled_img.unsqueeze(0).float().to(device)
+
+                fully_sampled_patch, _ = image_to_patches(
+                    fully_sampled_img,
+                    config.model.outer_patch_size,
+                    config.model.inner_patch_size,
+                )
+                undersampled_patch, undersampled_information = image_to_patches(
+                    undersampled_img,
+                    config.model.outer_patch_size,
+                    config.model.inner_patch_size,
+                )
+
+                psnr, ssim, nrmse = metrics_error(
+                    mod_siren,
+                    fully_sampled_patch,
+                    undersampled_patch,
+                    undersampled_information,
+                    device,
+                    config.model.outer_patch_size,
+                    config.model.inner_patch_size,
+                    config.model.siren_patch_size,
+                )
+
+                psnr_values.append(psnr)
+                ssim_values.append(ssim)
+                nrmse_values.append(nrmse)
+                filenames.append(filename)
+
+            # Write them to a csv file
+            with open(os.path.join(output_dir, f"metrics_error.csv"), "w") as f:
+                f.write("FILENAME,PSNR,SSIM,NRMSE\n")
+                for filename, psnr_value, ssim_value, nrmse_value in zip(
+                    filenames, psnr_values, ssim_values, nrmse_values
+                ):
+                    f.write(f"{filename},{psnr_value},{ssim_value},{nrmse_value}\n")
+
+            save_metrics_summary(psnr_values, ssim_values, nrmse_values, output_dir)
+
+            # Visualize the metrics
+            metrics_boxplot(
+                {"PSNR": psnr_values, "SSIM": ssim_values, "NRMSE": nrmse_values},
+                output_dir,
             )
-            undersampled_patch, undersampled_information = image_to_patches(
-                undersampled_img,
-                config.model.outer_patch_size,
-                config.model.inner_patch_size,
+
+            metrics_density_plot(
+                {"PSNR": psnr_values, "SSIM": ssim_values, "NRMSE": nrmse_values},
+                output_dir,
             )
-
-            psnr, ssim, nrmse = metrics_error(
-                mod_siren,
-                fully_sampled_patch,
-                undersampled_patch,
-                undersampled_information,
-                device,
-                config.model.outer_patch_size,
-                config.model.inner_patch_size,
-                config.model.siren_patch_size,
-            )
-
-            psnr_values.append(psnr)
-            ssim_values.append(ssim)
-            nrmse_values.append(nrmse)
-            filenames.append(filename)
-
-        # Write them to a csv file
-        with open(os.path.join(output_dir, f"metrics_error.csv"), "w") as f:
-            f.write("FILENAME,PSNR,SSIM,NRMSE\n")
-            for filename, psnr_value, ssim_value, nrmse_value in zip(
-                filenames, psnr_values, ssim_values, nrmse_values
-            ):
-                f.write(f"{filename},{psnr_value},{ssim_value},{nrmse_value}\n")
 
 
 if __name__ == "__main__":

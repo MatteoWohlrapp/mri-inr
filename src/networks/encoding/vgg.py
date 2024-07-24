@@ -1,9 +1,10 @@
 # VGG from here: https://github.com/Horizon2333/imagenet-autoencoder/tree/main
 
+import os
+import sys
+
 import torch
 import torch.nn as nn
-import sys
-import os
 
 
 def get_configs(arch="vgg16"):
@@ -335,8 +336,6 @@ if __name__ == "__main__":
     model = VGGAutoEncoder(configs)
 
     output = model(input)
-
-    print(output.shape)
 
 
 def load_dict(resume_path, model):

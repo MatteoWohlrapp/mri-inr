@@ -2,27 +2,28 @@
 Training abstraction for the SIREN model.
 """
 
+import os
+import pathlib
+import time
+
+import numpy as np
+import polars as pl
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-import time
-import os
-from src.util.tiling import extract_center_batch
-import os
-import polars as pl
+
 from src.data.mri_dataset import MRIDataset
-from src.util.visualization import save_image_comparison
-import numpy as np
-from src.util.losses import PerceptualLoss, EdgeLoss
-import pathlib
+from src.util.losses import EdgeLoss, PerceptualLoss
 from src.util.tiling import (
-    image_to_patches,
-    patches_to_image_weighted_average,
-    patches_to_image,
+    extract_center_batch,
     filter_and_remember_black_patches,
+    image_to_patches,
+    patches_to_image,
+    patches_to_image_weighted_average,
     reintegrate_black_patches,
 )
+from src.util.visualization import save_image_comparison
 
 pl.Config.set_tbl_rows(1000)
 amp_enabled = True
@@ -100,9 +101,7 @@ class Trainer:
             self.criterion = nn.MSELoss()
         elif self.criterion == "Perceptual":
             self.criterion = PerceptualLoss(
-                pathlib.Path(
-                    r"./output/custom_encoder/20240710-002727_autoencoder_v1_256_epoch_170.pth"
-                ),
+                pathlib.Path(r"./models/perceptual_loss.pth"),
                 nn.MSELoss(),
                 self.device,
             )
@@ -359,7 +358,7 @@ class TrainingManager:
         self.starting_time = time.time()
         self.progress_log: pl.DataFrame = pl.from_dict(
             {
-                "epoch": [-1],
+                "epoch": [0],
                 "training_loss": [float(initial_training_loss)],
                 "validation_loss": [float(initial_validation_loss)],
                 "time_since_start": [float(0.0)],
