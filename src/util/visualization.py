@@ -11,6 +11,7 @@ import seaborn as sns
 import torch
 
 
+
 # TODO using for debugging purposes
 def show_image(image, cmap="gray"):
     """
@@ -165,3 +166,32 @@ def metrics_density_plot(metrics, output_dir, suffix=None):
         ax.set_title(key)
         plt.savefig(f"{output_dir}/{key}_density_plot.png")
         plt.close()
+
+import h5py
+def plot_k_space(path):
+    from src.data.preprocessing import load_h5
+    from fastmri.data import transforms as T
+    from fastmri.data.subsample import RandomMaskFunc
+    import fastmri
+    """
+    Plot the k-space of the image.
+
+    Args:
+        path (str): The path to the image.
+    """
+    mri_data = load_h5(path)
+    mri_data = T.to_tensor(mri_data)
+    acceleration = 6
+    center_fraction = 0.05
+
+    if True:
+        mask_func = RandomMaskFunc(
+            center_fractions=[center_fraction], accelerations=[acceleration]
+        )
+        mri_data, _, _ = T.apply_mask(mri_data, mask_func)
+    mri_data = fastmri.complex_abs(mri_data)
+    k_space = torch.log(torch.abs(mri_data[1]) + 1e-9)
+
+    plt.imshow(k_space.squeeze(), cmap="gray")
+    plt.axis("off")
+    plt.show()

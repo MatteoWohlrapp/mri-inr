@@ -1,5 +1,5 @@
 import pathlib
-from src.util.visualization import metrics_density_plot, metrics_boxplot, save_image
+from src.util.visualization import metrics_density_plot, metrics_boxplot, save_image, plot_k_space
 from src.data.mri_sampler import MRISampler
 import numpy as np
 from src.networks.encoding.custom_mri_encoder import config, build_autoencoder, CustomEncoder
@@ -50,5 +50,10 @@ def compare_encoder_implementaions():
     image = torch.rand((100, 1, 32, 32)).to(device)
     print(torch.equal(encoder1(image), encoder2(image)))
 
+
+def k_space():
+    path = pathlib.Path(r"C:\Users\jan\Documents\python_files\adlm\refactoring\output\mod_siren\mod_siren_2024-06-24_10-02-41\model_checkpoints\images\selected_img\file_brain_AXFLAIR_200_6002471.h5")
+    plot_k_space(path)
+
 if __name__ == "__main__":
-    compare_encoder_implementaions()
+    k_space()
