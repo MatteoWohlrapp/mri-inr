@@ -1,5 +1,7 @@
 **/__pycache__/
 **/*.png
+!ablations.png
+!acceleration.png
 **/*.tfevents*
 *.pth
 /output/*

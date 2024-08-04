@@ -43,7 +43,8 @@ TODO: Add actual values
 
 #### Qualitative Results
 The qualitative results can be found below.
-TODO: Add images
+![Abalations](ablations.png)
+
 
 ### Sampling density 
 The fastMRI framework allows different k-space masks to be set, which results in different sampling densities. In this experiment, we tested different accelerations, higher numbers specifying less image information being retained, and center fractions, which means how much information is kept in the center of the k-space. In total, four different variations were tested: 
@@ -60,14 +61,14 @@ TODO: Add actual values
 | Configuration   | PSNR Mean | PSNR Std | PSNR Min | PSNR Max | SSIM Mean | SSIM Std | SSIM Min | SSIM Max | NRMSE Mean | NRMSE Std | NRMSE Min | NRMSE Max |
 |-----------------|-----------|----------|----------|----------|-----------|----------|----------|----------|-------------|-----------|-----------|-----------|
 | Acc 8, Cf 0.005 | 30.2      | 0.5      | 29.5     | 31.0     | 0.89      | 0.01     | 0.87     | 0.91     | 0.032       | 0.004     | 0.030     | 0.038     |
-| Acc 6, Cf 0.005 | 30.2      | 0.5      | 29.5     | 31.0     | 0.89      | 0.01     | 0.87     | 0.91     | 0.032       | 0.004     | 0.030     | 0.038     |
-| Acc 6, Cf 0.01  | 30.2      | 0.5      | 29.5     | 31.0     | 0.89      | 0.01     | 0.87     | 0.91     | 0.032       | 0.004     | 0.030     | 0.038     |
+| Acc 6, Cf 0.005 | 26.646    | 1.994    | 21.081   | 35.084   | 0.850     | 0.034    | 0.724    | 0.934    | 0.310       | 0.126     | 0.180     | 1.082     |
+| Acc 6, Cf 0.010 | 27.878    | 2.415    | 19.412   | 38.951   | 0.882     | 0.029    | 0.773    | 0.971    | 0.269       | 0.116     | 0.143     | 0.782     |
 | Acc 4, Cf 0.01  | 30.2      | 0.5      | 29.5     | 31.0     | 0.89      | 0.01     | 0.87     | 0.91     | 0.032       | 0.004     | 0.030     | 0.038     |
 
 
 #### Qualitative Results
 The qualitative results can be found below.
-TODO: Add images
+![Acceleration](acceleration.png)
 
 ### Models 
 You can download the models from our result section [here](https://drive.google.com/drive/folders/1xa68eJXUBpLyakrB4nkHdmRmEen8fbkm?usp=sharing) to continue training or run your own evaluation. The configuration files for the respective models can be found under `configuration`. 
