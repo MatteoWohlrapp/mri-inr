@@ -168,7 +168,7 @@ def metrics_density_plot(metrics, output_dir, suffix=None):
         plt.close()
 
 import h5py
-def plot_k_space(path):
+def plot_k_space(path, acceleration = 6, center_fraction = 0.05, image_path = None):
     from src.data.preprocessing import load_h5
     from fastmri.data import transforms as T
     from fastmri.data.subsample import RandomMaskFunc
@@ -179,10 +179,11 @@ def plot_k_space(path):
     Args:
         path (str): The path to the image.
     """
+    plt.clf()
     mri_data = load_h5(path)
     mri_data = T.to_tensor(mri_data)
-    acceleration = 6
-    center_fraction = 0.05
+    
+    
 
     if True:
         mask_func = RandomMaskFunc(
@@ -194,4 +195,6 @@ def plot_k_space(path):
 
     plt.imshow(k_space.squeeze(), cmap="gray")
     plt.axis("off")
-    plt.show()
+    #plt.show()
+    if image_path:
+        plt.savefig(image_path, bbox_inches="tight", pad_inches=0, dpi=2400)
