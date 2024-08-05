@@ -31,7 +31,6 @@ The configuration for each specific experiment can be found under `configuration
 
 #### Quantitative Results
 The quantitative results can be found below.
-TODO: Add actual values
 | Configuration | PSNR Mean | PSNR Std | PSNR Min | PSNR Max | SSIM Mean | SSIM Std | SSIM Min | SSIM Max | NRMSE Mean | NRMSE Std | NRMSE Min | NRMSE Max |
 |---------------|-----------|----------|----------|----------|-----------|----------|----------|----------|-------------|-----------|-----------|-----------|
 | Baseline      | 26.646      | 1.994      | 21.081     | 35.084     | 0.850      | 0.034     | 0.724     | 0.934     | 0.310       | 0.126     | 0.180     | 1.082     |
@@ -56,7 +55,6 @@ The configuration for each specific experiment can be found under `configuration
 
 #### Quantitative Results
 The quantitative results can be found below.
-TODO: Add actual values
 | Configuration   | PSNR Mean | PSNR Std | PSNR Min | PSNR Max | SSIM Mean | SSIM Std | SSIM Min | SSIM Max | NRMSE Mean | NRMSE Std | NRMSE Min | NRMSE Max |
 |-----------------|-----------|----------|----------|----------|-----------|----------|----------|----------|-------------|-----------|-----------|-----------|
 | Acc 8, Cf 0.005 | 26.371    | 1.985    | 19.545   | 34.073   | 0.854     | 0.033    | 0.739    | 0.938    | 0.324       | 0.140     | 0.174     | 1.149     |
