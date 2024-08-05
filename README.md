@@ -51,7 +51,6 @@ The fastMRI framework allows different k-space masks to be set, which results in
 - Acceleration 8, center fraction 0.05 
 - Acceleration 6, center fraction 0.05 
 - Acceleration 6, center fraction 0.1 
-- Acceleration 4, center fraction 0.2 
 
 The configuration for each specific experiment can be found under `configuration/configuration`. The trained models can be downloaded from [here](https://drive.google.com/drive/folders/1xa68eJXUBpLyakrB4nkHdmRmEen8fbkm?usp=sharing)
 
