@@ -5,21 +5,21 @@ data:
     dataset: '../../dataset/fastmri/brain/singlecoil_train/processed_files'
     mri_type: "FLAIR"
     num_workers: 4
-    num_samples: 50
+    num_samples: 0
   val:
     dataset: '../../dataset/fastmri/brain/singlecoil_val/processed_files'
     mri_type: "FLAIR"
     num_workers: 4
-    num_samples: 5
+    num_samples: 200
 
 training:
   criterion: "MSE"
   optimizer: "Adam"
   lr: 0.0001
-  batch_size: 10
+  batch_size: 400
   epochs: 10000
   output_dir: "./output/encoder"
-  output_name: "Standard"
+  output_name: "post_autoencoder_small_lr"
   save_interval: 25
 
 model:

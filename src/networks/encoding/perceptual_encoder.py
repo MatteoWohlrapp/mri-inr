@@ -178,7 +178,7 @@ class Autoencoder_v1(nn.Module):
         self.decoder = nn.Sequential(
             FullyConnectedBlock(256, 512),
             FullyConnectedBlock(512, 256 * min_kernel_size * min_kernel_size),
-            nn.Unflatten(1, (256, 3, 3)),
+            nn.Unflatten(1, (256, min_kernel_size, min_kernel_size)),
             DecoderBlock(256, 128),  # out 6x6
             DecoderBlock(128, 64),  # out 12x12
             DecoderBlock(64, out_channels),  # out 24x24
@@ -278,6 +278,7 @@ class Trainer:
         self.train_dataset = train_dataset
         self.val_dataset = val_dataset
         self.output_dir = output_dir
+        self.output_dir.mkdir()
         self.amp = False
         self.scaler = torch.cuda.amp.GradScaler(enabled=self.amp)
 
@@ -301,7 +302,7 @@ class Trainer:
         for epoch in tqdm.tqdm(range(num_epochs)):
             loss = self.train_epoch()
 
-            if (epoch + 1) % 1 == 0:
+            if (epoch + 1) % 10 == 0:
                 self.save_model(epoch)
                 val_loss = self.validate()
                 print(

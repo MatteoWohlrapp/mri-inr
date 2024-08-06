@@ -146,6 +146,7 @@ class MRIDataset(Dataset):
         )
         self.fullysampled_tiles = torch.cat(fullysampled_tiles, dim=0)
         self.undersampled_tiles = torch.cat(undersampled_tiles, dim=0)
+        print('Dataset setup done!')
 
     def __len__(self):
         return self.fullysampled_tiles.shape[0]
