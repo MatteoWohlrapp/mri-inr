@@ -62,7 +62,7 @@ def train_autoencoder(args):
         device = torch.device("cpu")
 
     # Load the model
-    autoencoder = Autoencoder_v1(img_size=32)
+    autoencoder = FixedAutoencoder()
     autoencoder.to(device)
 
     # Define the criterion and optimizer
