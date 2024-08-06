@@ -197,4 +197,4 @@ def plot_k_space(path, acceleration = 6, center_fraction = 0.05, image_path = No
     plt.axis("off")
     #plt.show()
     if image_path:
-        plt.savefig(image_path, bbox_inches="tight", pad_inches=0, dpi=2400)
+        plt.savefig(image_path, bbox_inches="tight", pad_inches=0, dpi=100)
