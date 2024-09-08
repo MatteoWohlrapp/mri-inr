@@ -727,7 +727,7 @@ class MultKAN(nn.Module):
         for l in range(self.depth):
             self.act_fun[l].initialize_grid_from_parent(model.act_fun[l], model.acts[l])
 
-    def forward(self, x, singularity_avoiding=False, y_th=10.):
+    def forward(self, x, mods=None, singularity_avoiding=False, y_th=10.):
         '''
         forward pass
         
@@ -761,7 +761,8 @@ class MultKAN(nn.Module):
         >>> print(model(x, singularity_avoiding=True))
         >>> print(model(x, singularity_avoiding=True, y_th=1.))
         '''
-        x = x[:,self.input_id.long()]
+        #x = x[:,self.input_id.long()
+    
         assert x.shape[1] == self.width_in[0]
         
         # cache data
@@ -780,8 +781,9 @@ class MultKAN(nn.Module):
 
         self.acts.append(x)  # acts shape: (batch, width[l])
 
+        mod_idx = 0
         for l in range(self.depth):
-            
+            #print(f"layer {l}")
             x_numerical, preacts, postacts_numerical, postspline = self.act_fun[l](x)
             #print(preacts, postacts_numerical, postspline)
             
@@ -792,7 +794,16 @@ class MultKAN(nn.Module):
                 postacts_symbolic = 0.
 
             x = x_numerical + x_symbolic
-            
+
+            if mods is not None and mod_idx < len(mods):
+                print(f"x.shape: {x.shape}")
+                print(f"mod.shape: {mods[mod_idx].shape}")
+                mod = mods[mod_idx]  # Get the modulation for this layer
+                mod = mod.repeat_interleave(x.shape[0] // mod.shape[0], dim=0)
+                #mod = mod[:, :x.shape[1]]  # Ensure modulation matches the dimension of x
+                x *= mod  # Apply the modulation by element-wise multiplication
+                mod_idx += 1  # Move to the next modulation for the next layer
+                        
             if self.save_act:
                 # save subnode_scale
                 self.subnode_actscale.append(torch.std(x, dim=0).detach())

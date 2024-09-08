@@ -194,14 +194,19 @@ class Trainer:
             .to(self.device)
             .float()
         )
-        with torch.cuda.amp.autocast(enabled=amp_enabled):
-            self.optimizer.zero_grad()
-            outputs = self.model(undersampled_batch)
-            loss = self.criterion(outputs, fully_sampled_batch)
-            self.scaler.scale(loss).backward()
-            self.scaler.step(self.optimizer)
-            self.scaler.update()
-            loss_item = loss.item()
+        #with torch.cuda.amp.autocast(enabled=amp_enabled):
+        self.optimizer.zero_grad()
+        outputs = self.model(undersampled_batch)
+        loss = self.criterion(outputs, fully_sampled_batch)
+        self.scaler.scale(loss).backward()
+        self.scaler.step(self.optimizer)
+        self.scaler.update()
+        loss_item = loss.item()
+        for param in self.model.parameters():
+            if torch.isnan(param).any():
+                raise ValueError("NaN in model parameters)")
+            if param is None: 
+                raise ValueError("None in model parameters)")
 
         self.training_manager.post_batch_update(loss_item)
         return loss_item
@@ -272,6 +277,10 @@ class Trainer:
                     .float()
                 )
                 outputs = self.model(undersampled_batch.to(self.device).float())
+                #print(outputs)
+                #print("-------")
+                #print(fully_sampled_batch)
+                #print(f"fully_sampled_batch: {fully_sampled_batch.shape}")
                 training_loss += self.criterion(outputs, fully_sampled_batch).item()
             if self.val_loader:
                 for fully_sampled_batch, undersampled_batch in self.val_loader:
@@ -381,6 +390,9 @@ class TrainingManager:
         self.epoch_counter += 1
         self.update_progress_log(training_loss, validation_loss)
         if self.writer:
+            print(f"Epoch {self.epoch_counter}")
+            print(f"Training loss: {training_loss}")
+            print(f"Validation loss: {validation_loss}")
             self.writer.add_scalar("training_loss", training_loss, self.epoch_counter)
             self.writer.add_scalar(
                 "validation_loss", validation_loss, self.epoch_counter

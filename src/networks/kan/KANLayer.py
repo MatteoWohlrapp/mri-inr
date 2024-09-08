@@ -151,6 +151,8 @@ class KANLayer(nn.Module):
         >>> y.shape, preacts.shape, postacts.shape, postspline.shape
         '''
         batch = x.shape[0]
+        #print(f"batch: {batch}")
+        x = x.squeeze(1)
         preacts = x[:,None,:].clone().expand(batch, self.out_dim, self.in_dim)
             
         base = self.base_fun(x) # (batch, in_dim)

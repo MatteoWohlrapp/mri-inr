@@ -2,14 +2,10 @@ data:
   acceleration: 6
   center_fraction: 0.05
   train:
-    dataset: '../../dataset/fastmri/brain/singlecoil_train/processed_files'
+    dataset: '../../dataset/fastmri/brain/singlecoil_train/processed_v2/processed_v2'
     mri_type: "FLAIR"
     num_workers: 4
-  val:
-    dataset: '../../dataset/fastmri/brain/singlecoil_val/processed_files'
-    mri_type: "FLAIR"
-    num_workers: 4
-    num_samples: 5
+    num_samples: 1
 
 model:
   dim_in: 2
@@ -29,12 +25,12 @@ model:
   activation: "sine"
   
 training:
-  lr: 0.0001
+  lr: 0.001
   batch_size: 400
-  epochs: 10000
+  epochs: 10
   output_dir: "./output"
-  output_name: "modulated_siren"
+  output_name: "kan"
   optimizer: "Adam"
-  save_interval: 25
+  save_interval: 1
   logging: True
   criterion: "MSE"

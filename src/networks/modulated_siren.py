@@ -12,6 +12,7 @@ from torch import nn
 
 from src.networks.encoding.siren_encoder import CustomEncoder, FixedEncoder
 from src.networks.encoding.vgg import VGGAutoEncoder, get_configs, load_dict
+from src.networks.kan import KAN
 
 
 def cast_tuple(val, repeat=1):
@@ -228,6 +229,8 @@ class SirenNet(nn.Module):
             x = layer(x)
 
             if mod is not None:
+                print(f"Mod shape: {mod.shape}")
+                print(f"X shape: {x.shape}")
                 x *= rearrange(mod, "b d -> b () d")
 
         return self.last_layer(x)
@@ -401,6 +404,7 @@ class ModulatedSiren(nn.Module):
         self.siren_patch_size = siren_patch_size
         self.activation = activation
 
+        """
         self.net = SirenNet(
             dim_in=dim_in,
             dim_hidden=dim_hidden,
@@ -411,10 +415,13 @@ class ModulatedSiren(nn.Module):
             use_bias=use_bias,
             dropout=dropout,
             activation=activation,
-        )
+        )"""
+
+        self.net =  KAN(width=[2,50, 50, 50, 50, 1], grid=3, k=3, seed=1, device=device)
+        #self.net = SirenNet(dim_in=dim_in,dim_hidden=10,dim_out=dim_out,num_layers=4,w0=w0,w0_initial=w0_initial,use_bias=use_bias,dropout=dropout,activation=activation,)
 
         self.modulator = Modulator(
-            dim_in=latent_dim, dim_hidden=dim_hidden, num_layers=num_layers
+            dim_in=latent_dim, dim_hidden=50, num_layers=4
         )
 
         self.encoder = Encoder(
@@ -432,16 +439,39 @@ class ModulatedSiren(nn.Module):
         mgrid = rearrange(mgrid, "h w b -> (h w) b")
         self.register_buffer("grid", mgrid)
 
+    """"""
     def forward(self, tiles):
-        """
-        Forward pass of the modulated SIREN network.
 
-        Args:
-            tiles (torch.Tensor): The input image patches.
+        batch_size = tiles.shape[0]  # Number of images in the batch
+        mods = self.modulator(self.encoder(tiles))
 
-        Returns:
-            torch.Tensor: The output tensor.
-        """
+        height, width = self.siren_patch_size, self.siren_patch_size 
+
+        # Create and repeat the grid for each batch element
+        coords = self.grid.clone().detach().repeat(batch_size, 1, 1).requires_grad_()  # Shape: [batch_size, height * width, 2]
+
+        #print(f"Initial coords shape: {coords.shape}")  # Debugging info: [batch_size, height * width, 2]
+
+        # Reshape coords to match the network's input requirement
+        coords = coords.view(batch_size * height * width, 2)  # Shape: [batch_size * height * width, 2]
+
+        #print(f"Coords shape after reshape for network input: {coords.shape}")  # Debugging info: [batch_size * height * width, 2]
+
+        # Forward pass through the network
+        out = self.net(coords, mods)  # Output shape: [batch_size * height * width, output_dim]
+        #print(f"Output shape from network: {out.shape}")  # Debugging info
+
+        # Reshape output back to the original batch format
+        out = out.view(batch_size, height, width, -1)  # Shape: [batch_size, height, width, output_dim]
+
+        #print(f"Output shape after reshape back to batch format: {out.shape}")  # Debugging info
+
+        out = out.squeeze(3)
+
+        return out 
+    
+
+    """def forward(self, tiles):
         batch_size = tiles.shape[0]
         mods = self.modulator(self.encoder(tiles))
 
@@ -454,4 +484,5 @@ class ModulatedSiren(nn.Module):
         )
         out = out.squeeze(0)
 
-        return out
+        return out"""
+    

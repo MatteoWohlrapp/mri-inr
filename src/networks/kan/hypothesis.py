@@ -5,7 +5,7 @@ from sympy.utilities.lambdify import lambdify
 from sklearn.cluster import AgglomerativeClustering
 from .utils import batch_jacobian, batch_hessian
 from functools import reduce
-from kan.utils import batch_jacobian, batch_hessian
+from src.networks.kan.utils import batch_jacobian, batch_hessian
 import copy 
 import matplotlib.pyplot as plt
 import sympy 

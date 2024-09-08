@@ -1,7 +1,7 @@
 from sympy import *
 import sympy
 import numpy as np
-from kan.MultKAN import MultKAN
+from src.networks.kan.MultKAN import MultKAN
 import torch
 
 def next_nontrivial_operation(expr, scale=1, bias=0):
