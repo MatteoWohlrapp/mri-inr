@@ -796,10 +796,13 @@ class MultKAN(nn.Module):
             x = x_numerical + x_symbolic
 
             if mods is not None and mod_idx < len(mods):
-                print(f"x.shape: {x.shape}")
-                print(f"mod.shape: {mods[mod_idx].shape}")
                 mod = mods[mod_idx]  # Get the modulation for this layer
-                mod = mod.repeat_interleave(x.shape[0] // mod.shape[0], dim=0)
+                #mod = mod.repeat_interleave(x.shape[0] // mod.shape[0], dim=0)
+                batch_size = mod.shape[0]  # Get the batch size
+                num_pixels_per_image = x.shape[0] // batch_size
+                mod = mod.unsqueeze(1)  # Shape: [batch_size, 1, num_features]
+                mod = mod.expand(-1, num_pixels_per_image, -1)  # Shape: [batch_size, num_pixels_per_image, num_features]
+                mod = mod.reshape(-1, mod.shape[-1])  # Flatten to match x
                 #mod = mod[:, :x.shape[1]]  # Ensure modulation matches the dimension of x
                 x *= mod  # Apply the modulation by element-wise multiplication
                 mod_idx += 1  # Move to the next modulation for the next layer

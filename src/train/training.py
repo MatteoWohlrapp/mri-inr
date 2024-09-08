@@ -194,19 +194,19 @@ class Trainer:
             .to(self.device)
             .float()
         )
-        #with torch.cuda.amp.autocast(enabled=amp_enabled):
-        self.optimizer.zero_grad()
-        outputs = self.model(undersampled_batch)
-        loss = self.criterion(outputs, fully_sampled_batch)
-        self.scaler.scale(loss).backward()
-        self.scaler.step(self.optimizer)
-        self.scaler.update()
-        loss_item = loss.item()
-        for param in self.model.parameters():
-            if torch.isnan(param).any():
-                raise ValueError("NaN in model parameters)")
-            if param is None: 
-                raise ValueError("None in model parameters)")
+        with torch.cuda.amp.autocast(enabled=amp_enabled):
+            self.optimizer.zero_grad()
+            outputs = self.model(undersampled_batch)
+            loss = self.criterion(outputs, fully_sampled_batch)
+            self.scaler.scale(loss).backward()
+            self.scaler.step(self.optimizer)
+            self.scaler.update()
+            loss_item = loss.item()
+            for param in self.model.parameters():
+                if torch.isnan(param).any():
+                    raise ValueError("NaN in model parameters)")
+                if param is None: 
+                    raise ValueError("None in model parameters)")
 
         self.training_manager.post_batch_update(loss_item)
         return loss_item

@@ -158,7 +158,7 @@ class KANLayer(nn.Module):
         base = self.base_fun(x) # (batch, in_dim)
         y = coef2curve(x_eval=x, grid=self.grid, coef=self.coef, k=self.k)
         
-        postspline = y.clone().permute(0,2,1)
+        postspline = y.clone().permute(0,2,1).contiguous()
             
         y = self.scale_base[None,:,:] * base[:,:,None] + self.scale_sp[None,:,:] * y
         y = self.mask[None,:,:] * y

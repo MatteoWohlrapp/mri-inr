@@ -2,7 +2,12 @@ data:
   acceleration: 6
   center_fraction: 0.05
   train:
-    dataset: '../../dataset/fastmri/brain/singlecoil_train/processed_v2/processed_v2'
+    dataset: '../../dataset/fastmri/brain/singlecoil_train/processed_files/'
+    mri_type: "FLAIR"
+    num_workers: 4
+    num_samples: 100
+  val:
+    dataset: '../../dataset/fastmri/brain/singlecoil_val/processed_files/'
     mri_type: "FLAIR"
     num_workers: 4
     num_samples: 1
@@ -27,7 +32,7 @@ model:
 training:
   lr: 0.001
   batch_size: 400
-  epochs: 10
+  epochs: 1000
   output_dir: "./output"
   output_name: "kan"
   optimizer: "Adam"
