@@ -3,6 +3,7 @@ Preprocess the data
 """
 
 import pathlib
+import random
 
 import fastmri
 import h5py
@@ -14,6 +15,41 @@ from fastmri.data.subsample import RandomMaskFunc
 
 from src.util.visualization import normalize_scan
 
+def apply_cross_mask(data):
+    center_width = 8
+    mask = np.zeros_like(data)
+    width, height = data.shape[2], data.shape[1]
+    mask[:,:, width//2-center_width:width//2+center_width,:] = 1
+    mask[:, height//2-center_width:height//2+center_width,:,:] = 1
+    for _ in range(40):
+        x = random.randint(0, width-1)
+        mask[:,:,x,:] = 1
+        y = random.randint(0, height-1)
+        mask[:,y,:,:] = 1
+    print(np.sum(mask)/(np.sum(np.ones_like(mask))))
+    return data * mask
+
+def apply_cricular_mask(data):
+    mask = np.zeros_like(data)
+    width, height = data.shape[2], data.shape[1]
+    for i in range(width):
+        for j in range(height):
+            if (i-width//2)**2 + (j-height//2)**2 < 150:
+                mask[:,j,i,:] = 1
+
+    # add circles with random radius around the center
+    for _ in range(40):
+        x =  width//2
+        y = height//2
+        thickness = 500
+        r = random.randint(0, 320*320/4)
+        for i in range(width):
+            for j in range(height):
+                if r-thickness < (i-x)**2 + (j-y)**2 < r:
+                    mask[:,j,i,:] = 1
+    print(np.sum(mask)/(np.sum(np.ones_like(mask))))
+    return data * mask
+    
 
 def load_h5(path) -> np.ndarray:
     """
@@ -29,6 +65,36 @@ def load_h5(path) -> np.ndarray:
         data = f["kspace"][()]
     return data
 
+
+def load_mri_scan2(
+    path: pathlib.Path, center_fraction, acceleration, undersampled=False
+) -> torch.Tensor:
+    """
+    Load an MRI scan from a .h5 file.
+
+    Args:
+        path (pathlib.Path): The path to the .h5 file.
+        undersampled (bool): Whether to load the undersampled scan.
+        center_fraction (float): The center fraction for the mask.
+        acceleration (int): The acceleration for the mask.xs
+
+    Returns:
+        torch.Tensor: The MRI scan.xs
+    """
+    mri_data = load_h5(path)
+    mri_data = T.to_tensor(mri_data)
+
+    if undersampled:
+        mask_func = RandomMaskFunc(
+            center_fractions=[center_fraction], accelerations=[acceleration]
+        )
+        #mri_data, _, _ = T.apply_mask(mri_data, mask_func)
+        mri_data = apply_cricular_mask(mri_data)
+    k_space = torch.log(torch.abs(fastmri.complex_abs(mri_data)+ 1e-9))
+    mri_data = fastmri.ifft2c(mri_data)
+    mri_data = fastmri.complex_abs(mri_data)
+    scan = mri_data
+    return scan, k_space
 
 def load_mri_scan(
     path: pathlib.Path, center_fraction, acceleration, undersampled=False
@@ -53,11 +119,67 @@ def load_mri_scan(
             center_fractions=[center_fraction], accelerations=[acceleration]
         )
         mri_data, _, _ = T.apply_mask(mri_data, mask_func)
-
+    k_space = torch.log(torch.abs(fastmri.complex_abs(mri_data)+ 1e-9))
     mri_data = fastmri.ifft2c(mri_data)
     mri_data = fastmri.complex_abs(mri_data)
     scan = mri_data
-    return scan
+    return scan, k_space
+
+def load_mri_scan_complex(
+    path: pathlib.Path, center_fraction, acceleration, undersampled=False
+) -> torch.Tensor:
+    """
+    Load an MRI scan from a .h5 file. Without using absolute value but using the real and imaginary parts.
+
+    Args:
+        path (pathlib.Path): The path to the .h5 file.
+        undersampled (bool): Whether to load the undersampled scan.
+        center_fraction (float): The center fraction for the mask.
+        acceleration (int): The acceleration for the mask.xs
+
+    Returns:
+        torch.Tensor: The MRI scan.xs
+    """
+    mri_data = load_h5(path)
+    mri_data = T.to_tensor(mri_data)
+
+    if undersampled:
+        mask_func = RandomMaskFunc(
+            center_fractions=[center_fraction], accelerations=[acceleration]
+        )
+        mri_data, _, _ = T.apply_mask(mri_data, mask_func)
+
+    mri_data = fastmri.ifft2c(mri_data)
+    mri_data_real = torch.abs(mri_data[:,:,:,0])
+    mri_data_imag = torch.abs(mri_data[:,:,:,1])
+    return mri_data_real, mri_data_imag
+
+def load_mri_scan_complex_comb(
+    path: pathlib.Path, center_fraction, acceleration, undersampled=False
+) -> torch.Tensor:
+    """
+    Load an MRI scan from a .h5 file. Without using absolute value but using the real and imaginary parts.
+
+    Args:
+        path (pathlib.Path): The path to the .h5 file.
+        undersampled (bool): Whether to load the undersampled scan.
+        center_fraction (float): The center fraction for the mask.
+        acceleration (int): The acceleration for the mask.xs
+
+    Returns:
+        torch.Tensor: The MRI scan.xs
+    """
+    mri_data = load_h5(path)
+    mri_data = T.to_tensor(mri_data)
+
+    if undersampled:
+        mask_func = RandomMaskFunc(
+            center_fractions=[center_fraction], accelerations=[acceleration]
+        )
+        mri_data, _, _ = T.apply_mask(mri_data, mask_func)
+
+    mri_data = fastmri.ifft2c(mri_data)
+    return mri_data
 
 
 def get_mri_type(file: pathlib.Path) -> str:
@@ -120,16 +242,16 @@ def process_files(data_root: pathlib.Path, undersample_params: list):
     metadata_keys += [f"path_undersampled_{cf}_{acc}" for cf, acc in undersample_params]
     metadata = {key: [] for key in metadata_keys}
 
-    dest_dir = data_root / "processed_files"
+    dest_dir = data_root / "processed_files_complex"
     dest_dir.mkdir(exist_ok=True)
 
     for file in data_root.glob("*.h5"):
         scan = normalize_scan(
-            load_mri_scan(file, undersampled=False, center_fraction=1, acceleration=1)
+            load_mri_scan_complex_comb(file, undersampled=False, center_fraction=1, acceleration=1)
         )
         undersampled_scans = [
             normalize_scan(
-                load_mri_scan(
+                load_mri_scan_complex_comb(
                     file, undersampled=True, center_fraction=cf, acceleration=acc
                 )
             )

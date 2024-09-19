@@ -2,15 +2,15 @@ data:
   acceleration: 6
   center_fraction: 0.1
   train:
-    dataset: '../../dataset/fastmri/brain/singlecoil_train/processed_files'
+    dataset: 'C:/Users/jan/Documents/python_files/adlm/data/brain/singlecoil_train/processed_files_complex'
     mri_type: "FLAIR"
-    num_workers: 4
-    num_samples: 50
+    num_workers: 1
+    num_samples: 3
   val:
-    dataset: '../../dataset/fastmri/brain/singlecoil_val/processed_files'
+    dataset: 'C:/Users/jan/Documents/python_files/adlm/data/brain/singlecoil_train/processed_files_complex'
     mri_type: "FLAIR"
-    num_workers: 4
-    num_samples: 50
+    num_workers: 1
+    num_samples: 3
 
 training:
   criterion: "MSE"

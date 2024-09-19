@@ -21,10 +21,38 @@ def show_image(image, cmap="gray"):
         image (torch.Tensor): A single image as a 2D tensor (height x width).
         cmap (str): The colormap to use for displaying the image. Default is 'gray'.
     """
-    plt.imshow(image.squeeze(), cmap=cmap, vmin=0, vmax=1)
+    plt.imshow(image.squeeze(), cmap=cmap)
     plt.axis("off")
     plt.show()
 
+def show_image_complex(image_real, image_imag, image_abs, image_phase, cmap="gray"):
+    """
+    Display a single image using matplotlib.
+
+    Args:
+        image (torch.Tensor): A single image as a 2D tensor (height x width).
+        cmap (str): The colormap to use for displaying the image. Default is 'gray'.
+    """
+    fig, ax = plt.subplots(1, 6, figsize=(10, 5))
+    ax[0].imshow(image_real.squeeze(), cmap=cmap)
+    ax[0].set_title("Real Part")
+    ax[0].axis("off")
+    ax[1].imshow(image_imag.squeeze(), cmap=cmap)
+    ax[1].set_title("Imaginary Part")
+    ax[1].axis("off")
+    ax[2].imshow(torch.abs(image_real.squeeze() - image_imag.squeeze()), cmap=cmap)
+    ax[2].set_title("Difference")
+    ax[2].axis("off")
+    ax[3].imshow(image_abs.squeeze(), cmap=cmap)
+    ax[3].set_title("Absolute Value")
+    ax[3].axis("off")
+    ax[4].imshow(image_real + image_imag, cmap=cmap)
+    ax[4].set_title("Sum")
+    ax[4].axis("off")
+    ax[5].imshow(image_phase.squeeze(), cmap=cmap)
+    ax[5].set_title("Phase")
+    ax[5].axis("off")
+    plt.show()
 
 # TODO using for debugging purposes
 def show_batch(batch, cmap="gray", ncols=2):
@@ -37,9 +65,9 @@ def show_batch(batch, cmap="gray", ncols=2):
         ncols (int): The number of columns to use for displaying the images. Default
     """
     nrows = (len(batch) + ncols - 1) // ncols
-    fig, ax = plt.subplots(nrows, ncols, figsize=(5, 10))
+    fig, ax = plt.subplots(nrows, ncols, figsize=(20, 10))
     for i, image in enumerate(batch):
-        ax[i // ncols, i % ncols].imshow(image.squeeze(), cmap=cmap, vmin=0, vmax=1)
+        ax[i // ncols, i % ncols].imshow(image.squeeze(), cmap=cmap)
         ax[i // ncols, i % ncols].axis("off")
     plt.show()
 

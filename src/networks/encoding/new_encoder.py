@@ -34,10 +34,10 @@ class EncoderBlock(nn.Module):
 
         self.encoder_block = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
-            nn.BatchNorm2d(out_channels),
+            #nn.BatchNorm2d(out_channels),
             nn.LeakyReLU(0.2, inplace=True),
             nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
-            nn.BatchNorm2d(out_channels),
+            #nn.BatchNorm2d(out_channels),
             nn.LeakyReLU(0.2, inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
         )
@@ -68,10 +68,10 @@ class ConvBlock(nn.Module):
 
         self.encoder_block = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
-            nn.BatchNorm2d(out_channels),
+            #nn.BatchNorm2d(out_channels),
             nn.LeakyReLU(0.2, inplace=True),
             nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
-            nn.BatchNorm2d(out_channels),
+            #nn.BatchNorm2d(out_channels),
             nn.LeakyReLU(0.2, inplace=True),
         )
 
@@ -241,10 +241,10 @@ class Autoencoder_v2(nn.Module):
         Returns:
             torch.Tensor: The output tensor.
         """
-        x = x.unsqueeze(1)
+        #x = x.unsqueeze(1)
         x = self.encoder(x)
         x = self.decoder(x)
-        x = x.squeeze(1)
+        #x = x.squeeze(1)
         return x
 
 

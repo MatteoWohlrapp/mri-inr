@@ -19,7 +19,8 @@ def image_to_patches(tensor, outer_patch_size, inner_patch_size):
     Returns:
         Tuple[torch.Tensor, List[Tuple[int, int]]]: Tuple of extracted patches and list of tuples with number of patches (num_patches_vertical, num_patches_horizontal) for each image.
     """
-    tensor = tensor.unsqueeze(1)
+    if len(tensor.shape) == 3:
+        tensor = tensor.unsqueeze(1)
     batch_size, _, _, _ = tensor.shape
 
     stride = inner_patch_size
@@ -62,6 +63,33 @@ def image_to_patches(tensor, outer_patch_size, inner_patch_size):
     cat_patches = torch.cat(all_patches, dim=0)
 
     return torch.cat(all_patches, dim=0), image_information
+
+def image_to_patches_multi_channel(
+    tensor, outer_patch_size, inner_patch_size
+):
+    """
+    Extract overlapping patches from a batch of multi-channel images, handling variable image sizes in a batch.
+
+    Args:
+        tensor (torch.Tensor): Input tensor of shape (batch_size, channels, height, width).
+        outer_patch_size (int): Total size of each patch including the border.
+        inner_patch_size (int): Size of the core area of each patch.
+
+    Returns:
+        Tuple[torch.Tensor, List[Tuple[int, int]]]: Tuple of extracted patches and list of tuples with number of patches (num_patches_vertical, num_patches_horizontal) for each image.
+    """
+    tensor = tensor.permute(0, 3, 1, 2)
+    batch_size, channels, _, _ = tensor.shape
+    #this works by using image_to_patches for each channel and then concatenating the results
+    patches = []
+    image_information = []
+    for i in range(channels):
+        channel_patches, info = image_to_patches(
+            tensor[:, i, :, :], outer_patch_size, inner_patch_size
+        )
+        patches.append(channel_patches.unsqueeze(1))
+        image_information.append(info)
+    return torch.cat(patches, dim=1), image_information[0]
 
 
 def generate_weight_matrix(tile_size):

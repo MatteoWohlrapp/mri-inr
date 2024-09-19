@@ -11,6 +11,7 @@ from src.util.tiling import (
     filter_black_patches,
     filter_black_patches_indices,
     image_to_patches,
+    image_to_patches_multi_channel,
 )
 
 
@@ -87,7 +88,7 @@ class MRIDataset(Dataset):
             )
         if self.number_of_samples:
             self.metadata = self.metadata.collect().sample(
-                n=self.number_of_samples, seed=self.seed
+                n=self.number_of_samples, seed=self.seed, with_replacement=True#debugging
             )
         else:
             self.metadata = self.metadata.collect()
@@ -127,15 +128,14 @@ class MRIDataset(Dataset):
             if self.transform:
                 scan_fullysampled = self.transform(scan_fullysampled)
                 scan_undersampled = self.transform(scan_undersampled)
-
-            patches, _ = image_to_patches(
+            patches, _ = image_to_patches_multi_channel(
                 scan_fullysampled.unsqueeze(0),
                 self.outer_patch_size,
                 self.inner_patch_size,
             )
             fullysampled_tiles.append(patches)
 
-            patches, _ = image_to_patches(
+            patches, _ = image_to_patches_multi_channel(
                 scan_undersampled.unsqueeze(0),
                 self.outer_patch_size,
                 self.inner_patch_size,
@@ -268,7 +268,7 @@ class MRIDatasetLessRAM(Dataset):
             )
         if self.number_of_samples:
             self.metadata = self.metadata.collect().sample(
-                n=self.number_of_samples, seed=self.seed
+                n=self.number_of_samples, seed=self.seed,with_replacement=True#debugging
             )
         else:
             self.metadata = self.metadata.collect()
@@ -299,7 +299,7 @@ class MRIDatasetLessRAM(Dataset):
         scan = torch.from_numpy(scan)
         if self.transform:
             scan = self.transform(scan)
-        patches, _ = image_to_patches(
+        patches, _ = image_to_patches_multi_channel(
             scan.unsqueeze(0),
             self.outer_patch_size,
             self.inner_patch_size,
@@ -342,3 +342,6 @@ class MRIDatasetLessRAM(Dataset):
 
     def __getitems__(self, idxs: List[int]):
         return [self.__getitem__(idx) for idx in idxs]
+
+
+

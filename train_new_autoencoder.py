@@ -57,7 +57,7 @@ def train_autoencoder(args):
         device = torch.device("cpu")
 
     # Load the model
-    autoencoder = HardcodedAutoencoder()
+    autoencoder = Autoencoder_v2(2,2,32)
     autoencoder.to(device)
 
     # Define the criterion and optimizer
