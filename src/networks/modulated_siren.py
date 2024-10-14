@@ -417,11 +417,11 @@ class ModulatedSiren(nn.Module):
             activation=activation,
         )"""
 
-        self.net =  KAN(width=[2,30, 30, 30, 1], grid=3, k=3, seed=1, device=device)
+        self.net =  KAN(width=[2,50, 50, 50, 50, 1], grid=2, k=3, seed=1, device=device)
         #self.net = SirenNet(dim_in=dim_in,dim_hidden=10,dim_out=dim_out,num_layers=4,w0=w0,w0_initial=w0_initial,use_bias=use_bias,dropout=dropout,activation=activation,)
 
         self.modulator = Modulator(
-            dim_in=latent_dim, dim_hidden=30, num_layers=3
+            dim_in=latent_dim, dim_hidden=50, num_layers=4
         )
 
         self.encoder = Encoder(
