@@ -117,7 +117,7 @@ class Trainer:
             if logging
             else None
         )
-        initial_training_loss, initial_validation_loss = self.get_initial_errors()
+        #initial_training_loss, initial_validation_loss = self.get_initial_errors()
         self.training_manager = TrainingManager(
             model,
             optimizer,
@@ -127,8 +127,8 @@ class Trainer:
             train_dataset,
             self.val_loader,
             val_dataset,
-            initial_training_loss,
-            initial_validation_loss,
+            0,
+            0,
             device,
             outer_patch_size,
             inner_patch_size,
@@ -140,6 +140,7 @@ class Trainer:
         self.scaler = torch.cuda.amp.GradScaler(enabled=True)
 
     def train(self, initial_epoch, num_epochs):
+        print("Starting training")
         """
         Training loop.
 

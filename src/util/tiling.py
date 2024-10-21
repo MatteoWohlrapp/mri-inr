@@ -19,6 +19,9 @@ def image_to_patches(tensor, outer_patch_size, inner_patch_size):
     Returns:
         Tuple[torch.Tensor, List[Tuple[int, int]]]: Tuple of extracted patches and list of tuples with number of patches (num_patches_vertical, num_patches_horizontal) for each image.
     """
+    if outer_patch_size == 0 and inner_patch_size == 0:
+        return tensor, []
+    
     tensor = tensor.unsqueeze(1)
     batch_size, _, _, _ = tensor.shape
 
@@ -105,6 +108,8 @@ def patches_to_image_weighted_average(
         torch.Tensor: Reconstructed image.
     """
     # Assuming a single-channel image. Adjust for multi-channel images.
+    if outer_patch_size == 0 and inner_patch_size == 0:
+        return tiles
     output_size = (
         image_information[0][0] * inner_patch_size,
         image_information[0][1] * inner_patch_size,
@@ -154,6 +159,8 @@ def patches_to_image(tiles, image_information, outer_patch_size, inner_patch_siz
         torch.Tensor: Reconstructed image.
     """
     # Assuming a single-channel image. Adjust for multi-channel images.
+    if outer_patch_size == 0 and inner_patch_size == 0:
+        return tiles
     output_size = (
         image_information[0][0] * inner_patch_size,
         image_information[0][1] * inner_patch_size,
@@ -315,6 +322,8 @@ def extract_center_batch(batch, outer_patch_size, inner_patch_size) -> torch.Ten
     Returns:
         torch.Tensor: Extracted center tensor of shape (batch_size, inner_patch_size, inner_patch_size).
     """
+    if outer_patch_size == 0 and inner_patch_size == 0:
+        return batch
     padding = (outer_patch_size - inner_patch_size) // 2
     center = batch[
         :, padding : padding + inner_patch_size, padding : padding + inner_patch_size

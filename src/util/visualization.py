@@ -81,7 +81,6 @@ def save_image_comparison(
     ax[3].axis("off")
     plt.savefig(path)
 
-
 def save_image(image, filename, output_dir, cmap="gray"):
     """
     Save a single image using matplotlib.

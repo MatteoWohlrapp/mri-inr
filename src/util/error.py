@@ -128,7 +128,6 @@ def visual_error(
         inner_patch_size (int): The size of the inner patch.
         siren_patch_size (int): The size of the SIREN patch.
     """
-
     # Filter black tiles
     undersampled_filtered, filter_information, original_shape = (
         filter_and_remember_black_patches(undersampled)

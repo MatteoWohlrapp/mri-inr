@@ -1,0 +1,40 @@
+data:
+  acceleration: 6
+  center_fraction: 0.05
+  train:
+    dataset: '../../dataset/fastmri/brain/singlecoil_train'
+    mri_type: "FLAIR"
+    num_workers: 6
+  val:
+    dataset: '../../dataset/fastmri/brain/singlecoil_val'
+    mri_type: "FLAIR"
+    num_workers: 6
+    num_samples: 10
+
+model:
+  dim_in: 2
+  dim_hidden: 256
+  dim_out: 1
+  latent_dim: 256
+  num_layers: 5
+  w0: 1.0
+  w0_initial: 30.0
+  use_bias: True
+  dropout: 0.1
+  encoder_type: "custom"
+  encoder_path: './models/custom_encoder.pth'
+  outer_patch_size: 0
+  inner_patch_size: 0
+  siren_patch_size: 0
+  activation: "sine"
+  
+training:
+  lr: 0.0001
+  batch_size: 10
+  epochs: 100
+  output_dir: "./output"
+  output_name: "unet-complete"
+  optimizer: "Adam"
+  save_interval: 1
+  logging: True
+  criterion: "MSE"
